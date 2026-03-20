@@ -9,7 +9,17 @@ defmodule Bibtime.Races.Race do
     field :date, :date
     field :location, :string
     field :race_type, Ecto.Enum, values: [:triathlon, :running, :cycling, :swimming, :custom]
-    field :status, Ecto.Enum, values: [:draft, :registration_open, :registration_closed, :in_progress, :finished, :archived]
+
+    field :status, Ecto.Enum,
+      values: [
+        :draft,
+        :registration_open,
+        :registration_closed,
+        :in_progress,
+        :finished,
+        :archived
+      ]
+
     field :config, :map, default: %{}
 
     has_many :categories, Bibtime.Races.RaceCategory
@@ -25,7 +35,9 @@ defmodule Bibtime.Races.Race do
     race
     |> cast(attrs, [:name, :slug, :description, :date, :location, :race_type, :status, :config])
     |> validate_required([:name, :slug, :race_type, :status])
-    |> validate_format(:slug, ~r/^[a-z0-9-]+$/, message: "must be lowercase alphanumeric and hyphens only")
+    |> validate_format(:slug, ~r/^[a-z0-9-]+$/,
+      message: "must be lowercase alphanumeric and hyphens only"
+    )
     |> unique_constraint(:slug)
   end
 end

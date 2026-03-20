@@ -180,9 +180,29 @@ defmodule Bibtime.RacesTest do
       race1 = create_race!()
       race2 = create_race!()
 
-      Races.create_split(%{name: "Run", short_name: "run", leg_type: :run, race_id: race1.id, sort_order: 2})
-      Races.create_split(%{name: "Swim", short_name: "swim", leg_type: :swim, race_id: race1.id, sort_order: 1})
-      Races.create_split(%{name: "Other", short_name: "other", leg_type: :other, race_id: race2.id, sort_order: 1})
+      Races.create_split(%{
+        name: "Run",
+        short_name: "run",
+        leg_type: :run,
+        race_id: race1.id,
+        sort_order: 2
+      })
+
+      Races.create_split(%{
+        name: "Swim",
+        short_name: "swim",
+        leg_type: :swim,
+        race_id: race1.id,
+        sort_order: 1
+      })
+
+      Races.create_split(%{
+        name: "Other",
+        short_name: "other",
+        leg_type: :other,
+        race_id: race2.id,
+        sort_order: 1
+      })
 
       splits = Races.list_splits(race1.id)
       assert length(splits) == 2
@@ -191,7 +211,10 @@ defmodule Bibtime.RacesTest do
 
     test "delete_split/1 removes the split" do
       race = create_race!()
-      {:ok, split} = Races.create_split(%{name: "Temp", short_name: "tmp", leg_type: :other, race_id: race.id})
+
+      {:ok, split} =
+        Races.create_split(%{name: "Temp", short_name: "tmp", leg_type: :other, race_id: race.id})
+
       assert {:ok, %Split{}} = Races.delete_split(split)
       assert Races.list_splits(race.id) == []
     end

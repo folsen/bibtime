@@ -25,7 +25,10 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
       <div>
         <div class="flex items-center gap-3">
           <h1 class="text-2xl font-semibold tracking-tight text-base-content">{@race.name}</h1>
-          <span class={["rounded-full px-2.5 py-0.5 text-xs font-medium", status_pill_class(@race.status)]}>
+          <span class={[
+            "rounded-full px-2.5 py-0.5 text-xs font-medium",
+            status_pill_class(@race.status)
+          ]}>
             {format_status(@race.status)}
           </span>
         </div>
@@ -39,13 +42,17 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
     <%!-- Info Cards Grid --%>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
       <div class="rounded-xl border border-base-300 bg-base-100 p-5 shadow-sm">
-        <h3 class="text-sm font-semibold text-base-content/50 uppercase tracking-wider mb-3">Details</h3>
+        <h3 class="text-sm font-semibold text-base-content/50 uppercase tracking-wider mb-3">
+          Details
+        </h3>
         <dl class="space-y-3 text-sm">
           <div class="flex items-center justify-between">
             <dt class="text-base-content/50 flex items-center gap-1.5">
               <.icon name="hero-calendar" class="size-4" /> Date
             </dt>
-            <dd class="font-medium">{if @race.date, do: Calendar.strftime(@race.date, "%B %d, %Y"), else: "Not set"}</dd>
+            <dd class="font-medium">
+              {if @race.date, do: Calendar.strftime(@race.date, "%B %d, %Y"), else: "Not set"}
+            </dd>
           </div>
           <div class="flex items-center justify-between">
             <dt class="text-base-content/50 flex items-center gap-1.5">
@@ -63,8 +70,12 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
       </div>
 
       <div class="rounded-xl border border-base-300 bg-base-100 p-5 shadow-sm">
-        <h3 class="text-sm font-semibold text-base-content/50 uppercase tracking-wider mb-3">Description</h3>
-        <p class="text-sm text-base-content/80 leading-relaxed">{@race.description || "No description provided."}</p>
+        <h3 class="text-sm font-semibold text-base-content/50 uppercase tracking-wider mb-3">
+          Description
+        </h3>
+        <p class="text-sm text-base-content/80 leading-relaxed">
+          {@race.description || "No description provided."}
+        </p>
       </div>
     </div>
 
@@ -78,10 +89,15 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
           <.icon name="hero-users" class="size-6 text-primary" />
         </div>
         <div>
-          <div class="font-semibold text-base-content group-hover:text-primary transition-colors">Participants</div>
+          <div class="font-semibold text-base-content group-hover:text-primary transition-colors">
+            Participants
+          </div>
           <div class="text-sm text-base-content/50">Manage race entrants</div>
         </div>
-        <.icon name="hero-chevron-right" class="size-5 ml-auto text-base-content/30 group-hover:text-primary/60 transition-colors" />
+        <.icon
+          name="hero-chevron-right"
+          class="size-5 ml-auto text-base-content/30 group-hover:text-primary/60 transition-colors"
+        />
       </.link>
 
       <.link
@@ -92,10 +108,15 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
           <.icon name="hero-clock" class="size-6 text-secondary" />
         </div>
         <div>
-          <div class="font-semibold text-base-content group-hover:text-secondary transition-colors">Timing</div>
+          <div class="font-semibold text-base-content group-hover:text-secondary transition-colors">
+            Timing
+          </div>
           <div class="text-sm text-base-content/50">Race day console</div>
         </div>
-        <.icon name="hero-chevron-right" class="size-5 ml-auto text-base-content/30 group-hover:text-secondary/60 transition-colors" />
+        <.icon
+          name="hero-chevron-right"
+          class="size-5 ml-auto text-base-content/30 group-hover:text-secondary/60 transition-colors"
+        />
       </.link>
     </div>
 
@@ -106,7 +127,10 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
         <h2 class="text-lg font-semibold text-base-content">Categories</h2>
       </div>
 
-      <div :if={@race.categories != []} class="overflow-x-auto rounded-xl border border-base-300 bg-base-100 shadow-sm">
+      <div
+        :if={@race.categories != []}
+        class="overflow-x-auto rounded-xl border border-base-300 bg-base-100 shadow-sm"
+      >
         <table class="table w-full">
           <thead>
             <tr class="border-b border-base-300 bg-base-200/40 text-xs uppercase tracking-wider text-base-content/50">
@@ -127,7 +151,9 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
               <td class="py-3 font-medium">{cat.name}</td>
               <td class="py-3 text-sm text-base-content/70">{cat.distance_label || "-"}</td>
               <td class="py-3 text-sm capitalize text-base-content/70">{cat.gender}</td>
-              <td class="py-3 text-sm text-base-content/70">{format_age_range(cat.min_age, cat.max_age)}</td>
+              <td class="py-3 text-sm text-base-content/70">
+                {format_age_range(cat.min_age, cat.max_age)}
+              </td>
               <td class="py-3 text-sm text-base-content/70">{cat.sort_order}</td>
               <td class="py-3">
                 <button
@@ -151,12 +177,22 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
       <%!-- Add Category Form --%>
       <div class="mt-4 rounded-xl border border-dashed border-base-300 bg-base-200/30 p-5">
         <h3 class="text-sm font-semibold text-base-content/70 mb-4 flex items-center gap-1.5">
-          <.icon name="hero-plus-circle" class="size-4 text-primary/60" />
-          Add Category
+          <.icon name="hero-plus-circle" class="size-4 text-primary/60" /> Add Category
         </h3>
         <.form for={@category_form} phx-submit="add_category" class="flex flex-wrap gap-3 items-end">
-          <.input field={@category_form[:name]} type="text" label="Name" required placeholder="e.g. Elite Men" />
-          <.input field={@category_form[:distance_label]} type="text" label="Distance" placeholder="e.g. 5K" />
+          <.input
+            field={@category_form[:name]}
+            type="text"
+            label="Name"
+            required
+            placeholder="e.g. Elite Men"
+          />
+          <.input
+            field={@category_form[:distance_label]}
+            type="text"
+            label="Distance"
+            placeholder="e.g. 5K"
+          />
           <.input
             field={@category_form[:gender]}
             type="select"
@@ -178,7 +214,10 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
         <h2 class="text-lg font-semibold text-base-content">Splits</h2>
       </div>
 
-      <div :if={@race.splits != []} class="overflow-x-auto rounded-xl border border-base-300 bg-base-100 shadow-sm">
+      <div
+        :if={@race.splits != []}
+        class="overflow-x-auto rounded-xl border border-base-300 bg-base-100 shadow-sm"
+      >
         <table class="table w-full">
           <thead>
             <tr class="border-b border-base-300 bg-base-200/40 text-xs uppercase tracking-wider text-base-content/50">
@@ -223,12 +262,23 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
       <%!-- Add Split Form --%>
       <div class="mt-4 rounded-xl border border-dashed border-base-300 bg-base-200/30 p-5">
         <h3 class="text-sm font-semibold text-base-content/70 mb-4 flex items-center gap-1.5">
-          <.icon name="hero-plus-circle" class="size-4 text-primary/60" />
-          Add Split
+          <.icon name="hero-plus-circle" class="size-4 text-primary/60" /> Add Split
         </h3>
         <.form for={@split_form} phx-submit="add_split" class="flex flex-wrap gap-3 items-end">
-          <.input field={@split_form[:name]} type="text" label="Name" required placeholder="e.g. Swim" />
-          <.input field={@split_form[:short_name]} type="text" label="Short Name" required placeholder="e.g. S1" />
+          <.input
+            field={@split_form[:name]}
+            type="text"
+            label="Name"
+            required
+            placeholder="e.g. Swim"
+          />
+          <.input
+            field={@split_form[:short_name]}
+            type="text"
+            label="Short Name"
+            required
+            placeholder="e.g. S1"
+          />
           <.input
             field={@split_form[:leg_type]}
             type="select"
@@ -250,7 +300,10 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
     </div>
 
     <div class="mt-10 pt-4 border-t border-base-200">
-      <.link navigate={~p"/admin/races"} class="text-sm text-base-content/50 hover:text-primary transition-colors flex items-center gap-1">
+      <.link
+        navigate={~p"/admin/races"}
+        class="text-sm text-base-content/50 hover:text-primary transition-colors flex items-center gap-1"
+      >
         <.icon name="hero-arrow-left" class="size-3.5" /> Back to races
       </.link>
     </div>

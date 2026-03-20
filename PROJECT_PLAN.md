@@ -6,7 +6,6 @@ An open-source, self-hosted race timing application built with Elixir and Phoeni
 
 The first target race type is **triathlon**, with multi-split timing (swim, T1, bike, T2, run) and timing chip integration.
 
-
 ## Tech Stack
 
 | Layer | Choice | Rationale |
@@ -19,7 +18,6 @@ The first target race type is **triathlon**, with multi-split timing (swim, T1, 
 | Auth | `mix phx.gen.auth` | Built-in Phoenix auth generator, simple and solid |
 | Deployment | Single binary via `mix release` | Easy to self-host, minimal dependencies |
 | Timing chip I/O | GenServer-based decoder | Pluggable protocol adapters for different chip systems |
-
 
 ## Architecture Overview
 
@@ -54,7 +52,6 @@ The first target race type is **triathlon**, with multi-split timing (swim, T1, 
 │  └─────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────┘
 ```
-
 
 ## Data Model
 
@@ -172,7 +169,6 @@ users
 - **DNS/DNF/DSQ tracking**: Participant status field handles non-finishers.
 - **Chip lookup**: When a chip fires, look up participant by chip_id, determine which split based on reader location, record split_time.
 
-
 ## Triathlon-Specific Design
 
 A triathlon race would be configured with these splits (in order):
@@ -186,13 +182,13 @@ A triathlon race would be configured with these splits (in order):
 | 5 | Run Finish | run | Chip mat at finish line |
 
 Derived times (calculated, not stored):
+
 - Swim time = Split 1 elapsed - start time
 - T1 time = Split 2 - Split 1
 - Bike time = Split 3 - Split 2
 - T2 time = Split 4 - Split 3
 - Run time = Split 5 - Split 4
 - Total time = Split 5 elapsed - start time
-
 
 ## Timing Chip Integration (Research Area)
 
@@ -232,6 +228,7 @@ end
 ```
 
 Each adapter runs as a GenServer that:
+
 1. Connects to the chip reader (TCP/serial/USB)
 2. Decodes incoming reads into a standard `%ChipRead{}` struct
 3. Publishes reads to Phoenix.PubSub
@@ -240,7 +237,6 @@ Each adapter runs as a GenServer that:
 ### Phase 1 Approach
 
 Start with **manual time entry** and **CSV import** as the primary timing methods. This lets you build and validate the entire results pipeline without needing physical chip hardware. Add chip reader adapters incrementally.
-
 
 ## Feature Roadmap
 
@@ -276,17 +272,16 @@ Core infrastructure and a working triathlon timing system with manual entry.
 - Chip assignment management (assign chips to bibs)
 - Duplicate read filtering and error handling
 - Manual override/correction tools for bad reads
+- Status dashboard showing which timing points are connected and ready to go
 
 ### Phase 4 — Advanced Features
 
-- Multi-race archive with search across all events
 - Participant profiles (results history across races)
 - Race templates (pre-configured split setups for common race types)
-- Webhooks / API for external integrations
 - Kiosk mode (big-screen display for race venue)
-- SMS/push notifications for split times (supporters tracking athletes)
 - Photo integration (link finish photos to bib numbers)
-
+- Payment integration with Stripe enabling paid-for events that require payment at registration
+- Add internationalization support to switch between Swedish and English
 
 ## Project Structure
 
@@ -337,7 +332,6 @@ bibtime/
 └── README.md
 ```
 
-
 ## Key Design Decisions
 
 ### Why SQLite?
@@ -353,37 +347,14 @@ LiveView eliminates the need to build a separate JavaScript frontend or manage W
 ### Self-Hosting Model
 
 The app should be deployable as:
+
 1. A Mix release (single binary + runtime)
 2. A Docker container (for those who prefer it)
-3. Potentially a Fly.io / Railway one-click deploy
+3. A Fly.io one-click deploy
 
 Configuration via environment variables and a simple `config.exs` override file.
-
-
-## Getting Started (Next Steps)
-
-```bash
-# 1. Create the Phoenix project
-mix phx.new bibtime --database sqlite3
-
-# 2. Set up auth
-mix phx.gen.auth Accounts User users
-
-# 3. Create initial migrations for the data model
-
-# 4. Build out contexts: Races, Participants, Timing, Results
-
-# 5. Build admin LiveViews for race management
-
-# 6. Build public results LiveView
-
-# 7. Build timing entry interface
-```
-
 
 ## Open Questions
 
 1. **Timing chip hardware**: Which system to target first? Need to research what's available and affordable for small race organizers in Sweden/Nordics.
-2. **Payment integration**: For registration fees — Stripe? Swish? Or keep it out of scope and let organizers handle payment separately?
-3. **Internationalization**: Start with English + Swedish, or English-only first?
-4. **License**: MIT? AGPLv3? Apache 2.0?
+2. **License**: MIT? AGPLv3? Apache 2.0?

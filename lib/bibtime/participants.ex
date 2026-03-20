@@ -104,4 +104,53 @@ defmodule Bibtime.Participants do
   def mark_finished(%Participant{} = participant) do
     update_participant(participant, %{status: :finished})
   end
+
+  @doc """
+  Returns the next available bib number for a race.
+  Finds the max numeric bib and adds 1.
+  """
+  def next_bib_number(race_id) do
+    max =
+      Participant
+      |> where([p], p.race_id == ^race_id)
+      |> select([p], p.bib_number)
+      |> Repo.all()
+      |> Enum.map(fn bib ->
+        case Integer.parse(bib) do
+          {n, _} -> n
+          :error -> 0
+        end
+      end)
+      |> Enum.max(fn -> 0 end)
+
+    Integer.to_string(max + 1)
+  end
+
+  @doc """
+  Returns the count of participants for a race.
+  """
+  def count_participants(race_id) do
+    Participant
+    |> where([p], p.race_id == ^race_id)
+    |> Repo.aggregate(:count)
+  end
+
+  @doc """
+  Gets a participant by confirmation token.
+  """
+  def get_participant_by_token(token) do
+    Repo.get_by(Participant, confirmation_token: token)
+    |> Repo.preload(:race_category)
+  end
+
+  @doc """
+  Returns all participant entries for a user, preloaded with race and category.
+  """
+  def list_participants_for_user(user_id) do
+    Participant
+    |> where([p], p.user_id == ^user_id)
+    |> preload([:race_category, :race])
+    |> order_by([p], desc: p.inserted_at)
+    |> Repo.all()
+  end
 end

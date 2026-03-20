@@ -49,11 +49,14 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
     ~H"""
     <div class="max-w-4xl mx-auto">
       <%!-- Header --%>
-      <div class="flex items-center justify-between gap-4 pb-6">
+      <div class="flex items-center justify-between gap-4 pb-3 sm:pb-6">
         <div>
           <div class="flex items-center gap-3">
             <h1 class="text-2xl font-semibold tracking-tight text-base-content">Timing Console</h1>
-            <span class={["rounded-full px-2.5 py-0.5 text-xs font-medium", status_pill_class(@race.status)]}>
+            <span class={[
+              "rounded-full px-2.5 py-0.5 text-xs font-medium",
+              status_pill_class(@race.status)
+            ]}>
               {format_status(@race.status)}
             </span>
           </div>
@@ -62,7 +65,10 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
       </div>
 
       <%!-- Start Race Section --%>
-      <div :if={is_nil(@race_start)} class="flex flex-col items-center justify-center py-16 text-center">
+      <div
+        :if={is_nil(@race_start)}
+        class="flex flex-col items-center justify-center py-16 text-center"
+      >
         <div class="rounded-full bg-primary/10 p-5 mb-5">
           <.icon name="hero-play" class="size-12 text-primary/50" />
         </div>
@@ -78,8 +84,8 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
       <%!-- Race Started Section --%>
       <div :if={@race_start}>
         <%!-- Running Clock Card --%>
-        <div class="rounded-2xl border border-primary/20 bg-primary/5 p-8 text-center mb-6 shadow-sm">
-          <div class="text-7xl font-mono font-bold tracking-widest text-primary">
+        <div class="rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:p-8 text-center mb-4 sm:mb-6 shadow-sm">
+          <div class="text-4xl sm:text-7xl font-mono font-bold tracking-widest text-primary">
             {format_elapsed(@elapsed_seconds)}
           </div>
           <p class="mt-2 text-sm text-primary/60 font-medium uppercase tracking-wider">
@@ -88,20 +94,21 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
         </div>
 
         <%!-- Split Selector --%>
-        <div :if={@splits != []} class="mb-6">
+        <div :if={@splits != []} class="mb-4 sm:mb-6">
           <label class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2 block">
             Active Split
           </label>
-          <div class="flex flex-wrap gap-2">
+          <div class="flex overflow-x-auto flex-nowrap gap-2">
             <button
               :for={split <- @splits}
               phx-click="select_split"
               phx-value-split-id={split.id}
               class={[
-                "rounded-full px-4 py-1.5 text-sm font-medium border transition-all",
+                "rounded-full px-4 py-1.5 text-sm font-medium border transition-all whitespace-nowrap min-h-[44px]",
                 if(@selected_split && @selected_split.id == split.id,
                   do: "bg-primary text-primary-content border-primary shadow-sm",
-                  else: "bg-base-100 text-base-content/60 border-base-300 hover:border-primary/40 hover:text-primary"
+                  else:
+                    "bg-base-100 text-base-content/60 border-base-300 hover:border-primary/40 hover:text-primary"
                 )
               ]}
             >
@@ -111,7 +118,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
         </div>
 
         <%!-- Bib Entry Form --%>
-        <div class="rounded-xl border border-base-300 bg-base-100 p-5 shadow-sm mb-6">
+        <div class="rounded-xl border border-base-300 bg-base-100 p-4 sm:p-5 shadow-sm mb-4 sm:mb-6">
           <label class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2 block">
             Bib Number
           </label>
@@ -121,14 +128,15 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
                 name="bib"
                 value={@bib_input}
                 placeholder="Enter bib number..."
+                inputmode="numeric"
                 phx-change="update_bib"
-                class="input input-lg w-full font-mono text-2xl tracking-wider border-base-300 bg-base-100 focus:border-primary/50 focus:ring-primary/20"
+                class="input input-lg w-full font-mono text-lg sm:text-2xl tracking-wider border-base-300 bg-base-100 focus:border-primary/50 focus:ring-primary/20"
                 autocomplete="off"
               />
             </div>
             <button
               type="submit"
-              class="btn btn-lg bg-primary text-primary-content hover:bg-primary/90 border-none shadow-md font-bold text-base tracking-wide px-8"
+              class="btn btn-lg bg-primary text-primary-content hover:bg-primary/90 border-none shadow-md font-bold text-base tracking-wide px-8 min-h-[44px]"
             >
               <.icon name="hero-clock" class="size-5 mr-1" /> Record
             </button>
@@ -153,7 +161,9 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
           </div>
           <div>
             <% entry = hd(@recent_entries) %>
-            <p class="text-xs font-semibold text-success uppercase tracking-wider mb-0.5">Last recorded</p>
+            <p class="text-xs font-semibold text-success uppercase tracking-wider mb-0.5">
+              Last recorded
+            </p>
             <p class="text-base text-base-content">
               <span class="font-mono font-bold text-primary">#{entry.participant.bib_number}</span>
               <span class="mx-1.5 text-base-content/30">|</span>
@@ -161,37 +171,48 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
               <span class="mx-1.5 text-base-content/30">|</span>
               <span class="font-medium">{entry.split.name}</span>
               <span class="mx-1.5 text-base-content/30">|</span>
-              <span class="font-mono text-base-content/70">{format_elapsed_ms(entry.elapsed_ms)}</span>
+              <span class="font-mono text-base-content/70">
+                {format_elapsed_ms(entry.elapsed_ms)}
+              </span>
             </p>
           </div>
         </div>
 
         <%!-- Next Up --%>
         <div :if={@next_up != []} class="mb-6">
-          <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2">Next Up</h3>
+          <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2">
+            Next Up
+          </h3>
           <div class="flex flex-wrap gap-2">
             <button
               :for={p <- @next_up}
               phx-click="quick_bib"
               phx-value-bib={p.bib_number}
-              class="inline-flex items-center gap-1.5 rounded-lg border border-base-300 bg-base-100 px-3 py-1.5 text-sm hover:border-primary/40 hover:bg-primary/5 transition-colors"
+              class="inline-flex items-center gap-1.5 rounded-lg border border-base-300 bg-base-100 px-4 py-2.5 text-sm hover:border-primary/40 hover:bg-primary/5 transition-colors min-h-[44px]"
             >
-              <span class="font-mono font-bold text-primary">{p.bib_number}</span>
+              <span class="font-mono font-bold text-primary text-base">{p.bib_number}</span>
               <span class="text-base-content/60">{p.first_name} {p.last_name}</span>
-              <span class="text-xs text-base-content/30 font-mono">{p.splits_completed}/{length(@splits)}</span>
+              <span class="text-xs text-base-content/30 font-mono">
+                {p.splits_completed}/{length(@splits)}
+              </span>
             </button>
           </div>
         </div>
 
         <%!-- Recent Entries Table --%>
         <div class="mb-8">
-          <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3">Recent Entries</h3>
-          <div :if={@recent_entries != []} class="overflow-x-auto rounded-xl border border-base-300 bg-base-100 shadow-sm">
+          <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3">
+            Recent Entries
+          </h3>
+          <div
+            :if={@recent_entries != []}
+            class="overflow-x-auto rounded-xl border border-base-300 bg-base-100 shadow-sm"
+          >
             <table class="table w-full">
               <thead>
                 <tr class="border-b border-base-300 bg-base-200/40 text-xs uppercase tracking-wider text-base-content/50">
                   <th class="font-semibold">Bib</th>
-                  <th class="font-semibold">Name</th>
+                  <th class="font-semibold hidden sm:table-cell">Name</th>
                   <th class="font-semibold">Split</th>
                   <th class="font-semibold">Elapsed</th>
                   <th class="font-semibold"><span class="sr-only">Actions</span></th>
@@ -204,9 +225,11 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
                   class="border-b border-base-200 odd:bg-base-100 even:bg-base-200/30"
                 >
                   <td class="py-3">
-                    <span class="font-mono font-bold text-primary">{entry.participant.bib_number}</span>
+                    <span class="font-mono font-bold text-primary">
+                      {entry.participant.bib_number}
+                    </span>
                   </td>
-                  <td class="py-3 text-sm">
+                  <td class="py-3 text-sm hidden sm:table-cell">
                     {entry.participant.first_name} {entry.participant.last_name}
                   </td>
                   <td class="py-3 text-sm text-base-content/70">
@@ -250,7 +273,10 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
               <p class="text-xs text-base-content/50">Bulk import timing data from CSV</p>
             </div>
           </div>
-          <.icon name="hero-chevron-down" class="size-5 text-base-content/40 transition-transform group-open:rotate-180" />
+          <.icon
+            name="hero-chevron-down"
+            class="size-5 text-base-content/40 transition-transform group-open:rotate-180"
+          />
         </summary>
 
         <div class="border-t border-base-200 px-5 pb-5 pt-4">
@@ -263,7 +289,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
                 name="csv_text"
                 rows="5"
                 class="w-full textarea font-mono text-sm rounded-lg border-base-300 bg-base-200/30 focus:border-primary/50 focus:ring-primary/20"
-                placeholder={"bib_number,split_short_name,elapsed_time\n101,swim,00:15:30\n102,swim,00:16:45"}
+                placeholder="bib_number,split_short_name,elapsed_time\n101,swim,00:15:30\n102,swim,00:16:45"
               >{@csv_text}</textarea>
             </div>
             <.button type="submit" variant="primary">
@@ -271,14 +297,20 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
             </.button>
           </form>
 
-          <div :if={@import_result} class="mt-4 flex items-center gap-3 rounded-lg bg-success/5 border border-success/30 px-4 py-3">
+          <div
+            :if={@import_result}
+            class="mt-4 flex items-center gap-3 rounded-lg bg-success/5 border border-success/30 px-4 py-3"
+          >
             <.icon name="hero-check-circle" class="size-5 text-success shrink-0" />
             <p class="text-sm text-success font-semibold">
               Successfully imported {@import_result.imported} entries.
             </p>
           </div>
 
-          <div :if={@import_errors != []} class="mt-4 rounded-lg bg-warning/5 border border-warning/30 px-4 py-3">
+          <div
+            :if={@import_errors != []}
+            class="mt-4 rounded-lg bg-warning/5 border border-warning/30 px-4 py-3"
+          >
             <div class="flex items-center gap-2 mb-2">
               <.icon name="hero-exclamation-triangle" class="size-5 text-warning shrink-0" />
               <p class="text-sm text-warning font-semibold">Import errors</p>
@@ -415,7 +447,9 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
         {:noreply,
          socket
          |> assign(:import_result, nil)
-         |> assign(:import_errors, [%{row: 0, field: "csv", message: "An unexpected error occurred"}])
+         |> assign(:import_errors, [
+           %{row: 0, field: "csv", message: "An unexpected error occurred"}
+         ])
          |> assign(:csv_text, csv_text)}
     end
   end

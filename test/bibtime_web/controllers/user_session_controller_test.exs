@@ -13,7 +13,6 @@ defmodule BibtimeWeb.UserSessionControllerTest do
       conn = get(conn, ~p"/users/log-in")
       response = html_response(conn, 200)
       assert response =~ "Log in"
-      assert response =~ ~p"/users/register"
       assert response =~ "Log in with email"
     end
 
@@ -36,7 +35,6 @@ defmodule BibtimeWeb.UserSessionControllerTest do
       conn = get(conn, ~p"/users/log-in?mode=password")
       response = html_response(conn, 200)
       assert response =~ "Log in"
-      assert response =~ ~p"/users/register"
       assert response =~ "Log in with email"
     end
   end

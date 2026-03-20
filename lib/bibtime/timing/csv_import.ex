@@ -57,7 +57,8 @@ defmodule Bibtime.Timing.CSVImport do
                 error = %{
                   row: row_num,
                   field: "csv",
-                  message: "expected at least 3 columns (bib_number, split_short_name, elapsed_time)"
+                  message:
+                    "expected at least 3 columns (bib_number, split_short_name, elapsed_time)"
                 }
 
                 {rows_acc, [error | errors_acc]}
@@ -99,7 +100,15 @@ defmodule Bibtime.Timing.CSVImport do
         {participant_id, row_errors} =
           case Map.get(participants_by_bib, row.bib_number) do
             nil ->
-              {nil, [%{row: row_num, field: "bib_number", message: "participant with bib '#{row.bib_number}' not found in race"} | row_errors]}
+              {nil,
+               [
+                 %{
+                   row: row_num,
+                   field: "bib_number",
+                   message: "participant with bib '#{row.bib_number}' not found in race"
+                 }
+                 | row_errors
+               ]}
 
             participant ->
               {participant.id, row_errors}
@@ -109,7 +118,15 @@ defmodule Bibtime.Timing.CSVImport do
         {split_id, row_errors} =
           case Map.get(splits_by_short_name, row.split_short_name) do
             nil ->
-              {nil, [%{row: row_num, field: "split_short_name", message: "split '#{row.split_short_name}' not found in race"} | row_errors]}
+              {nil,
+               [
+                 %{
+                   row: row_num,
+                   field: "split_short_name",
+                   message: "split '#{row.split_short_name}' not found in race"
+                 }
+                 | row_errors
+               ]}
 
             split ->
               {split.id, row_errors}
@@ -122,7 +139,15 @@ defmodule Bibtime.Timing.CSVImport do
               {ms, row_errors}
 
             :error ->
-              {nil, [%{row: row_num, field: "elapsed_time", message: "invalid time format '#{row.elapsed_time}'"} | row_errors]}
+              {nil,
+               [
+                 %{
+                   row: row_num,
+                   field: "elapsed_time",
+                   message: "invalid time format '#{row.elapsed_time}'"
+                 }
+                 | row_errors
+               ]}
           end
 
         # Check for duplicates within the import
@@ -130,7 +155,15 @@ defmodule Bibtime.Timing.CSVImport do
 
         row_errors =
           if MapSet.member?(seen, dup_key) do
-            [%{row: row_num, field: "bib_number,split_short_name", message: "duplicate entry for bib '#{row.bib_number}' at split '#{row.split_short_name}'"} | row_errors]
+            [
+              %{
+                row: row_num,
+                field: "bib_number,split_short_name",
+                message:
+                  "duplicate entry for bib '#{row.bib_number}' at split '#{row.split_short_name}'"
+              }
+              | row_errors
+            ]
           else
             row_errors
           end

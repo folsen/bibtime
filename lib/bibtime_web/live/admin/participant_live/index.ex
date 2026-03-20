@@ -14,7 +14,9 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
      |> assign(:race, race)
      |> assign(:participants, participants)
      |> assign(:search, "")
-     |> assign(:filtered_participants, participants)}
+     |> assign(:sort_by, "bib")
+     |> assign(:sort_dir, :asc)
+     |> assign(:filtered_participants, sort_participants(participants, "bib", :asc))}
   end
 
   @impl true
@@ -32,7 +34,23 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
         end)
       end
 
+    filtered = sort_participants(filtered, socket.assigns.sort_by, socket.assigns.sort_dir)
+
     {:noreply, assign(socket, search: search, filtered_participants: filtered)}
+  end
+
+  @impl true
+  def handle_event("sort", %{"col" => col}, socket) do
+    {sort_by, sort_dir} =
+      if socket.assigns.sort_by == col do
+        {col, toggle_dir(socket.assigns.sort_dir)}
+      else
+        {col, :asc}
+      end
+
+    filtered = sort_participants(socket.assigns.filtered_participants, sort_by, sort_dir)
+
+    {:noreply, assign(socket, sort_by: sort_by, sort_dir: sort_dir, filtered_participants: filtered)}
   end
 
   @impl true
@@ -74,6 +92,8 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
         end)
       end
 
+    filtered = sort_participants(filtered, socket.assigns.sort_by, socket.assigns.sort_dir)
+
     assign(socket, participants: participants, filtered_participants: filtered)
   end
 
@@ -110,16 +130,31 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
     </div>
 
     <%!-- Table --%>
-    <div :if={@filtered_participants != []} class="overflow-x-auto rounded-xl border border-base-300 bg-base-100 shadow-sm">
+    <div
+      :if={@filtered_participants != []}
+      class="overflow-x-auto rounded-xl border border-base-300 bg-base-100 shadow-sm"
+    >
       <table class="table w-full">
         <thead>
           <tr class="border-b border-base-300 bg-base-200/40 text-xs uppercase tracking-wider text-base-content/50">
-            <th class="font-semibold">Bib</th>
-            <th class="font-semibold">Name</th>
-            <th class="font-semibold">Email</th>
-            <th class="font-semibold">Category</th>
-            <th class="font-semibold">Club</th>
-            <th class="font-semibold">Status</th>
+            <th phx-click="sort" phx-value-col="bib" class="font-semibold cursor-pointer hover:text-base-content select-none">
+              Bib<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="bib" />
+            </th>
+            <th phx-click="sort" phx-value-col="name" class="font-semibold cursor-pointer hover:text-base-content select-none">
+              Name<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="name" />
+            </th>
+            <th phx-click="sort" phx-value-col="email" class="font-semibold cursor-pointer hover:text-base-content select-none">
+              Email<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="email" />
+            </th>
+            <th phx-click="sort" phx-value-col="category" class="font-semibold cursor-pointer hover:text-base-content select-none">
+              Category<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="category" />
+            </th>
+            <th phx-click="sort" phx-value-col="club" class="font-semibold cursor-pointer hover:text-base-content select-none">
+              Club<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="club" />
+            </th>
+            <th phx-click="sort" phx-value-col="status" class="font-semibold cursor-pointer hover:text-base-content select-none">
+              Status<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="status" />
+            </th>
             <th class="font-semibold"><span class="sr-only">Actions</span></th>
           </tr>
         </thead>
@@ -141,7 +176,10 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
             </td>
             <td class="py-3 text-sm text-base-content/70">{participant.club || "-"}</td>
             <td class="py-3">
-              <span class={["rounded-full px-2.5 py-0.5 text-xs font-medium", participant_status_pill(participant.status)]}>
+              <span class={[
+                "rounded-full px-2.5 py-0.5 text-xs font-medium",
+                participant_status_pill(participant.status)
+              ]}>
                 {format_status(participant.status)}
               </span>
             </td>
@@ -181,13 +219,18 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
       </table>
     </div>
 
-    <div :if={@filtered_participants == []} class="flex flex-col items-center justify-center py-16 text-center">
+    <div
+      :if={@filtered_participants == []}
+      class="flex flex-col items-center justify-center py-16 text-center"
+    >
       <div class="rounded-full bg-base-200 p-4 mb-4">
         <.icon name="hero-users" class="size-10 text-base-content/30" />
       </div>
       <h3 class="text-lg font-semibold text-base-content/80 mb-1">No participants found</h3>
       <p class="text-sm text-base-content/50 max-w-sm">
-        {if @search != "", do: "Try adjusting your search terms.", else: "Add your first participant to get started."}
+        {if @search != "",
+          do: "Try adjusting your search terms.",
+          else: "Add your first participant to get started."}
       </p>
     </div>
     """
@@ -209,5 +252,58 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
     status
     |> Atom.to_string()
     |> String.upcase()
+  end
+
+  defp toggle_dir(:asc), do: :desc
+  defp toggle_dir(:desc), do: :asc
+
+  defp sort_participants(participants, sort_by, sort_dir) do
+    sorted =
+      case sort_by do
+        "bib" ->
+          Enum.sort_by(participants, fn p ->
+            case Integer.parse(p.bib_number || "") do
+              {n, _} -> n
+              :error -> 999_999
+            end
+          end)
+
+        "name" ->
+          Enum.sort_by(participants, fn p ->
+            String.downcase("#{p.last_name} #{p.first_name}")
+          end)
+
+        "email" ->
+          Enum.sort_by(participants, fn p ->
+            String.downcase(p.email || "zzz")
+          end)
+
+        "category" ->
+          Enum.sort_by(participants, fn p ->
+            if p.race_category, do: String.downcase(p.race_category.name), else: "zzz"
+          end)
+
+        "club" ->
+          Enum.sort_by(participants, fn p ->
+            String.downcase(p.club || "zzz")
+          end)
+
+        "status" ->
+          Enum.sort_by(participants, fn p -> Atom.to_string(p.status) end)
+
+        _ ->
+          participants
+      end
+
+    if sort_dir == :desc, do: Enum.reverse(sorted), else: sorted
+  end
+
+  defp sort_indicator(assigns) do
+    ~H"""
+    <span :if={@sort_by == @col} class="ml-1 text-primary">
+      <.icon :if={@sort_dir == :asc} name="hero-chevron-up-mini" class="size-3 inline" />
+      <.icon :if={@sort_dir == :desc} name="hero-chevron-down-mini" class="size-3 inline" />
+    </span>
+    """
   end
 end

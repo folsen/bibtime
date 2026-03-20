@@ -17,7 +17,14 @@ defmodule Bibtime.Timing.SplitTime do
   @doc false
   def changeset(split_time, attrs) do
     split_time
-    |> cast(attrs, [:absolute_time, :elapsed_ms, :source, :raw_chip_data, :participant_id, :split_id])
+    |> cast(attrs, [
+      :absolute_time,
+      :elapsed_ms,
+      :source,
+      :raw_chip_data,
+      :participant_id,
+      :split_id
+    ])
     |> validate_required([:elapsed_ms, :source, :participant_id, :split_id])
     |> unique_constraint([:participant_id, :split_id])
   end

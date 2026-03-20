@@ -2,6 +2,7 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
   use BibtimeWeb, :live_view
 
   alias Bibtime.Races
+  alias Bibtime.Participants
 
   @impl true
   def mount(%{"slug" => slug}, _session, socket) do
@@ -10,7 +11,16 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
       |> Races.get_race_by_slug!()
       |> Bibtime.Repo.preload([:categories, :splits])
 
-    {:ok, assign(socket, race: race, page_title: race.name)}
+    participants = Participants.list_participants(race.id)
+    participant_count = Participants.count_participants(race.id)
+
+    {:ok,
+     assign(socket,
+       race: race,
+       participants: participants,
+       participant_count: participant_count,
+       page_title: race.name
+     )}
   end
 
   @impl true
@@ -31,6 +41,13 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
               ]}>
                 {format_status(@race.status)}
               </span>
+              <span
+                :if={@participant_count > 0}
+                class="inline-flex items-center gap-1.5 rounded-full bg-base-300/50 px-3 py-1 text-xs font-semibold text-base-content/70"
+              >
+                <.icon name="hero-users" class="size-3.5" />
+                {@participant_count} Registered
+              </span>
             </div>
           </div>
         </div>
@@ -38,16 +55,24 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
 
       <%!-- Details cards --%>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div :if={@race.date} class="rounded-lg bg-base-200/60 border border-base-300/50 px-5 py-4 flex items-center gap-3">
+        <div
+          :if={@race.date}
+          class="rounded-lg bg-base-200/60 border border-base-300/50 px-5 py-4 flex items-center gap-3"
+        >
           <div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10">
             <.icon name="hero-calendar" class="size-5 text-primary" />
           </div>
           <div>
             <p class="text-xs uppercase tracking-wide text-base-content/50 font-medium">Date</p>
-            <p class="text-sm font-semibold text-base-content">{Calendar.strftime(@race.date, "%B %d, %Y")}</p>
+            <p class="text-sm font-semibold text-base-content">
+              {Calendar.strftime(@race.date, "%B %d, %Y")}
+            </p>
           </div>
         </div>
-        <div :if={@race.location} class="rounded-lg bg-base-200/60 border border-base-300/50 px-5 py-4 flex items-center gap-3">
+        <div
+          :if={@race.location}
+          class="rounded-lg bg-base-200/60 border border-base-300/50 px-5 py-4 flex items-center gap-3"
+        >
           <div class="flex items-center justify-center w-10 h-10 rounded-full bg-secondary/10">
             <.icon name="hero-map-pin" class="size-5 text-secondary" />
           </div>
@@ -68,8 +93,13 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
       </div>
 
       <%!-- Description card --%>
-      <div :if={@race.description} class="rounded-lg bg-base-200/40 border border-base-300/50 px-6 py-5 mb-8">
-        <h2 class="text-sm uppercase tracking-wide text-base-content/50 font-semibold mb-2">About this race</h2>
+      <div
+        :if={@race.description}
+        class="rounded-lg bg-base-200/40 border border-base-300/50 px-6 py-5 mb-8"
+      >
+        <h2 class="text-sm uppercase tracking-wide text-base-content/50 font-semibold mb-2">
+          About this race
+        </h2>
         <p class="text-base-content/80 leading-relaxed">{@race.description}</p>
       </div>
 
@@ -89,14 +119,86 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
         </div>
       </div>
 
-      <%!-- CTA button --%>
-      <div class="mt-10">
+      <%!-- Start List --%>
+      <div
+        :if={@race.status in [:registration_closed, :in_progress, :finished] and @participants != []}
+        class="mb-10"
+      >
+        <div class="flex items-center gap-3 mb-4">
+          <h2 class="text-lg font-semibold text-base-content">Start List</h2>
+          <span class="inline-flex items-center gap-1.5 rounded-full bg-base-300/50 px-3 py-1 text-xs font-semibold text-base-content/70">
+            <.icon name="hero-users" class="size-3.5" />
+            {@participant_count} participant{if @participant_count != 1, do: "s", else: ""}
+          </span>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-base-300/50 bg-base-100">
+          <table class="w-full border-separate border-spacing-0">
+            <thead>
+              <tr class="text-xs uppercase tracking-wider text-base-content/50">
+                <th class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm w-16 px-3 py-3 font-semibold border-b border-base-300/50 text-left first:rounded-tl-xl">
+                  Bib
+                </th>
+                <th class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-left">
+                  Name
+                </th>
+                <th class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-left">
+                  Club
+                </th>
+                <th class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-left last:rounded-tr-xl">
+                  Category
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                :for={participant <- @participants}
+                class="even:bg-base-200/30 hover:bg-base-200/60 transition-colors"
+              >
+                <td class="font-mono text-sm px-3 py-2.5 border-b border-base-300/20 text-base-content/70">
+                  {participant.bib_number}
+                </td>
+                <td class="font-medium px-3 py-2.5 border-b border-base-300/20 text-base-content">
+                  {participant.first_name} {participant.last_name}
+                </td>
+                <td class="text-base-content/50 text-sm px-3 py-2.5 border-b border-base-300/20">
+                  {participant.club || "\u2014"}
+                </td>
+                <td class="text-sm px-3 py-2.5 border-b border-base-300/20">
+                  <span
+                    :if={participant.race_category}
+                    class="inline-flex items-center rounded-full bg-primary/8 text-primary/80 px-2 py-0.5 text-xs font-medium"
+                  >
+                    {participant.race_category.name}
+                  </span>
+                  <span :if={participant.race_category == nil} class="text-base-content/30">
+                    &mdash;
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <%!-- CTA buttons --%>
+      <div class="mt-10 flex flex-wrap gap-4">
         <.link
-          navigate={~p"/races/#{@race.slug}/results"}
+          :if={@race.status == :registration_open}
+          navigate={~p"/races/#{@race.slug}/register"}
           class="btn btn-primary btn-lg gap-2 shadow-md hover:shadow-lg transition-shadow"
         >
-          <.icon name="hero-trophy" class="size-5" />
-          View Results
+          <.icon name="hero-pencil-square" class="size-5" /> Register Now
+          <.icon name="hero-arrow-right" class="size-5" />
+        </.link>
+        <.link
+          navigate={~p"/races/#{@race.slug}/results"}
+          class={[
+            "btn btn-lg gap-2 shadow-md hover:shadow-lg transition-shadow",
+            if(@race.status == :registration_open, do: "btn-outline btn-primary", else: "btn-primary")
+          ]}
+        >
+          <.icon name="hero-trophy" class="size-5" /> View Results
           <.icon name="hero-arrow-right" class="size-5" />
         </.link>
       </div>

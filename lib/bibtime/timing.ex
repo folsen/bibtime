@@ -157,7 +157,9 @@ defmodule Bibtime.Timing do
       :ok
     else
       total_splits = Split |> where([s], s.race_id == ^race_id) |> Repo.aggregate(:count)
-      recorded = SplitTime |> where([st], st.participant_id == ^participant_id) |> Repo.aggregate(:count)
+
+      recorded =
+        SplitTime |> where([st], st.participant_id == ^participant_id) |> Repo.aggregate(:count)
 
       new_status =
         cond do

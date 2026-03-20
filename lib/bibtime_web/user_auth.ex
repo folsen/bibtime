@@ -211,6 +211,58 @@ defmodule BibtimeWeb.UserAuth do
     end
   end
 
+  @doc """
+  Plug for routes that require the user to be an admin.
+  Must be used after `require_authenticated_user`.
+  """
+  def require_admin_user(conn, _opts) do
+    if conn.assigns.current_scope && conn.assigns.current_scope.user &&
+         conn.assigns.current_scope.user.is_admin do
+      conn
+    else
+      conn
+      |> put_flash(:error, "You don't have permission to access this page.")
+      |> redirect(to: ~p"/")
+      |> halt()
+    end
+  end
+
+  @doc """
+  LiveView on_mount callback that assigns current_scope from the session token.
+  """
+  def on_mount(:assign_current_scope, _params, session, socket) do
+    socket = mount_current_scope(socket, session)
+    {:cont, socket}
+  end
+
+  def on_mount(:require_authenticated_user, _params, session, socket) do
+    socket = mount_current_scope(socket, session)
+
+    if socket.assigns.current_scope && socket.assigns.current_scope.user do
+      {:cont, socket}
+    else
+      socket =
+        socket
+        |> Phoenix.LiveView.put_flash(:error, "You must log in to access this page.")
+        |> Phoenix.LiveView.redirect(to: ~p"/users/log-in")
+
+      {:halt, socket}
+    end
+  end
+
+  defp mount_current_scope(socket, session) do
+    Phoenix.Component.assign_new(socket, :current_scope, fn ->
+      if token = session["user_token"] do
+        case Accounts.get_user_by_session_token(token) do
+          {user, _token_inserted_at} -> Scope.for_user(user)
+          nil -> Scope.for_user(nil)
+        end
+      else
+        Scope.for_user(nil)
+      end
+    end)
+  end
+
   defp maybe_store_return_to(%{method: "GET"} = conn) do
     put_session(conn, :user_return_to, current_path(conn))
   end

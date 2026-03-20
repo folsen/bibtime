@@ -187,9 +187,26 @@ defmodule Bibtime.TimingTest do
       p1 = create_participant!(race)
       p2 = create_participant!(race)
 
-      Timing.record_split_time(%{elapsed_ms: 100_000, source: :manual, participant_id: p1.id, split_id: split1.id})
-      Timing.record_split_time(%{elapsed_ms: 200_000, source: :manual, participant_id: p1.id, split_id: split2.id})
-      Timing.record_split_time(%{elapsed_ms: 110_000, source: :manual, participant_id: p2.id, split_id: split1.id})
+      Timing.record_split_time(%{
+        elapsed_ms: 100_000,
+        source: :manual,
+        participant_id: p1.id,
+        split_id: split1.id
+      })
+
+      Timing.record_split_time(%{
+        elapsed_ms: 200_000,
+        source: :manual,
+        participant_id: p1.id,
+        split_id: split2.id
+      })
+
+      Timing.record_split_time(%{
+        elapsed_ms: 110_000,
+        source: :manual,
+        participant_id: p2.id,
+        split_id: split1.id
+      })
 
       times = Timing.get_split_times_for_race(race.id)
       assert length(times) == 3
@@ -209,8 +226,19 @@ defmodule Bibtime.TimingTest do
       p1 = create_participant!(race1)
       p2 = create_participant!(race2)
 
-      Timing.record_split_time(%{elapsed_ms: 100_000, source: :manual, participant_id: p1.id, split_id: split1.id})
-      Timing.record_split_time(%{elapsed_ms: 200_000, source: :manual, participant_id: p2.id, split_id: split2.id})
+      Timing.record_split_time(%{
+        elapsed_ms: 100_000,
+        source: :manual,
+        participant_id: p1.id,
+        split_id: split1.id
+      })
+
+      Timing.record_split_time(%{
+        elapsed_ms: 200_000,
+        source: :manual,
+        participant_id: p2.id,
+        split_id: split2.id
+      })
 
       times = Timing.get_split_times_for_race(race1.id)
       assert length(times) == 1

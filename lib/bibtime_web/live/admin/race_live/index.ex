@@ -24,7 +24,10 @@ defmodule BibtimeWeb.Admin.RaceLive.Index do
       </.button>
     </div>
 
-    <div :if={@races != []} class="overflow-x-auto rounded-xl border border-base-300 bg-base-100 shadow-sm">
+    <div
+      :if={@races != []}
+      class="overflow-x-auto rounded-xl border border-base-300 bg-base-100 shadow-sm"
+    >
       <table class="table w-full">
         <thead>
           <tr class="border-b border-base-300 bg-base-200/40 text-xs uppercase tracking-wider text-base-content/50">
@@ -43,7 +46,10 @@ defmodule BibtimeWeb.Admin.RaceLive.Index do
             class="border-b border-base-200 odd:bg-base-100 even:bg-base-200/30 hover:bg-primary/5 transition-colors"
           >
             <td class="py-3">
-              <.link navigate={~p"/admin/races/#{race.id}"} class="font-medium text-primary hover:text-primary/80 transition-colors">
+              <.link
+                navigate={~p"/admin/races/#{race.id}"}
+                class="font-medium text-primary hover:text-primary/80 transition-colors"
+              >
                 {race.name}
               </.link>
             </td>
@@ -57,16 +63,25 @@ defmodule BibtimeWeb.Admin.RaceLive.Index do
               <span class="capitalize text-base-content/70">{race.race_type}</span>
             </td>
             <td class="py-3">
-              <span class={["rounded-full px-2.5 py-0.5 text-xs font-medium", status_pill_class(race.status)]}>
+              <span class={[
+                "rounded-full px-2.5 py-0.5 text-xs font-medium",
+                status_pill_class(race.status)
+              ]}>
                 {format_status(race.status)}
               </span>
             </td>
             <td class="py-3">
               <div class="flex items-center gap-3">
-                <.link navigate={~p"/admin/races/#{race.id}"} class="text-sm font-medium text-primary hover:text-primary/80 transition-colors">
+                <.link
+                  navigate={~p"/admin/races/#{race.id}"}
+                  class="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                >
                   View
                 </.link>
-                <.link navigate={~p"/admin/races/#{race.id}/edit"} class="text-sm font-medium text-secondary hover:text-secondary/80 transition-colors">
+                <.link
+                  navigate={~p"/admin/races/#{race.id}/edit"}
+                  class="text-sm font-medium text-secondary hover:text-secondary/80 transition-colors"
+                >
                   Edit
                 </.link>
               </div>

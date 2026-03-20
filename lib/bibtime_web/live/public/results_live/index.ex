@@ -28,6 +28,9 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
        categories: race.categories,
        selected_category: nil,
        filtered_results: results,
+       recently_finished: MapSet.new(),
+       sort_by: "rank",
+       sort_dir: :asc,
        page_title: "Results - #{race.name}"
      )}
   end
@@ -51,10 +54,15 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
         {nil, socket.assigns.results}
       end
 
+    # Reset sort to default rank when switching categories
+    filtered_results = sort_results(filtered_results, "rank", :asc, socket.assigns.splits)
+
     {:noreply,
      assign(socket,
        selected_category: selected_category,
-       filtered_results: filtered_results
+       filtered_results: filtered_results,
+       sort_by: "rank",
+       sort_dir: :asc
      )}
   end
 
@@ -129,35 +137,55 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
         <table class="w-full border-separate border-spacing-0">
           <thead>
             <tr class="text-xs uppercase tracking-wider text-base-content/50">
-              <th class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm w-14 text-center px-3 py-3 font-semibold border-b border-base-300/50 first:rounded-tl-xl">
-                #
+              <th
+                phx-click="sort" phx-value-col="rank"
+                class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm w-14 text-center px-3 py-3 font-semibold border-b border-base-300/50 first:rounded-tl-xl cursor-pointer hover:text-base-content select-none"
+              >
+                #<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="rank" />
               </th>
-              <th class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm w-16 px-3 py-3 font-semibold border-b border-base-300/50 text-left">
-                Bib
+              <th
+                phx-click="sort" phx-value-col="bib"
+                class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm w-16 px-3 py-3 font-semibold border-b border-base-300/50 text-left cursor-pointer hover:text-base-content select-none"
+              >
+                Bib<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="bib" />
               </th>
-              <th class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-left">
-                Name
+              <th
+                phx-click="sort" phx-value-col="name"
+                class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-left cursor-pointer hover:text-base-content select-none"
+              >
+                Name<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="name" />
               </th>
-              <th class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-left">
-                Club
+              <th
+                phx-click="sort" phx-value-col="club"
+                class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-left cursor-pointer hover:text-base-content select-none"
+              >
+                Club<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="club" />
               </th>
               <th
                 :if={@selected_category == nil}
-                class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-left"
+                phx-click="sort" phx-value-col="category"
+                class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-left cursor-pointer hover:text-base-content select-none"
               >
-                Category
+                Category<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="category" />
               </th>
               <th
                 :for={split <- @splits}
-                class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-right"
+                phx-click="sort" phx-value-col={"split:#{split.id}"}
+                class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-right cursor-pointer hover:text-base-content select-none"
               >
-                {split.short_name}
+                {split.short_name}<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col={"split:#{split.id}"} />
               </th>
-              <th class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-bold border-b border-base-300/50 text-right">
-                Total
+              <th
+                phx-click="sort" phx-value-col="total"
+                class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-bold border-b border-base-300/50 text-right cursor-pointer hover:text-base-content select-none"
+              >
+                Total<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="total" />
               </th>
-              <th class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm w-20 px-3 py-3 font-semibold border-b border-base-300/50 text-center last:rounded-tr-xl">
-                Status
+              <th
+                phx-click="sort" phx-value-col="status"
+                class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm w-20 px-3 py-3 font-semibold border-b border-base-300/50 text-center last:rounded-tr-xl cursor-pointer hover:text-base-content select-none"
+              >
+                Status<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="status" />
               </th>
             </tr>
           </thead>
@@ -165,13 +193,20 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
             <tr
               :for={result <- @filtered_results}
               id={"result-#{result.participant.id}"}
-              class="results-row even:bg-base-200/30 hover:bg-base-200/60 transition-colors"
+              class={[
+                "results-row even:bg-base-200/30 hover:bg-base-200/60 transition-colors",
+                MapSet.member?(@recently_finished, result.participant.id) &&
+                  "animate-pulse bg-success/15"
+              ]}
             >
               <td class="text-center px-3 py-2.5 border-b border-base-300/20">
                 <span :if={display_rank(result)} class={rank_class(display_rank(result))}>
                   {display_rank(result)}
                 </span>
-                <span :if={display_rank(result) == nil && result.status in [:dns, :dnf, :dsq]} class="text-base-content/30">
+                <span
+                  :if={display_rank(result) == nil && result.status in [:dns, :dnf, :dsq]}
+                  class="text-base-content/30"
+                >
                   &mdash;
                 </span>
               </td>
@@ -270,7 +305,7 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
       </div>
 
       <%!-- Stats footer --%>
-      <div :if={@filtered_results != []} class="mt-6 flex flex-wrap gap-3">
+      <div :if={@filtered_results != []} class="mt-6 flex flex-wrap items-center gap-3">
         <div class="inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2">
           <.icon name="hero-users" class="size-4 text-primary/60" />
           <span class="text-sm font-medium text-base-content/70">
@@ -294,14 +329,60 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
             {Enum.count(@filtered_results, &(&1.status == :racing))} still racing
           </span>
         </div>
+        <a
+          href={~p"/races/#{@race.slug}/results/export/csv"}
+          class="ml-auto inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2 text-sm font-medium text-base-content/70 hover:bg-base-300/50 hover:text-base-content transition-colors"
+        >
+          <.icon name="hero-arrow-down-tray" class="size-4" /> Export CSV
+        </a>
       </div>
     </div>
     """
   end
 
   @impl true
+  def handle_event("sort", %{"col" => col}, socket) do
+    {sort_by, sort_dir} =
+      if socket.assigns.sort_by == col do
+        {col, toggle_dir(socket.assigns.sort_dir)}
+      else
+        {col, :asc}
+      end
+
+    filtered_results = sort_results(socket.assigns.filtered_results, sort_by, sort_dir, socket.assigns.splits)
+
+    {:noreply, assign(socket, sort_by: sort_by, sort_dir: sort_dir, filtered_results: filtered_results)}
+  end
+
+  @impl true
   def handle_info({:split_time_recorded, _split_time}, socket) do
-    {:noreply, recalculate_results(socket)}
+    old_finished_ids =
+      socket.assigns.filtered_results
+      |> Enum.filter(&(&1.status == :finished))
+      |> MapSet.new(& &1.participant.id)
+
+    socket = recalculate_results(socket)
+
+    new_finished_ids =
+      socket.assigns.filtered_results
+      |> Enum.filter(&(&1.status == :finished))
+      |> MapSet.new(& &1.participant.id)
+
+    newly_finished = MapSet.difference(new_finished_ids, old_finished_ids)
+
+    Enum.each(newly_finished, fn participant_id ->
+      Process.send_after(self(), {:clear_highlight, participant_id}, 10_000)
+    end)
+
+    recently_finished = MapSet.union(socket.assigns.recently_finished, newly_finished)
+
+    {:noreply, assign(socket, recently_finished: recently_finished)}
+  end
+
+  @impl true
+  def handle_info({:clear_highlight, participant_id}, socket) do
+    recently_finished = MapSet.delete(socket.assigns.recently_finished, participant_id)
+    {:noreply, assign(socket, recently_finished: recently_finished)}
   end
 
   @impl true
@@ -323,6 +404,8 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
           |> Enum.filter(fn r -> r.category != nil and r.category.id == category.id end)
           |> Ranker.rank_results()
       end
+
+    filtered_results = sort_results(filtered_results, socket.assigns.sort_by, socket.assigns.sort_dir, socket.assigns.splits)
 
     assign(socket, results: results, filtered_results: filtered_results)
   end
@@ -365,5 +448,66 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
     |> String.replace("_", " ")
     |> String.split(" ")
     |> Enum.map_join(" ", &String.capitalize/1)
+  end
+
+  defp toggle_dir(:asc), do: :desc
+  defp toggle_dir(:desc), do: :asc
+
+  defp sort_results(results, sort_by, sort_dir, _splits) do
+    sorted =
+      case sort_by do
+        "rank" ->
+          Enum.sort_by(results, fn r -> r.rank || 999_999 end)
+
+        "bib" ->
+          Enum.sort_by(results, fn r ->
+            case Integer.parse(r.participant.bib_number || "") do
+              {n, _} -> n
+              :error -> 999_999
+            end
+          end)
+
+        "name" ->
+          Enum.sort_by(results, fn r ->
+            String.downcase("#{r.participant.last_name} #{r.participant.first_name}")
+          end)
+
+        "club" ->
+          Enum.sort_by(results, fn r ->
+            String.downcase(r.participant.club || "zzz")
+          end)
+
+        "category" ->
+          Enum.sort_by(results, fn r ->
+            if r.category, do: String.downcase(r.category.name), else: "zzz"
+          end)
+
+        "total" ->
+          Enum.sort_by(results, fn r -> r.total_ms || 999_999_999 end)
+
+        "status" ->
+          Enum.sort_by(results, fn r -> Atom.to_string(r.status) end)
+
+        "split:" <> split_id_str ->
+          split_id = String.to_integer(split_id_str)
+
+          Enum.sort_by(results, fn r ->
+            Map.get(r.leg_times || %{}, split_id) || 999_999_999
+          end)
+
+        _ ->
+          results
+      end
+
+    if sort_dir == :desc, do: Enum.reverse(sorted), else: sorted
+  end
+
+  defp sort_indicator(assigns) do
+    ~H"""
+    <span :if={@sort_by == @col} class="ml-1 text-primary">
+      <.icon :if={@sort_dir == :asc} name="hero-chevron-up-mini" class="size-3 inline" />
+      <.icon :if={@sort_dir == :desc} name="hero-chevron-down-mini" class="size-3 inline" />
+    </span>
+    """
   end
 end

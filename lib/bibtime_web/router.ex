@@ -25,11 +25,16 @@ defmodule BibtimeWeb.Router do
 
     live "/races/:slug", Public.RaceLive.Show, :show
     live "/races/:slug/results", Public.ResultsLive.Index, :index
+    live "/races/:slug/register", Public.RegistrationLive.New, :new
+    live "/races/:slug/register/confirmation/:participant_id", Public.RegistrationLive.Show, :show
+    live "/races/:slug/my-registration/:token", Public.RegistrationLive.MyRegistration, :show
+
+    get "/races/:slug/results/export/csv", ExportController, :results_csv
   end
 
-  # Admin routes (require authenticated user)
+  # Admin routes (require admin user)
   scope "/", BibtimeWeb do
-    pipe_through [:browser, :require_authenticated_user]
+    pipe_through [:browser, :require_authenticated_user, :require_admin_user]
 
     live_session :admin, layout: {BibtimeWeb.Layouts, :admin} do
       live "/admin/races", Admin.RaceLive.Index, :index
@@ -67,15 +72,15 @@ defmodule BibtimeWeb.Router do
 
   ## Authentication routes
 
-  scope "/", BibtimeWeb do
-    pipe_through [:browser, :redirect_if_user_is_authenticated]
-
-    get "/users/register", UserRegistrationController, :new
-    post "/users/register", UserRegistrationController, :create
-  end
-
+  # Authenticated participant routes (any logged-in user)
   scope "/", BibtimeWeb do
     pipe_through [:browser, :require_authenticated_user]
+
+    live_session :authenticated,
+      on_mount: [{BibtimeWeb.UserAuth, :require_authenticated_user}] do
+      live "/my-races", Public.MyRacesLive.Index, :index
+      live "/my-races/:participant_id/edit", Public.MyRacesLive.Edit, :edit
+    end
 
     get "/users/settings", UserSettingsController, :edit
     put "/users/settings", UserSettingsController, :update

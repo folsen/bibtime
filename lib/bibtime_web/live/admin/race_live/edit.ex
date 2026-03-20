@@ -64,7 +64,10 @@ defmodule BibtimeWeb.Admin.RaceLive.Edit do
             <.button type="submit" variant="primary">
               <.icon name="hero-check" class="size-4 mr-1" /> Save Changes
             </.button>
-            <.link navigate={~p"/admin/races/#{@race.id}"} class="text-sm text-base-content/50 hover:text-base-content transition-colors">
+            <.link
+              navigate={~p"/admin/races/#{@race.id}"}
+              class="text-sm text-base-content/50 hover:text-base-content transition-colors"
+            >
               Cancel
             </.link>
           </div>
@@ -73,7 +76,10 @@ defmodule BibtimeWeb.Admin.RaceLive.Edit do
     </div>
 
     <div class="mt-8 pt-4 border-t border-base-200">
-      <.link navigate={~p"/admin/races/#{@race.id}"} class="text-sm text-base-content/50 hover:text-primary transition-colors flex items-center gap-1">
+      <.link
+        navigate={~p"/admin/races/#{@race.id}"}
+        class="text-sm text-base-content/50 hover:text-primary transition-colors flex items-center gap-1"
+      >
         <.icon name="hero-arrow-left" class="size-3.5" /> Back to race
       </.link>
     </div>

@@ -63,7 +63,10 @@ defmodule BibtimeWeb.Admin.RaceLive.New do
             <.button type="submit" variant="primary">
               <.icon name="hero-plus" class="size-4 mr-1" /> Create Race
             </.button>
-            <.link navigate={~p"/admin/races"} class="text-sm text-base-content/50 hover:text-base-content transition-colors">
+            <.link
+              navigate={~p"/admin/races"}
+              class="text-sm text-base-content/50 hover:text-base-content transition-colors"
+            >
               Cancel
             </.link>
           </div>

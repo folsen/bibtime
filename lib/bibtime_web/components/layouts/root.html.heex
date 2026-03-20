@@ -39,19 +39,34 @@
         <nav class="ml-auto flex items-center gap-5 text-sm">
           <%= if @current_scope do %>
             <span class="text-base-content/50 hidden sm:inline">{@current_scope.user.email}</span>
-            <.link href={~p"/admin/races"} class="text-base-content/70 hover:text-primary transition-colors">
-              Admin
+            <.link
+              href={~p"/my-races"}
+              class="text-base-content/70 hover:text-primary transition-colors"
+            >
+              My Races
             </.link>
-            <.link href={~p"/users/settings"} class="text-base-content/70 hover:text-primary transition-colors">
+            <%= if @current_scope.user.is_admin do %>
+              <.link
+                href={~p"/admin/races"}
+                class="text-base-content/70 hover:text-primary transition-colors"
+              >
+                Admin
+              </.link>
+            <% end %>
+            <.link
+              href={~p"/users/settings"}
+              class="text-base-content/70 hover:text-primary transition-colors"
+            >
               Settings
             </.link>
-            <.link href={~p"/users/log-out"} method="delete" class="text-base-content/70 hover:text-secondary transition-colors">
+            <.link
+              href={~p"/users/log-out"}
+              method="delete"
+              class="text-base-content/70 hover:text-secondary transition-colors"
+            >
               Log out
             </.link>
           <% else %>
-            <.link href={~p"/users/register"} class="text-base-content/70 hover:text-primary transition-colors">
-              Register
-            </.link>
             <.link href={~p"/users/log-in"} class="btn btn-sm btn-primary">
               Log in
             </.link>
