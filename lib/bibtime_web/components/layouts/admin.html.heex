@@ -6,7 +6,7 @@
         href="/admin/races"
         class="text-sm font-bold tracking-wide uppercase text-neutral-content/70"
       >
-        Admin Panel
+        {gettext("Admin Panel")}
       </a>
     </div>
 
@@ -29,7 +29,7 @@
             d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"
           />
         </svg>
-        Races
+        {gettext("Races")}
       </a>
     </nav>
 
@@ -48,19 +48,19 @@
             href={"/admin/races/#{@race.id}"}
             class="px-4 py-2.5 font-medium text-base-content/60 hover:text-base-content border-b-2 border-transparent hover:border-primary/40 transition-colors"
           >
-            Dashboard
+            {gettext("Dashboard")}
           </a>
           <a
             href={"/admin/races/#{@race.id}/participants"}
             class="px-4 py-2.5 font-medium text-base-content/60 hover:text-base-content border-b-2 border-transparent hover:border-primary/40 transition-colors"
           >
-            Participants
+            {gettext("Participants")}
           </a>
           <a
             href={"/admin/races/#{@race.id}/timing"}
             class="px-4 py-2.5 font-medium text-base-content/60 hover:text-base-content border-b-2 border-transparent hover:border-primary/40 transition-colors"
           >
-            Timing
+            {gettext("Timing")}
           </a>
         </nav>
       </div>

@@ -35,7 +35,7 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
        recently_finished: MapSet.new(),
        sort_by: "rank",
        sort_dir: :asc,
-       page_title: "Results - #{race.name}"
+       page_title: gettext("Results") <> " - " <> race.name
      )}
   end
 
@@ -116,7 +116,7 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
             </span>
           </div>
           <p class="text-sm text-base-content/50 ml-11">
-            {if @race.date, do: Calendar.strftime(@race.date, "%B %d, %Y"), else: ""}
+            {if @race.date, do: format_date(@race.date), else: ""}
             {if @race.location, do: " \u2014 #{@race.location}", else: ""}
           </p>
         </div>
@@ -136,7 +136,7 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
           role="tab"
           aria-selected={no_category_selected?(assigns)}
         >
-          Overall
+          {gettext("Overall")}
         </.link>
         <%= if @categories != [] do %>
           <.link
@@ -205,54 +205,78 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
           <thead>
             <tr class="text-xs uppercase tracking-wider text-base-content/50">
               <th
-                phx-click="sort" phx-value-col="rank"
+                phx-click="sort"
+                phx-value-col="rank"
                 class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm w-14 text-center px-3 py-3 font-semibold border-b border-base-300/50 first:rounded-tl-xl cursor-pointer hover:text-base-content select-none"
               >
                 #<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="rank" />
               </th>
               <th
-                phx-click="sort" phx-value-col="bib"
+                phx-click="sort"
+                phx-value-col="bib"
                 class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm w-16 px-3 py-3 font-semibold border-b border-base-300/50 text-left cursor-pointer hover:text-base-content select-none"
               >
-                Bib<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="bib" />
+                {gettext("Bib")}<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="bib" />
               </th>
               <th
-                phx-click="sort" phx-value-col="name"
+                phx-click="sort"
+                phx-value-col="name"
                 class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-left cursor-pointer hover:text-base-content select-none"
               >
-                Name<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="name" />
+                {gettext("Name")}<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="name" />
               </th>
               <th
-                phx-click="sort" phx-value-col="club"
+                phx-click="sort"
+                phx-value-col="club"
                 class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-left cursor-pointer hover:text-base-content select-none"
               >
-                Club<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="club" />
+                {gettext("Club")}<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="club" />
               </th>
               <th
                 :if={no_category_selected?(assigns)}
-                phx-click="sort" phx-value-col="category"
+                phx-click="sort"
+                phx-value-col="category"
                 class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-left cursor-pointer hover:text-base-content select-none"
               >
-                Category<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="category" />
+                {gettext("Category")}<.sort_indicator
+                  sort_by={@sort_by}
+                  sort_dir={@sort_dir}
+                  col="category"
+                />
               </th>
               <th
                 :for={split <- @splits}
-                phx-click="sort" phx-value-col={"split:#{split.id}"}
+                phx-click="sort"
+                phx-value-col={"split:#{split.id}"}
                 class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-right cursor-pointer hover:text-base-content select-none"
               >
-                {split.short_name}<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col={"split:#{split.id}"} />
+                {split.short_name}<.sort_indicator
+                  sort_by={@sort_by}
+                  sort_dir={@sort_dir}
+                  col={"split:#{split.id}"}
+                />
               </th>
               <th
-                phx-click="sort" phx-value-col="total"
+                phx-click="sort"
+                phx-value-col="total"
                 class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-bold border-b border-base-300/50 text-right cursor-pointer hover:text-base-content select-none"
               >
-                Total<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="total" />
+                {gettext("Total")}<.sort_indicator
+                  sort_by={@sort_by}
+                  sort_dir={@sort_dir}
+                  col="total"
+                />
               </th>
               <th
-                phx-click="sort" phx-value-col="status"
+                phx-click="sort"
+                phx-value-col="status"
                 class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm w-20 px-3 py-3 font-semibold border-b border-base-300/50 text-center last:rounded-tr-xl cursor-pointer hover:text-base-content select-none"
               >
-                Status<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="status" />
+                {gettext("Status")}<.sort_indicator
+                  sort_by={@sort_by}
+                  sort_dir={@sort_dir}
+                  col="status"
+                />
               </th>
             </tr>
           </thead>
@@ -342,19 +366,19 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
                   :if={result.status == :finished}
                   class="inline-flex items-center rounded-full bg-success/15 text-success px-2 py-0.5 text-xs font-semibold"
                 >
-                  Finished
+                  {format_participant_status(:finished)}
                 </span>
                 <span
                   :if={result.status == :racing}
                   class="inline-flex items-center rounded-full bg-info/15 text-info px-2 py-0.5 text-xs font-semibold"
                 >
-                  Racing
+                  {format_participant_status(:racing)}
                 </span>
                 <span
                   :if={result.status == :registered}
                   class="inline-flex items-center rounded-full bg-base-content/10 text-base-content/60 px-2 py-0.5 text-xs font-semibold"
                 >
-                  Registered
+                  {format_participant_status(:registered)}
                 </span>
               </td>
             </tr>
@@ -367,8 +391,10 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-base-200 mb-4">
           <.icon name="hero-clock" class="size-8 text-base-content/30" />
         </div>
-        <p class="text-lg font-medium text-base-content/50 mb-1">No results yet</p>
-        <p class="text-sm text-base-content/40">Results will appear here once timing begins.</p>
+        <p class="text-lg font-medium text-base-content/50 mb-1">{gettext("No results yet")}</p>
+        <p class="text-sm text-base-content/40">
+          {gettext("Results will appear here once timing begins.")}
+        </p>
       </div>
 
       <%!-- Stats footer --%>
@@ -376,15 +402,15 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
         <div class="inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2">
           <.icon name="hero-users" class="size-4 text-primary/60" />
           <span class="text-sm font-medium text-base-content/70">
-            {length(@filtered_results)} participant{if length(@filtered_results) != 1,
-              do: "s",
-              else: ""}
+            {ngettext("%{count} participant", "%{count} participants", length(@filtered_results))}
           </span>
         </div>
         <div class="inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2">
           <.icon name="hero-check-circle" class="size-4 text-success/60" />
           <span class="text-sm font-medium text-base-content/70">
-            {Enum.count(@filtered_results, &(&1.status == :finished))} finished
+            {gettext("%{count} finished",
+              count: Enum.count(@filtered_results, &(&1.status == :finished))
+            )}
           </span>
         </div>
         <div
@@ -393,7 +419,9 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
         >
           <.icon name="hero-arrow-path" class="size-4 text-info/60" />
           <span class="text-sm font-medium text-base-content/70">
-            {Enum.count(@filtered_results, &(&1.status == :racing))} still racing
+            {gettext("%{count} still racing",
+              count: Enum.count(@filtered_results, &(&1.status == :racing))
+            )}
           </span>
         </div>
         <div class="ml-auto flex items-center gap-2">
@@ -402,13 +430,13 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
             target="_blank"
             class="inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2 text-sm font-medium text-base-content/70 hover:bg-base-300/50 hover:text-base-content transition-colors"
           >
-            <.icon name="hero-tv" class="size-4" /> Kiosk
+            <.icon name="hero-tv" class="size-4" /> {gettext("Kiosk")}
           </a>
           <a
             href={~p"/races/#{@race.slug}/results/export/csv"}
             class="inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2 text-sm font-medium text-base-content/70 hover:bg-base-300/50 hover:text-base-content transition-colors"
           >
-            <.icon name="hero-arrow-down-tray" class="size-4" /> Export CSV
+            <.icon name="hero-arrow-down-tray" class="size-4" /> {gettext("Export CSV")}
           </a>
         </div>
       </div>
@@ -425,9 +453,11 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
         {col, :asc}
       end
 
-    filtered_results = sort_results(socket.assigns.filtered_results, sort_by, sort_dir, socket.assigns.splits)
+    filtered_results =
+      sort_results(socket.assigns.filtered_results, sort_by, sort_dir, socket.assigns.splits)
 
-    {:noreply, assign(socket, sort_by: sort_by, sort_dir: sort_dir, filtered_results: filtered_results)}
+    {:noreply,
+     assign(socket, sort_by: sort_by, sort_dir: sort_dir, filtered_results: filtered_results)}
   end
 
   @impl true
@@ -492,7 +522,13 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
           results
       end
 
-    filtered_results = sort_results(filtered_results, socket.assigns.sort_by, socket.assigns.sort_dir, socket.assigns.splits)
+    filtered_results =
+      sort_results(
+        filtered_results,
+        socket.assigns.sort_by,
+        socket.assigns.sort_dir,
+        socket.assigns.splits
+      )
 
     assign(socket, results: results, filtered_results: filtered_results)
   end
@@ -531,14 +567,6 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
       :archived -> "bg-neutral/15 text-neutral"
       _ -> "bg-base-300/50 text-base-content/60"
     end
-  end
-
-  defp format_race_status(status) do
-    status
-    |> Atom.to_string()
-    |> String.replace("_", " ")
-    |> String.split(" ")
-    |> Enum.map_join(" ", &String.capitalize/1)
   end
 
   defp toggle_dir(:asc), do: :desc

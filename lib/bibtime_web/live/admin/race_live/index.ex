@@ -14,13 +14,13 @@ defmodule BibtimeWeb.Admin.RaceLive.Index do
     ~H"""
     <div class="flex items-start justify-between gap-6 pb-6">
       <div>
-        <h1 class="text-2xl font-semibold tracking-tight text-base-content">Races</h1>
+        <h1 class="text-2xl font-semibold tracking-tight text-base-content">{gettext("Races")}</h1>
         <p class="mt-1 text-sm text-base-content/60">
-          Manage your events, configure categories, and track progress.
+          {gettext("Manage your events, configure categories, and track progress.")}
         </p>
       </div>
       <.button navigate={~p"/admin/races/new"} variant="primary">
-        <.icon name="hero-plus" class="size-4 mr-1" /> New Race
+        <.icon name="hero-plus" class="size-4 mr-1" /> {gettext("New Race")}
       </.button>
     </div>
 
@@ -31,12 +31,12 @@ defmodule BibtimeWeb.Admin.RaceLive.Index do
       <table class="table w-full">
         <thead>
           <tr class="border-b border-base-300 bg-base-200/40 text-xs uppercase tracking-wider text-base-content/50">
-            <th class="font-semibold">Name</th>
-            <th class="font-semibold">Date</th>
-            <th class="font-semibold">Location</th>
-            <th class="font-semibold">Type</th>
-            <th class="font-semibold">Status</th>
-            <th class="font-semibold"><span class="sr-only">Actions</span></th>
+            <th class="font-semibold">{gettext("Name")}</th>
+            <th class="font-semibold">{gettext("Date")}</th>
+            <th class="font-semibold">{gettext("Location")}</th>
+            <th class="font-semibold">{gettext("Type")}</th>
+            <th class="font-semibold">{gettext("Status")}</th>
+            <th class="font-semibold"><span class="sr-only">{gettext("Actions")}</span></th>
           </tr>
         </thead>
         <tbody>
@@ -54,7 +54,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Index do
               </.link>
             </td>
             <td class="py-3 text-sm text-base-content/70">
-              {if race.date, do: Calendar.strftime(race.date, "%b %d, %Y"), else: "-"}
+              {if race.date, do: format_date_short(race.date), else: "-"}
             </td>
             <td class="py-3 text-sm text-base-content/70">
               {race.location || "-"}
@@ -67,7 +67,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Index do
                 "rounded-full px-2.5 py-0.5 text-xs font-medium",
                 status_pill_class(race.status)
               ]}>
-                {format_status(race.status)}
+                {format_race_status(race.status)}
               </span>
             </td>
             <td class="py-3">
@@ -76,13 +76,13 @@ defmodule BibtimeWeb.Admin.RaceLive.Index do
                   navigate={~p"/admin/races/#{race.id}"}
                   class="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
                 >
-                  View
+                  {gettext("View")}
                 </.link>
                 <.link
                   navigate={~p"/admin/races/#{race.id}/edit"}
                   class="text-sm font-medium text-secondary hover:text-secondary/80 transition-colors"
                 >
-                  Edit
+                  {gettext("Edit")}
                 </.link>
               </div>
             </td>
@@ -95,12 +95,12 @@ defmodule BibtimeWeb.Admin.RaceLive.Index do
       <div class="rounded-full bg-primary/10 p-4 mb-4">
         <.icon name="hero-trophy" class="size-10 text-primary/40" />
       </div>
-      <h3 class="text-lg font-semibold text-base-content/80 mb-1">No races yet</h3>
+      <h3 class="text-lg font-semibold text-base-content/80 mb-1">{gettext("No races yet")}</h3>
       <p class="text-sm text-base-content/50 mb-6 max-w-sm">
-        Create your first race to start managing events, participants, and timing.
+        {gettext("Create your first race to start managing events, participants, and timing.")}
       </p>
       <.button navigate={~p"/admin/races/new"} variant="primary">
-        <.icon name="hero-plus" class="size-4 mr-1" /> Create Your First Race
+        <.icon name="hero-plus" class="size-4 mr-1" /> {gettext("Create Your First Race")}
       </.button>
     </div>
     """
@@ -116,13 +116,5 @@ defmodule BibtimeWeb.Admin.RaceLive.Index do
       :archived -> "bg-neutral/15 text-neutral"
       _ -> "bg-base-content/10 text-base-content/60"
     end
-  end
-
-  defp format_status(status) do
-    status
-    |> Atom.to_string()
-    |> String.replace("_", " ")
-    |> String.split(" ")
-    |> Enum.map_join(" ", &String.capitalize/1)
   end
 end

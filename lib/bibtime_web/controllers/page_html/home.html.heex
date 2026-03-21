@@ -3,15 +3,16 @@
   <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
     <div class="text-center">
       <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-base-content">
-        Race timing, <span class="text-primary">simplified.</span>
+        {gettext("Race timing,")} <span class="text-primary">{gettext("simplified.")}</span>
       </h1>
       <p class="mt-4 text-lg text-base-content/60 max-w-2xl mx-auto">
-        Self-hosted, open-source timing for triathlons, running races, and more.
-        Live results, multi-split tracking, no vendor lock-in.
+        {gettext(
+          "Self-hosted, open-source timing for triathlons, running races, and more. Live results, multi-split tracking, no vendor lock-in."
+        )}
       </p>
       <div :if={!@current_scope} class="mt-8 flex items-center justify-center gap-4">
         <.link href={~p"/users/log-in"} class="btn btn-primary btn-lg">
-          Log in
+          {gettext("Log in")}
         </.link>
       </div>
     </div>
@@ -21,7 +22,7 @@
 <%!-- Active Races --%>
 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
   <h2 class="text-sm font-semibold uppercase tracking-wider text-base-content/40 mb-6">
-    Active Races
+    {gettext("Active Races")}
   </h2>
 
   <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -38,16 +39,12 @@
             "text-xs font-medium rounded-full px-2 py-0.5 shrink-0 ml-2",
             race_status_style(race.status)
           ]}>
-            {race.status
-            |> Atom.to_string()
-            |> String.replace("_", " ")
-            |> String.split(" ")
-            |> Enum.map_join(" ", &String.capitalize/1)}
+            {format_race_status(race.status)}
           </span>
         </div>
         <div class="flex flex-col gap-1 text-sm text-base-content/50">
           <span :if={race.date}>
-            {Calendar.strftime(race.date, "%b %d, %Y")}
+            {format_date_short(race.date)}
           </span>
           <span :if={race.location}>{race.location}</span>
         </div>
@@ -56,6 +53,6 @@
   </div>
 
   <p :if={Bibtime.Races.list_races() == []} class="text-center text-base-content/40 py-12">
-    No races yet. Log in to create your first event.
+    {gettext("No races yet. Log in to create your first event.")}
   </p>
 </div>

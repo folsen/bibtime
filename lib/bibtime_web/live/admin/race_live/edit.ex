@@ -10,7 +10,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Edit do
 
     {:ok,
      socket
-     |> assign(:page_title, "Edit #{race.name}")
+     |> assign(:page_title, gettext("Edit %{name}", name: race.name))
      |> assign(:race, race)
      |> assign_form(changeset)}
   end
@@ -19,7 +19,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Edit do
   def render(assigns) do
     ~H"""
     <div class="pb-6">
-      <h1 class="text-2xl font-semibold tracking-tight text-base-content">Edit Race</h1>
+      <h1 class="text-2xl font-semibold tracking-tight text-base-content">{gettext("Edit Race")}</h1>
       <p class="mt-1 text-sm text-base-content/60">{@race.name}</p>
     </div>
 
@@ -28,32 +28,44 @@ defmodule BibtimeWeb.Admin.RaceLive.Edit do
         <.form for={@form} phx-change="validate" phx-submit="save" class="space-y-6">
           <%!-- Name & Slug --%>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <.input field={@form[:name]} type="text" label="Name" required phx-debounce="300" />
-            <.input field={@form[:slug]} type="text" label="Slug" required phx-debounce="300" />
+            <.input
+              field={@form[:name]}
+              type="text"
+              label={gettext("Name")}
+              required
+              phx-debounce="300"
+            />
+            <.input
+              field={@form[:slug]}
+              type="text"
+              label={gettext("Slug")}
+              required
+              phx-debounce="300"
+            />
           </div>
 
           <%!-- Date & Location --%>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <.input field={@form[:date]} type="date" label="Date" />
-            <.input field={@form[:location]} type="text" label="Location" />
+            <.input field={@form[:date]} type="date" label={gettext("Date")} />
+            <.input field={@form[:location]} type="text" label={gettext("Location")} />
           </div>
 
           <%!-- Description --%>
-          <.input field={@form[:description]} type="textarea" label="Description" rows="4" />
+          <.input field={@form[:description]} type="textarea" label={gettext("Description")} rows="4" />
 
           <%!-- Type & Status --%>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <.input
               field={@form[:race_type]}
               type="select"
-              label="Race Type"
+              label={gettext("Race Type")}
               options={race_type_options()}
               required
             />
             <.input
               field={@form[:status]}
               type="select"
-              label="Status"
+              label={gettext("Status")}
               options={status_options()}
               required
             />
@@ -62,13 +74,13 @@ defmodule BibtimeWeb.Admin.RaceLive.Edit do
           <%!-- Actions --%>
           <div class="flex items-center gap-4 pt-4 border-t border-base-200">
             <.button type="submit" variant="primary">
-              <.icon name="hero-check" class="size-4 mr-1" /> Save Changes
+              <.icon name="hero-check" class="size-4 mr-1" /> {gettext("Save Changes")}
             </.button>
             <.link
               navigate={~p"/admin/races/#{@race.id}"}
               class="text-sm text-base-content/50 hover:text-base-content transition-colors"
             >
-              Cancel
+              {gettext("Cancel")}
             </.link>
           </div>
         </.form>
@@ -80,7 +92,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Edit do
         navigate={~p"/admin/races/#{@race.id}"}
         class="text-sm text-base-content/50 hover:text-primary transition-colors flex items-center gap-1"
       >
-        <.icon name="hero-arrow-left" class="size-3.5" /> Back to race
+        <.icon name="hero-arrow-left" class="size-3.5" /> {gettext("Back to race")}
       </.link>
     </div>
     """
@@ -102,7 +114,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Edit do
       {:ok, race} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Race updated successfully.")
+         |> put_flash(:info, gettext("Race updated successfully."))
          |> push_navigate(to: ~p"/admin/races/#{race.id}")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -112,26 +124,5 @@ defmodule BibtimeWeb.Admin.RaceLive.Edit do
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     assign(socket, :form, to_form(changeset))
-  end
-
-  defp race_type_options do
-    [
-      {"Triathlon", :triathlon},
-      {"Running", :running},
-      {"Cycling", :cycling},
-      {"Swimming", :swimming},
-      {"Custom", :custom}
-    ]
-  end
-
-  defp status_options do
-    [
-      {"Draft", :draft},
-      {"Registration Open", :registration_open},
-      {"Registration Closed", :registration_closed},
-      {"In Progress", :in_progress},
-      {"Finished", :finished},
-      {"Archived", :archived}
-    ]
   end
 end

@@ -16,7 +16,7 @@ defmodule BibtimeWeb.Public.ProfileLive.Index do
        race_results: race_results,
        stats: stats,
        expanded_race: nil,
-       page_title: "My Profile"
+       page_title: gettext("My Profile")
      )}
   end
 
@@ -64,17 +64,29 @@ defmodule BibtimeWeb.Public.ProfileLive.Index do
     <div class="max-w-4xl mx-auto px-4 py-10">
       <%!-- Header --%>
       <div class="mb-8">
-        <h1 class="text-3xl font-bold tracking-tight text-base-content mb-2">My Profile</h1>
-        <p class="text-base-content/50">Your race history and performance summary</p>
+        <h1 class="text-3xl font-bold tracking-tight text-base-content mb-2">
+          {gettext("My Profile")}
+        </h1>
+        <p class="text-base-content/50">{gettext("Your race history and performance summary")}</p>
       </div>
 
       <%!-- Stats cards --%>
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
-        <.stat_card label="Races" value={@stats.total} icon="hero-flag" color="primary" />
-        <.stat_card label="Finished" value={@stats.finished} icon="hero-check-circle" color="success" />
-        <.stat_card label="Podiums" value={@stats.podiums} icon="hero-trophy" color="warning" />
+        <.stat_card label={gettext("Races")} value={@stats.total} icon="hero-flag" color="primary" />
         <.stat_card
-          label="DNS / DNF"
+          label={gettext("Finished")}
+          value={@stats.finished}
+          icon="hero-check-circle"
+          color="success"
+        />
+        <.stat_card
+          label={gettext("Podiums")}
+          value={@stats.podiums}
+          icon="hero-trophy"
+          color="warning"
+        />
+        <.stat_card
+          label={gettext("DNS / DNF")}
           value={@stats.dns + @stats.dnf}
           icon="hero-x-circle"
           color="error"
@@ -82,7 +94,7 @@ defmodule BibtimeWeb.Public.ProfileLive.Index do
       </div>
 
       <%!-- Race history --%>
-      <h2 class="text-xl font-semibold text-base-content mb-4">Race History</h2>
+      <h2 class="text-xl font-semibold text-base-content mb-4">{gettext("Race History")}</h2>
 
       <div
         :if={@race_results == []}
@@ -91,8 +103,8 @@ defmodule BibtimeWeb.Public.ProfileLive.Index do
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-base-300/50 mb-4">
           <.icon name="hero-clock" class="size-8 text-base-content/30" />
         </div>
-        <h3 class="text-xl font-semibold text-base-content mb-2">No races yet</h3>
-        <p class="text-base-content/50">Register for a race to see your results here.</p>
+        <h3 class="text-xl font-semibold text-base-content mb-2">{gettext("No races yet")}</h3>
+        <p class="text-base-content/50">{gettext("Register for a race to see your results here.")}</p>
       </div>
 
       <div :if={@race_results != []} class="space-y-3">
@@ -123,13 +135,16 @@ defmodule BibtimeWeb.Public.ProfileLive.Index do
               <h3 class="font-semibold text-base-content truncate">{entry.race.name}</h3>
               <div class="flex flex-wrap items-center gap-2 mt-0.5">
                 <span :if={entry.race.date} class="text-sm text-base-content/50">
-                  {Calendar.strftime(entry.race.date, "%B %d, %Y")}
+                  {format_date(entry.race.date)}
                 </span>
-                <span :if={entry.result && entry.result.category} class="inline-flex items-center rounded-full bg-primary/8 text-primary/80 px-2 py-0.5 text-xs font-medium">
+                <span
+                  :if={entry.result && entry.result.category}
+                  class="inline-flex items-center rounded-full bg-primary/8 text-primary/80 px-2 py-0.5 text-xs font-medium"
+                >
                   {entry.result.category.name}
                 </span>
                 <span :if={entry.category_rank} class="text-xs text-base-content/40">
-                  (#{entry.category_rank} in category)
+                  {gettext("(#%{rank} in category)", rank: entry.category_rank)}
                 </span>
               </div>
             </div>
@@ -139,7 +154,9 @@ defmodule BibtimeWeb.Public.ProfileLive.Index do
                 {if entry.result, do: Calculator.format_time(entry.result.total_ms), else: "--:--"}
               </span>
               <.icon
-                name={if @expanded_race == entry.race.id, do: "hero-chevron-up", else: "hero-chevron-down"}
+                name={
+                  if @expanded_race == entry.race.id, do: "hero-chevron-up", else: "hero-chevron-down"
+                }
                 class="size-5 text-base-content/30"
               />
             </div>
@@ -152,21 +169,21 @@ defmodule BibtimeWeb.Public.ProfileLive.Index do
           >
             <div class="flex items-center justify-between mb-3">
               <span class="text-sm font-medium text-base-content/60 uppercase tracking-wider">
-                Split Breakdown
+                {gettext("Split Breakdown")}
               </span>
               <.link
                 navigate={~p"/races/#{entry.race.slug}/results"}
                 class="text-sm text-primary hover:underline"
               >
-                View full results
+                {gettext("View full results")}
               </.link>
             </div>
             <div class="overflow-x-auto">
               <table class="w-full text-sm">
                 <thead>
                   <tr class="text-xs uppercase tracking-wider text-base-content/40">
-                    <th class="text-left py-1.5 pr-4 font-semibold">Split</th>
-                    <th class="text-right py-1.5 pl-4 font-semibold">Leg Time</th>
+                    <th class="text-left py-1.5 pr-4 font-semibold">{gettext("Split")}</th>
+                    <th class="text-right py-1.5 pl-4 font-semibold">{gettext("Leg Time")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -180,7 +197,7 @@ defmodule BibtimeWeb.Public.ProfileLive.Index do
                     </td>
                   </tr>
                   <tr class="border-t-2 border-base-300/60 font-bold">
-                    <td class="py-2 pr-4 text-base-content">Total</td>
+                    <td class="py-2 pr-4 text-base-content">{gettext("Total")}</td>
                     <td class="py-2 pl-4 text-right font-mono text-base-content">
                       {Calculator.format_time(entry.result.total_ms)}
                     </td>
@@ -238,29 +255,37 @@ defmodule BibtimeWeb.Public.ProfileLive.Index do
   defp stat_icon_color(_), do: "text-base-content/50"
 
   defp display_rank(nil), do: nil
+
   defp display_rank(result) do
     if result.status == :finished && result.rank, do: result.rank
   end
 
   defp rank_badge_class(nil), do: "bg-base-200/60 border-base-300/50 text-base-content/40"
+
   defp rank_badge_class(result) do
     cond do
       result.status == :finished && result.rank == 1 ->
         "bg-warning/15 border-warning/30 text-warning"
+
       result.status == :finished && result.rank == 2 ->
         "bg-base-300/60 border-base-300 text-base-content/70"
+
       result.status == :finished && result.rank == 3 ->
         "bg-secondary/10 border-secondary/25 text-secondary"
+
       result.status == :finished ->
         "bg-success/8 border-success/20 text-success"
+
       result.status in [:dns, :dnf, :dsq] ->
         "bg-error/8 border-error/20 text-error"
+
       true ->
         "bg-base-200/60 border-base-300/50 text-base-content/40"
     end
   end
 
   defp format_status_short(nil), do: "--"
+
   defp format_status_short(result) do
     case result.status do
       :dns -> "DNS"

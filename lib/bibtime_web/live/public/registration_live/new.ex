@@ -34,14 +34,14 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
          requires_gender: requires_gender,
          requires_birth_date: requires_birth_date,
          reg_opts: reg_opts,
-         page_title: "Register — #{race.name}"
+         page_title: gettext("Register") <> " — " <> race.name
        )}
     else
       {:ok,
        assign(socket,
          race: race,
          form: nil,
-         page_title: "Registration — #{race.name}"
+         page_title: gettext("Registration") <> " — " <> race.name
        )}
     end
   end
@@ -64,7 +64,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
       {:ok, participant} ->
         {:noreply,
          socket
-         |> put_flash(:info, "You're registered!")
+         |> put_flash(:info, gettext("You're registered!"))
          |> push_navigate(to: ~p"/races/#{race.slug}/register/confirmation/#{participant.id}")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -81,16 +81,16 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
         navigate={~p"/races/#{@race.slug}"}
         class="inline-flex items-center gap-1.5 text-sm text-base-content/50 hover:text-base-content transition-colors mb-6"
       >
-        <.icon name="hero-arrow-left" class="size-4" /> Back to race
+        <.icon name="hero-arrow-left" class="size-4" /> {gettext("Back to race")}
       </.link>
 
       <%!-- Header --%>
       <div class="mb-8">
         <h1 class="text-3xl font-bold tracking-tight text-base-content mb-2">
-          Register for {@race.name}
+          {gettext("Register for %{name}", name: @race.name)}
         </h1>
         <p :if={@race.date} class="text-base-content/50">
-          {Calendar.strftime(@race.date, "%B %d, %Y")}
+          {format_date(@race.date)}
           {if @race.location, do: " — #{@race.location}", else: ""}
         </p>
       </div>
@@ -106,21 +106,21 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
         <h2 class="text-xl font-semibold text-base-content mb-2">
           <%= cond do %>
             <% @race.status == :draft -> %>
-              Registration is not yet open
+              {gettext("Registration is not yet open")}
             <% @race.status in [:in_progress, :finished] -> %>
-              This race has already started
+              {gettext("This race has already started")}
             <% true -> %>
-              Registration is closed
+              {gettext("Registration is closed")}
           <% end %>
         </h2>
         <p class="text-base-content/50 mb-6">
-          Check back later or view the results page for updates.
+          {gettext("Check back later or view the results page for updates.")}
         </p>
         <.link
           navigate={~p"/races/#{@race.slug}"}
           class="btn btn-outline btn-primary"
         >
-          Back to race page
+          {gettext("Back to race page")}
         </.link>
       </div>
 
@@ -134,18 +134,18 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
           class="p-6 sm:p-8 space-y-6"
         >
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <.input field={@form[:first_name]} type="text" label="First Name" required />
-            <.input field={@form[:last_name]} type="text" label="Last Name" required />
+            <.input field={@form[:first_name]} type="text" label={gettext("First Name")} required />
+            <.input field={@form[:last_name]} type="text" label={gettext("Last Name")} required />
           </div>
 
-          <.input field={@form[:email]} type="email" label="Email" required />
+          <.input field={@form[:email]} type="email" label={gettext("Email")} required />
 
           <.input
             :if={@has_manual_categories}
             field={@form[:race_category_id]}
             type="select"
-            label="Category"
-            prompt="Select a category"
+            label={gettext("Category")}
+            prompt={gettext("Select a category")}
             options={Enum.map(@race.categories, &{&1.name, &1.id})}
             required
           />
@@ -154,15 +154,15 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
             <.input
               field={@form[:gender]}
               type="select"
-              label={"Gender#{if @requires_gender, do: "", else: ""}"}
-              prompt={if @requires_gender, do: "Select gender", else: "(optional)"}
-              options={[{"Male", :male}, {"Female", :female}, {"Other", :other}]}
+              label={gettext("Gender")}
+              prompt={if @requires_gender, do: gettext("Select gender"), else: gettext("(optional)")}
+              options={gender_options()}
               required={@requires_gender}
             />
             <.input
               field={@form[:birth_date]}
               type="date"
-              label={"Birth Date#{if @requires_birth_date, do: "", else: ""}"}
+              label={gettext("Birth Date")}
               required={@requires_birth_date}
             />
           </div>
@@ -171,17 +171,22 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
             :if={@requires_gender || @requires_birth_date}
             class="text-sm text-base-content/50 -mt-2"
           >
-            You'll be automatically placed in categories based on your info.
+            {gettext("You'll be automatically placed in categories based on your info.")}
           </p>
 
-          <.input field={@form[:club]} type="text" label="Club / Team" placeholder="(optional)" />
+          <.input
+            field={@form[:club]}
+            type="text"
+            label={gettext("Club / Team")}
+            placeholder={gettext("(optional)")}
+          />
 
           <div class="pt-4 border-t border-base-300/30">
             <button
               type="submit"
               class="btn btn-primary btn-lg w-full gap-2 shadow-md hover:shadow-lg transition-shadow"
             >
-              <.icon name="hero-check-circle" class="size-5" /> Complete Registration
+              <.icon name="hero-check-circle" class="size-5" /> {gettext("Complete Registration")}
             </button>
           </div>
         </.form>

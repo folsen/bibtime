@@ -15,7 +15,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.Show do
      assign(socket,
        race: race,
        participant: participant,
-       page_title: "Registration Confirmed — #{race.name}"
+       page_title: gettext("Registration Confirmed") <> " — " <> race.name
      )}
   end
 
@@ -29,9 +29,9 @@ defmodule BibtimeWeb.Public.RegistrationLive.Show do
           <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-success/20 mb-3">
             <.icon name="hero-check-circle" class="size-8 text-success" />
           </div>
-          <h1 class="text-2xl font-bold text-base-content mb-1">You're Registered!</h1>
+          <h1 class="text-2xl font-bold text-base-content mb-1">{gettext("You're Registered!")}</h1>
           <p class="text-base-content/60 text-sm">
-            A confirmation email has been sent to {@participant.email}
+            {gettext("A confirmation email has been sent to %{email}", email: @participant.email)}
           </p>
         </div>
 
@@ -40,7 +40,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.Show do
           <%!-- Bib number highlight --%>
           <div class="text-center py-4">
             <p class="text-xs uppercase tracking-widest text-base-content/40 font-semibold mb-2">
-              Your Bib Number
+              {gettext("Your Bib Number")}
             </p>
             <span class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 border-2 border-primary/30">
               <span class="text-3xl font-bold font-mono text-primary">{@participant.bib_number}</span>
@@ -49,33 +49,33 @@ defmodule BibtimeWeb.Public.RegistrationLive.Show do
 
           <div class="divide-y divide-base-300/30">
             <div class="flex justify-between py-3">
-              <span class="text-sm text-base-content/50">Race</span>
+              <span class="text-sm text-base-content/50">{gettext("Race")}</span>
               <span class="text-sm font-medium text-base-content">{@race.name}</span>
             </div>
             <div :if={@race.date} class="flex justify-between py-3">
-              <span class="text-sm text-base-content/50">Date</span>
+              <span class="text-sm text-base-content/50">{gettext("Date")}</span>
               <span class="text-sm font-medium text-base-content">
-                {Calendar.strftime(@race.date, "%B %d, %Y")}
+                {format_date(@race.date)}
               </span>
             </div>
             <div :if={@race.location} class="flex justify-between py-3">
-              <span class="text-sm text-base-content/50">Location</span>
+              <span class="text-sm text-base-content/50">{gettext("Location")}</span>
               <span class="text-sm font-medium text-base-content">{@race.location}</span>
             </div>
             <div class="flex justify-between py-3">
-              <span class="text-sm text-base-content/50">Name</span>
+              <span class="text-sm text-base-content/50">{gettext("Name")}</span>
               <span class="text-sm font-medium text-base-content">
                 {@participant.first_name} {@participant.last_name}
               </span>
             </div>
             <div :if={@participant.race_category} class="flex justify-between py-3">
-              <span class="text-sm text-base-content/50">Category</span>
+              <span class="text-sm text-base-content/50">{gettext("Category")}</span>
               <span class="text-sm font-medium text-base-content">
                 {@participant.race_category.name}
               </span>
             </div>
             <div :if={@participant.club} class="flex justify-between py-3">
-              <span class="text-sm text-base-content/50">Club</span>
+              <span class="text-sm text-base-content/50">{gettext("Club")}</span>
               <span class="text-sm font-medium text-base-content">{@participant.club}</span>
             </div>
           </div>
@@ -87,13 +87,13 @@ defmodule BibtimeWeb.Public.RegistrationLive.Show do
             navigate={~p"/races/#{@race.slug}"}
             class="btn btn-outline btn-primary btn-sm gap-1.5"
           >
-            <.icon name="hero-arrow-left" class="size-4" /> Race Page
+            <.icon name="hero-arrow-left" class="size-4" /> {gettext("Race Page")}
           </.link>
           <.link
             navigate={~p"/races/#{@race.slug}/results"}
             class="btn btn-outline btn-sm gap-1.5"
           >
-            <.icon name="hero-trophy" class="size-4" /> View Results
+            <.icon name="hero-trophy" class="size-4" /> {gettext("View Results")}
           </.link>
         </div>
       </div>

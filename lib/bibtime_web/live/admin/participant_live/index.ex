@@ -50,7 +50,8 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
 
     filtered = sort_participants(socket.assigns.filtered_participants, sort_by, sort_dir)
 
-    {:noreply, assign(socket, sort_by: sort_by, sort_dir: sort_dir, filtered_participants: filtered)}
+    {:noreply,
+     assign(socket, sort_by: sort_by, sort_dir: sort_dir, filtered_participants: filtered)}
   end
 
   @impl true
@@ -102,11 +103,13 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
     ~H"""
     <div class="flex items-start justify-between gap-6 pb-6">
       <div>
-        <h1 class="text-2xl font-semibold tracking-tight text-base-content">Participants</h1>
+        <h1 class="text-2xl font-semibold tracking-tight text-base-content">
+          {gettext("Participants")}
+        </h1>
         <p class="mt-1 text-sm text-base-content/60">{@race.name}</p>
       </div>
       <.button navigate={~p"/admin/races/#{@race.id}/participants/new"} variant="primary">
-        <.icon name="hero-plus" class="size-4 mr-1" /> Add Participant
+        <.icon name="hero-plus" class="size-4 mr-1" /> {gettext("Add Participant")}
       </.button>
     </div>
 
@@ -121,7 +124,7 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
             type="text"
             name="search"
             value={@search}
-            placeholder="Search by name or bib..."
+            placeholder={gettext("Search by name or bib...")}
             class="input w-full pl-10 rounded-lg border-base-300 bg-base-100 focus:border-primary/50 focus:ring-primary/20"
             phx-debounce="300"
           />
@@ -137,25 +140,57 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
       <table class="table w-full">
         <thead>
           <tr class="border-b border-base-300 bg-base-200/40 text-xs uppercase tracking-wider text-base-content/50">
-            <th phx-click="sort" phx-value-col="bib" class="font-semibold cursor-pointer hover:text-base-content select-none">
-              Bib<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="bib" />
+            <th
+              phx-click="sort"
+              phx-value-col="bib"
+              class="font-semibold cursor-pointer hover:text-base-content select-none"
+            >
+              {gettext("Bib")}<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="bib" />
             </th>
-            <th phx-click="sort" phx-value-col="name" class="font-semibold cursor-pointer hover:text-base-content select-none">
-              Name<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="name" />
+            <th
+              phx-click="sort"
+              phx-value-col="name"
+              class="font-semibold cursor-pointer hover:text-base-content select-none"
+            >
+              {gettext("Name")}<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="name" />
             </th>
-            <th phx-click="sort" phx-value-col="email" class="font-semibold cursor-pointer hover:text-base-content select-none">
-              Email<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="email" />
+            <th
+              phx-click="sort"
+              phx-value-col="email"
+              class="font-semibold cursor-pointer hover:text-base-content select-none"
+            >
+              {gettext("Email")}<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="email" />
             </th>
-            <th phx-click="sort" phx-value-col="category" class="font-semibold cursor-pointer hover:text-base-content select-none">
-              Category<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="category" />
+            <th
+              phx-click="sort"
+              phx-value-col="category"
+              class="font-semibold cursor-pointer hover:text-base-content select-none"
+            >
+              {gettext("Category")}<.sort_indicator
+                sort_by={@sort_by}
+                sort_dir={@sort_dir}
+                col="category"
+              />
             </th>
-            <th phx-click="sort" phx-value-col="club" class="font-semibold cursor-pointer hover:text-base-content select-none">
-              Club<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="club" />
+            <th
+              phx-click="sort"
+              phx-value-col="club"
+              class="font-semibold cursor-pointer hover:text-base-content select-none"
+            >
+              {gettext("Club")}<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="club" />
             </th>
-            <th phx-click="sort" phx-value-col="status" class="font-semibold cursor-pointer hover:text-base-content select-none">
-              Status<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="status" />
+            <th
+              phx-click="sort"
+              phx-value-col="status"
+              class="font-semibold cursor-pointer hover:text-base-content select-none"
+            >
+              {gettext("Status")}<.sort_indicator
+                sort_by={@sort_by}
+                sort_dir={@sort_dir}
+                col="status"
+              />
             </th>
-            <th class="font-semibold"><span class="sr-only">Actions</span></th>
+            <th class="font-semibold"><span class="sr-only">{gettext("Actions")}</span></th>
           </tr>
         </thead>
         <tbody>
@@ -180,7 +215,7 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
                 "rounded-full px-2.5 py-0.5 text-xs font-medium",
                 participant_status_pill(participant.status)
               ]}>
-                {format_status(participant.status)}
+                {format_participant_status_upper(participant.status)}
               </span>
             </td>
             <td class="py-3">
@@ -189,7 +224,7 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
                   navigate={~p"/admin/races/#{@race.id}/participants/#{participant.id}/edit"}
                   class="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
                 >
-                  Edit
+                  {gettext("Edit")}
                 </.link>
                 <button
                   phx-click="mark_dns"
@@ -226,11 +261,13 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
       <div class="rounded-full bg-base-200 p-4 mb-4">
         <.icon name="hero-users" class="size-10 text-base-content/30" />
       </div>
-      <h3 class="text-lg font-semibold text-base-content/80 mb-1">No participants found</h3>
+      <h3 class="text-lg font-semibold text-base-content/80 mb-1">
+        {gettext("No participants found")}
+      </h3>
       <p class="text-sm text-base-content/50 max-w-sm">
         {if @search != "",
-          do: "Try adjusting your search terms.",
-          else: "Add your first participant to get started."}
+          do: gettext("Try adjusting your search terms."),
+          else: gettext("Add your first participant to get started.")}
       </p>
     </div>
     """
@@ -246,12 +283,6 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
       :finished -> "bg-success/15 text-success"
       _ -> "bg-base-content/10 text-base-content/60"
     end
-  end
-
-  defp format_status(status) do
-    status
-    |> Atom.to_string()
-    |> String.upcase()
   end
 
   defp toggle_dir(:asc), do: :desc

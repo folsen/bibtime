@@ -167,6 +167,15 @@ defmodule Bibtime.Accounts do
     |> update_user_and_delete_all_tokens()
   end
 
+  @doc """
+  Updates the user's preferred locale.
+  """
+  def update_user_locale(user, locale) when is_binary(locale) do
+    user
+    |> Ecto.Changeset.change(preferred_locale: locale)
+    |> Repo.update()
+  end
+
   ## Session
 
   @doc """

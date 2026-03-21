@@ -87,6 +87,9 @@ defmodule BibtimeWeb do
       # Core UI components
       import BibtimeWeb.CoreComponents
 
+      # Locale-aware formatting helpers
+      import BibtimeWeb.LocaleHelpers
+
       # Common modules used in templates
       alias Phoenix.LiveView.JS
       alias BibtimeWeb.Layouts

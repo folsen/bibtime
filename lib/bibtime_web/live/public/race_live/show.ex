@@ -39,14 +39,14 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
                 "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold tracking-wide uppercase",
                 status_pill_class(@race.status)
               ]}>
-                {format_status(@race.status)}
+                {format_race_status(@race.status)}
               </span>
               <span
                 :if={@participant_count > 0}
                 class="inline-flex items-center gap-1.5 rounded-full bg-base-300/50 px-3 py-1 text-xs font-semibold text-base-content/70"
               >
                 <.icon name="hero-users" class="size-3.5" />
-                {@participant_count} Registered
+                {ngettext("%{count} Registered", "%{count} Registered", @participant_count)}
               </span>
             </div>
           </div>
@@ -63,9 +63,11 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
             <.icon name="hero-calendar" class="size-5 text-primary" />
           </div>
           <div>
-            <p class="text-xs uppercase tracking-wide text-base-content/50 font-medium">Date</p>
+            <p class="text-xs uppercase tracking-wide text-base-content/50 font-medium">
+              {gettext("Date")}
+            </p>
             <p class="text-sm font-semibold text-base-content">
-              {Calendar.strftime(@race.date, "%B %d, %Y")}
+              {format_date(@race.date)}
             </p>
           </div>
         </div>
@@ -77,7 +79,9 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
             <.icon name="hero-map-pin" class="size-5 text-secondary" />
           </div>
           <div>
-            <p class="text-xs uppercase tracking-wide text-base-content/50 font-medium">Location</p>
+            <p class="text-xs uppercase tracking-wide text-base-content/50 font-medium">
+              {gettext("Location")}
+            </p>
             <p class="text-sm font-semibold text-base-content">{@race.location}</p>
           </div>
         </div>
@@ -86,7 +90,9 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
             <.icon name="hero-tag" class="size-5 text-accent" />
           </div>
           <div>
-            <p class="text-xs uppercase tracking-wide text-base-content/50 font-medium">Type</p>
+            <p class="text-xs uppercase tracking-wide text-base-content/50 font-medium">
+              {gettext("Type")}
+            </p>
             <p class="text-sm font-semibold text-base-content capitalize">{@race.race_type}</p>
           </div>
         </div>
@@ -98,14 +104,14 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
         class="rounded-lg bg-base-200/40 border border-base-300/50 px-6 py-5 mb-8"
       >
         <h2 class="text-sm uppercase tracking-wide text-base-content/50 font-semibold mb-2">
-          About this race
+          {gettext("About this race")}
         </h2>
         <p class="text-base-content/80 leading-relaxed">{@race.description}</p>
       </div>
 
       <%!-- Categories as pills --%>
       <div :if={@race.categories != []} class="mb-10">
-        <h2 class="text-lg font-semibold text-base-content mb-4">Categories</h2>
+        <h2 class="text-lg font-semibold text-base-content mb-4">{gettext("Categories")}</h2>
         <div class="flex flex-wrap gap-2">
           <span
             :for={category <- @race.categories}
@@ -125,10 +131,10 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
         class="mb-10"
       >
         <div class="flex items-center gap-3 mb-4">
-          <h2 class="text-lg font-semibold text-base-content">Start List</h2>
+          <h2 class="text-lg font-semibold text-base-content">{gettext("Start List")}</h2>
           <span class="inline-flex items-center gap-1.5 rounded-full bg-base-300/50 px-3 py-1 text-xs font-semibold text-base-content/70">
             <.icon name="hero-users" class="size-3.5" />
-            {@participant_count} participant{if @participant_count != 1, do: "s", else: ""}
+            {ngettext("%{count} participant", "%{count} participants", @participant_count)}
           </span>
         </div>
 
@@ -137,16 +143,16 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
             <thead>
               <tr class="text-xs uppercase tracking-wider text-base-content/50">
                 <th class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm w-16 px-3 py-3 font-semibold border-b border-base-300/50 text-left first:rounded-tl-xl">
-                  Bib
+                  {gettext("Bib")}
                 </th>
                 <th class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-left">
-                  Name
+                  {gettext("Name")}
                 </th>
                 <th class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-left">
-                  Club
+                  {gettext("Club")}
                 </th>
                 <th class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-left last:rounded-tr-xl">
-                  Category
+                  {gettext("Category")}
                 </th>
               </tr>
             </thead>
@@ -188,7 +194,7 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
           navigate={~p"/races/#{@race.slug}/register"}
           class="btn btn-primary btn-lg gap-2 shadow-md hover:shadow-lg transition-shadow"
         >
-          <.icon name="hero-pencil-square" class="size-5" /> Register Now
+          <.icon name="hero-pencil-square" class="size-5" /> {gettext("Register Now")}
           <.icon name="hero-arrow-right" class="size-5" />
         </.link>
         <.link
@@ -198,7 +204,7 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
             if(@race.status == :registration_open, do: "btn-outline btn-primary", else: "btn-primary")
           ]}
         >
-          <.icon name="hero-trophy" class="size-5" /> View Results
+          <.icon name="hero-trophy" class="size-5" /> {gettext("View Results")}
           <.icon name="hero-arrow-right" class="size-5" />
         </.link>
       </div>
@@ -216,13 +222,5 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
       :archived -> "bg-neutral/15 text-neutral"
       _ -> "bg-base-300/50 text-base-content/60"
     end
-  end
-
-  defp format_status(status) do
-    status
-    |> Atom.to_string()
-    |> String.replace("_", " ")
-    |> String.split(" ")
-    |> Enum.map_join(" ", &String.capitalize/1)
   end
 end

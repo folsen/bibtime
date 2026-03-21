@@ -11,11 +11,41 @@ defmodule Bibtime.Races.Templates do
         race_type: :triathlon,
         description: "Standard Olympic distance triathlon: 1.5km swim, 40km bike, 10km run.",
         splits: [
-          %{name: "Swim", short_name: "SWIM", leg_type: :swim, distance_meters: 1500, sort_order: 1},
-          %{name: "T1", short_name: "T1", leg_type: :transition, distance_meters: nil, sort_order: 2},
-          %{name: "Bike", short_name: "BIKE", leg_type: :bike, distance_meters: 40_000, sort_order: 3},
-          %{name: "T2", short_name: "T2", leg_type: :transition, distance_meters: nil, sort_order: 4},
-          %{name: "Run", short_name: "RUN", leg_type: :run, distance_meters: 10_000, sort_order: 5}
+          %{
+            name: "Swim",
+            short_name: "SWIM",
+            leg_type: :swim,
+            distance_meters: 1500,
+            sort_order: 1
+          },
+          %{
+            name: "T1",
+            short_name: "T1",
+            leg_type: :transition,
+            distance_meters: nil,
+            sort_order: 2
+          },
+          %{
+            name: "Bike",
+            short_name: "BIKE",
+            leg_type: :bike,
+            distance_meters: 40_000,
+            sort_order: 3
+          },
+          %{
+            name: "T2",
+            short_name: "T2",
+            leg_type: :transition,
+            distance_meters: nil,
+            sort_order: 4
+          },
+          %{
+            name: "Run",
+            short_name: "RUN",
+            leg_type: :run,
+            distance_meters: 10_000,
+            sort_order: 5
+          }
         ],
         categories: [
           %{name: "Elite Men", gender: :male, distance_label: "Olympic", sort_order: 1},
@@ -30,10 +60,34 @@ defmodule Bibtime.Races.Templates do
         race_type: :triathlon,
         description: "Sprint distance triathlon: 750m swim, 20km bike, 5km run.",
         splits: [
-          %{name: "Swim", short_name: "SWIM", leg_type: :swim, distance_meters: 750, sort_order: 1},
-          %{name: "T1", short_name: "T1", leg_type: :transition, distance_meters: nil, sort_order: 2},
-          %{name: "Bike", short_name: "BIKE", leg_type: :bike, distance_meters: 20_000, sort_order: 3},
-          %{name: "T2", short_name: "T2", leg_type: :transition, distance_meters: nil, sort_order: 4},
+          %{
+            name: "Swim",
+            short_name: "SWIM",
+            leg_type: :swim,
+            distance_meters: 750,
+            sort_order: 1
+          },
+          %{
+            name: "T1",
+            short_name: "T1",
+            leg_type: :transition,
+            distance_meters: nil,
+            sort_order: 2
+          },
+          %{
+            name: "Bike",
+            short_name: "BIKE",
+            leg_type: :bike,
+            distance_meters: 20_000,
+            sort_order: 3
+          },
+          %{
+            name: "T2",
+            short_name: "T2",
+            leg_type: :transition,
+            distance_meters: nil,
+            sort_order: 4
+          },
           %{name: "Run", short_name: "RUN", leg_type: :run, distance_meters: 5_000, sort_order: 5}
         ],
         categories: [
@@ -47,11 +101,41 @@ defmodule Bibtime.Races.Templates do
         race_type: :custom,
         description: "Standard duathlon: 10km run, 40km bike, 5km run.",
         splits: [
-          %{name: "Run 1", short_name: "RUN1", leg_type: :run, distance_meters: 10_000, sort_order: 1},
-          %{name: "T1", short_name: "T1", leg_type: :transition, distance_meters: nil, sort_order: 2},
-          %{name: "Bike", short_name: "BIKE", leg_type: :bike, distance_meters: 40_000, sort_order: 3},
-          %{name: "T2", short_name: "T2", leg_type: :transition, distance_meters: nil, sort_order: 4},
-          %{name: "Run 2", short_name: "RUN2", leg_type: :run, distance_meters: 5_000, sort_order: 5}
+          %{
+            name: "Run 1",
+            short_name: "RUN1",
+            leg_type: :run,
+            distance_meters: 10_000,
+            sort_order: 1
+          },
+          %{
+            name: "T1",
+            short_name: "T1",
+            leg_type: :transition,
+            distance_meters: nil,
+            sort_order: 2
+          },
+          %{
+            name: "Bike",
+            short_name: "BIKE",
+            leg_type: :bike,
+            distance_meters: 40_000,
+            sort_order: 3
+          },
+          %{
+            name: "T2",
+            short_name: "T2",
+            leg_type: :transition,
+            distance_meters: nil,
+            sort_order: 4
+          },
+          %{
+            name: "Run 2",
+            short_name: "RUN2",
+            leg_type: :run,
+            distance_meters: 5_000,
+            sort_order: 5
+          }
         ],
         categories: [
           %{name: "Men", gender: :male, distance_label: "Standard", sort_order: 1},
@@ -64,8 +148,20 @@ defmodule Bibtime.Races.Templates do
         race_type: :custom,
         description: "Aquathlon: 1km swim, 5km run.",
         splits: [
-          %{name: "Swim", short_name: "SWIM", leg_type: :swim, distance_meters: 1_000, sort_order: 1},
-          %{name: "T1", short_name: "T1", leg_type: :transition, distance_meters: nil, sort_order: 2},
+          %{
+            name: "Swim",
+            short_name: "SWIM",
+            leg_type: :swim,
+            distance_meters: 1_000,
+            sort_order: 1
+          },
+          %{
+            name: "T1",
+            short_name: "T1",
+            leg_type: :transition,
+            distance_meters: nil,
+            sort_order: 2
+          },
           %{name: "Run", short_name: "RUN", leg_type: :run, distance_meters: 5_000, sort_order: 3}
         ],
         categories: [
@@ -79,7 +175,13 @@ defmodule Bibtime.Races.Templates do
         race_type: :running,
         description: "Standard 5 kilometer road race.",
         splits: [
-          %{name: "Finish", short_name: "FIN", leg_type: :run, distance_meters: 5_000, sort_order: 1}
+          %{
+            name: "Finish",
+            short_name: "FIN",
+            leg_type: :run,
+            distance_meters: 5_000,
+            sort_order: 1
+          }
         ],
         categories: [
           %{name: "Men", gender: :male, distance_label: "5K", sort_order: 1},
@@ -97,7 +199,13 @@ defmodule Bibtime.Races.Templates do
         description: "Standard 10 kilometer road race.",
         splits: [
           %{name: "5K", short_name: "5K", leg_type: :run, distance_meters: 5_000, sort_order: 1},
-          %{name: "Finish", short_name: "FIN", leg_type: :run, distance_meters: 10_000, sort_order: 2}
+          %{
+            name: "Finish",
+            short_name: "FIN",
+            leg_type: :run,
+            distance_meters: 10_000,
+            sort_order: 2
+          }
         ],
         categories: [
           %{name: "Men", gender: :male, distance_label: "10K", sort_order: 1},
@@ -115,9 +223,27 @@ defmodule Bibtime.Races.Templates do
         description: "Half marathon: 21.1 km.",
         splits: [
           %{name: "5K", short_name: "5K", leg_type: :run, distance_meters: 5_000, sort_order: 1},
-          %{name: "10K", short_name: "10K", leg_type: :run, distance_meters: 10_000, sort_order: 2},
-          %{name: "15K", short_name: "15K", leg_type: :run, distance_meters: 15_000, sort_order: 3},
-          %{name: "Finish", short_name: "FIN", leg_type: :run, distance_meters: 21_097, sort_order: 4}
+          %{
+            name: "10K",
+            short_name: "10K",
+            leg_type: :run,
+            distance_meters: 10_000,
+            sort_order: 2
+          },
+          %{
+            name: "15K",
+            short_name: "15K",
+            leg_type: :run,
+            distance_meters: 15_000,
+            sort_order: 3
+          },
+          %{
+            name: "Finish",
+            short_name: "FIN",
+            leg_type: :run,
+            distance_meters: 21_097,
+            sort_order: 4
+          }
         ],
         categories: [
           %{name: "Men", gender: :male, distance_label: "Half Marathon", sort_order: 1},
@@ -135,10 +261,34 @@ defmodule Bibtime.Races.Templates do
         description: "Full marathon: 42.195 km.",
         splits: [
           %{name: "5K", short_name: "5K", leg_type: :run, distance_meters: 5_000, sort_order: 1},
-          %{name: "10K", short_name: "10K", leg_type: :run, distance_meters: 10_000, sort_order: 2},
-          %{name: "Half", short_name: "HALF", leg_type: :run, distance_meters: 21_097, sort_order: 3},
-          %{name: "30K", short_name: "30K", leg_type: :run, distance_meters: 30_000, sort_order: 4},
-          %{name: "Finish", short_name: "FIN", leg_type: :run, distance_meters: 42_195, sort_order: 5}
+          %{
+            name: "10K",
+            short_name: "10K",
+            leg_type: :run,
+            distance_meters: 10_000,
+            sort_order: 2
+          },
+          %{
+            name: "Half",
+            short_name: "HALF",
+            leg_type: :run,
+            distance_meters: 21_097,
+            sort_order: 3
+          },
+          %{
+            name: "30K",
+            short_name: "30K",
+            leg_type: :run,
+            distance_meters: 30_000,
+            sort_order: 4
+          },
+          %{
+            name: "Finish",
+            short_name: "FIN",
+            leg_type: :run,
+            distance_meters: 42_195,
+            sort_order: 5
+          }
         ],
         categories: [
           %{name: "Men", gender: :male, distance_label: "Marathon", sort_order: 1},

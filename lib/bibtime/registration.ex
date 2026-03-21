@@ -36,7 +36,9 @@ defmodule Bibtime.Registration do
         %Participant{race_id: race.id, bib_number: bib_number, confirmation_token: token}
         |> Participant.registration_changeset(attrs, reg_opts)
 
-      email = Ecto.Changeset.get_change(changeset, :email) || Ecto.Changeset.get_field(changeset, :email)
+      email =
+        Ecto.Changeset.get_change(changeset, :email) ||
+          Ecto.Changeset.get_field(changeset, :email)
 
       case Repo.insert(changeset) do
         {:ok, participant} ->

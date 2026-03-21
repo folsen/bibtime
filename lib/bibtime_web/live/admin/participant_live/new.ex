@@ -36,7 +36,7 @@ defmodule BibtimeWeb.Admin.ParticipantLive.New do
       {:ok, _participant} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Participant created successfully.")
+         |> put_flash(:info, gettext("Participant created successfully."))
          |> push_navigate(to: ~p"/admin/races/#{socket.assigns.race.id}/participants")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -48,43 +48,43 @@ defmodule BibtimeWeb.Admin.ParticipantLive.New do
   def render(assigns) do
     ~H"""
     <.header>
-      Add Participant
+      {gettext("Add Participant")}
       <:subtitle>
         <.link
           navigate={~p"/admin/races/#{@race.id}/participants"}
           class="link link-primary text-sm"
         >
-          Back to participants
+          {gettext("Back to participants")}
         </.link>
       </:subtitle>
     </.header>
 
     <.form for={@form} phx-change="validate" phx-submit="save" class="max-w-xl">
-      <.input field={@form[:bib_number]} type="text" label="Bib Number" />
-      <.input field={@form[:first_name]} type="text" label="First Name" />
-      <.input field={@form[:last_name]} type="text" label="Last Name" />
-      <.input field={@form[:email]} type="email" label="Email" />
-      <.input field={@form[:birth_date]} type="date" label="Birth Date" />
+      <.input field={@form[:bib_number]} type="text" label={gettext("Bib Number")} />
+      <.input field={@form[:first_name]} type="text" label={gettext("First Name")} />
+      <.input field={@form[:last_name]} type="text" label={gettext("Last Name")} />
+      <.input field={@form[:email]} type="email" label={gettext("Email")} />
+      <.input field={@form[:birth_date]} type="date" label={gettext("Birth Date")} />
       <.input
         field={@form[:gender]}
         type="select"
-        label="Gender"
-        prompt="Select gender"
-        options={[Male: :male, Female: :female, Other: :other]}
+        label={gettext("Gender")}
+        prompt={gettext("Select gender")}
+        options={gender_options()}
       />
-      <.input field={@form[:club]} type="text" label="Club" />
-      <.input field={@form[:chip_id]} type="text" label="Chip ID" />
+      <.input field={@form[:club]} type="text" label={gettext("Club")} />
+      <.input field={@form[:chip_id]} type="text" label={gettext("Chip ID")} />
       <.input
         field={@form[:race_category_id]}
         type="select"
-        label="Category"
-        prompt="Select category"
+        label={gettext("Category")}
+        prompt={gettext("Select category")}
         options={@category_options}
       />
 
       <div class="mt-4 flex gap-4">
-        <.button type="submit" variant="primary">Create Participant</.button>
-        <.button navigate={~p"/admin/races/#{@race.id}/participants"}>Cancel</.button>
+        <.button type="submit" variant="primary">{gettext("Create Participant")}</.button>
+        <.button navigate={~p"/admin/races/#{@race.id}/participants"}>{gettext("Cancel")}</.button>
       </div>
     </.form>
     """

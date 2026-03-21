@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang={Gettext.get_locale(BibtimeWeb.Gettext)}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -43,40 +43,58 @@
               href={~p"/my-races"}
               class="text-base-content/70 hover:text-primary transition-colors"
             >
-              My Races
+              {gettext("My Races")}
             </.link>
             <.link
               href={~p"/profile"}
               class="text-base-content/70 hover:text-primary transition-colors"
             >
-              Profile
+              {gettext("Profile")}
             </.link>
             <%= if @current_scope.user.is_admin do %>
               <.link
                 href={~p"/admin/races"}
                 class="text-base-content/70 hover:text-primary transition-colors"
               >
-                Admin
+                {gettext("Admin")}
               </.link>
             <% end %>
             <.link
               href={~p"/users/settings"}
               class="text-base-content/70 hover:text-primary transition-colors"
             >
-              Settings
+              {gettext("Settings")}
             </.link>
             <.link
               href={~p"/users/log-out"}
               method="delete"
               class="text-base-content/70 hover:text-secondary transition-colors"
             >
-              Log out
+              {gettext("Log out")}
             </.link>
           <% else %>
             <.link href={~p"/users/log-in"} class="btn btn-sm btn-primary">
-              Log in
+              {gettext("Log in")}
             </.link>
           <% end %>
+          <%!-- Language Switcher --%>
+          <div class="flex items-center gap-1 text-xs">
+            <%= for locale <- BibtimeWeb.Plugs.SetLocale.supported_locales() do %>
+              <.link
+                href={~p"/locale?locale=#{locale}"}
+                method="put"
+                class={[
+                  "px-1.5 py-0.5 rounded font-medium transition-colors",
+                  if(Gettext.get_locale(BibtimeWeb.Gettext) == locale,
+                    do: "bg-primary/15 text-primary",
+                    else: "text-base-content/40 hover:text-base-content/70"
+                  )
+                ]}
+              >
+                {String.upcase(locale)}
+              </.link>
+            <% end %>
+          </div>
         </nav>
       </div>
     </header>

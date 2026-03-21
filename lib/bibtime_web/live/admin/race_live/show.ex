@@ -31,7 +31,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
             "rounded-full px-2.5 py-0.5 text-xs font-medium",
             status_pill_class(@race.status)
           ]}>
-            {format_status(@race.status)}
+            {format_race_status(@race.status)}
           </span>
         </div>
         <p class="mt-1 text-sm text-base-content/60 capitalize">{@race.race_type}</p>
@@ -41,10 +41,10 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
           navigate={~p"/admin/races/new?clone_from=#{@race.id}"}
           class="btn btn-sm btn-ghost text-base-content/60 hover:text-base-content"
         >
-          <.icon name="hero-document-duplicate" class="size-4 mr-1" /> Clone
+          <.icon name="hero-document-duplicate" class="size-4 mr-1" /> {gettext("Clone")}
         </.link>
         <.button navigate={~p"/admin/races/#{@race.id}/edit"}>
-          <.icon name="hero-pencil-square" class="size-4 mr-1" /> Edit Race
+          <.icon name="hero-pencil-square" class="size-4 mr-1" /> {gettext("Edit Race")}
         </.button>
       </div>
     </div>
@@ -53,26 +53,26 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
       <div class="rounded-xl border border-base-300 bg-base-100 p-5 shadow-sm">
         <h3 class="text-sm font-semibold text-base-content/50 uppercase tracking-wider mb-3">
-          Details
+          {gettext("Details")}
         </h3>
         <dl class="space-y-3 text-sm">
           <div class="flex items-center justify-between">
             <dt class="text-base-content/50 flex items-center gap-1.5">
-              <.icon name="hero-calendar" class="size-4" /> Date
+              <.icon name="hero-calendar" class="size-4" /> {gettext("Date")}
             </dt>
             <dd class="font-medium">
-              {if @race.date, do: Calendar.strftime(@race.date, "%B %d, %Y"), else: "Not set"}
+              {if @race.date, do: format_date(@race.date), else: gettext("Not set")}
             </dd>
           </div>
           <div class="flex items-center justify-between">
             <dt class="text-base-content/50 flex items-center gap-1.5">
-              <.icon name="hero-map-pin" class="size-4" /> Location
+              <.icon name="hero-map-pin" class="size-4" /> {gettext("Location")}
             </dt>
-            <dd class="font-medium">{@race.location || "Not set"}</dd>
+            <dd class="font-medium">{@race.location || gettext("Not set")}</dd>
           </div>
           <div class="flex items-center justify-between">
             <dt class="text-base-content/50 flex items-center gap-1.5">
-              <.icon name="hero-link" class="size-4" /> Slug
+              <.icon name="hero-link" class="size-4" /> {gettext("Slug")}
             </dt>
             <dd class="font-mono text-xs bg-base-200 rounded px-2 py-0.5">{@race.slug}</dd>
           </div>
@@ -81,10 +81,10 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
 
       <div class="rounded-xl border border-base-300 bg-base-100 p-5 shadow-sm">
         <h3 class="text-sm font-semibold text-base-content/50 uppercase tracking-wider mb-3">
-          Description
+          {gettext("Description")}
         </h3>
         <p class="text-sm text-base-content/80 leading-relaxed">
-          {@race.description || "No description provided."}
+          {@race.description || gettext("No description provided.")}
         </p>
       </div>
     </div>
@@ -100,9 +100,9 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
         </div>
         <div>
           <div class="font-semibold text-base-content group-hover:text-primary transition-colors">
-            Participants
+            {gettext("Participants")}
           </div>
-          <div class="text-sm text-base-content/50">Manage race entrants</div>
+          <div class="text-sm text-base-content/50">{gettext("Manage race entrants")}</div>
         </div>
         <.icon
           name="hero-chevron-right"
@@ -119,9 +119,9 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
         </div>
         <div>
           <div class="font-semibold text-base-content group-hover:text-secondary transition-colors">
-            Timing
+            {gettext("Timing")}
           </div>
-          <div class="text-sm text-base-content/50">Race day console</div>
+          <div class="text-sm text-base-content/50">{gettext("Race day console")}</div>
         </div>
         <.icon
           name="hero-chevron-right"
@@ -139,9 +139,9 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
         </div>
         <div>
           <div class="font-semibold text-base-content group-hover:text-accent transition-colors">
-            Kiosk Display
+            {gettext("Kiosk Display")}
           </div>
-          <div class="text-sm text-base-content/50">Big-screen leaderboard</div>
+          <div class="text-sm text-base-content/50">{gettext("Big-screen leaderboard")}</div>
         </div>
         <.icon
           name="hero-arrow-top-right-on-square"
@@ -154,7 +154,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
     <div class="mt-10">
       <div class="flex items-center gap-2 mb-4">
         <.icon name="hero-tag" class="size-5 text-base-content/40" />
-        <h2 class="text-lg font-semibold text-base-content">Categories</h2>
+        <h2 class="text-lg font-semibold text-base-content">{gettext("Categories")}</h2>
       </div>
 
       <div
@@ -164,12 +164,12 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
         <table class="table w-full">
           <thead>
             <tr class="border-b border-base-300 bg-base-200/40 text-xs uppercase tracking-wider text-base-content/50">
-              <th class="font-semibold">Name</th>
-              <th class="font-semibold">Distance</th>
-              <th class="font-semibold">Gender</th>
-              <th class="font-semibold">Age Range</th>
-              <th class="font-semibold">Order</th>
-              <th class="font-semibold"><span class="sr-only">Actions</span></th>
+              <th class="font-semibold">{gettext("Name")}</th>
+              <th class="font-semibold">{gettext("Distance")}</th>
+              <th class="font-semibold">{gettext("Gender")}</th>
+              <th class="font-semibold">{gettext("Age Range")}</th>
+              <th class="font-semibold">{gettext("Order")}</th>
+              <th class="font-semibold"><span class="sr-only">{gettext("Actions")}</span></th>
             </tr>
           </thead>
           <tbody>
@@ -189,10 +189,10 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
                 <button
                   phx-click="delete_category"
                   phx-value-id={cat.id}
-                  data-confirm="Are you sure you want to delete this category?"
+                  data-confirm={gettext("Are you sure you want to delete this category?")}
                   class="text-sm font-medium text-error/70 hover:text-error transition-colors"
                 >
-                  Delete
+                  {gettext("Delete")}
                 </button>
               </td>
             </tr>
@@ -201,38 +201,43 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
       </div>
 
       <p :if={@race.categories == []} class="text-sm text-base-content/50 mb-4 italic">
-        No categories yet. Add one below.
+        {gettext("No categories yet. Add one below.")}
       </p>
 
       <%!-- Add Category Form --%>
       <div class="mt-4 rounded-xl border border-dashed border-base-300 bg-base-200/30 p-5">
         <h3 class="text-sm font-semibold text-base-content/70 mb-4 flex items-center gap-1.5">
-          <.icon name="hero-plus-circle" class="size-4 text-primary/60" /> Add Category
+          <.icon name="hero-plus-circle" class="size-4 text-primary/60" /> {gettext("Add Category")}
         </h3>
         <.form for={@category_form} phx-submit="add_category" class="flex flex-wrap gap-3 items-end">
           <.input
             field={@category_form[:name]}
             type="text"
-            label="Name"
+            label={gettext("Name")}
             required
-            placeholder="e.g. Elite Men"
+            placeholder={gettext("e.g. Elite Men")}
           />
           <.input
             field={@category_form[:distance_label]}
             type="text"
-            label="Distance"
-            placeholder="e.g. 5K"
+            label={gettext("Distance")}
+            placeholder={gettext("e.g. 5K")}
           />
           <.input
             field={@category_form[:gender]}
             type="select"
-            label="Gender"
-            options={[{"Any", :any}, {"Male", :male}, {"Female", :female}]}
+            label={gettext("Gender")}
+            options={[{gettext("Any"), :any}, {gettext("Male"), :male}, {gettext("Female"), :female}]}
           />
-          <.input field={@category_form[:min_age]} type="number" label="Min Age" />
-          <.input field={@category_form[:max_age]} type="number" label="Max Age" />
-          <.input field={@category_form[:sort_order]} type="number" label="Order" value="0" />
-          <.button type="submit" variant="primary">Add</.button>
+          <.input field={@category_form[:min_age]} type="number" label={gettext("Min Age")} />
+          <.input field={@category_form[:max_age]} type="number" label={gettext("Max Age")} />
+          <.input
+            field={@category_form[:sort_order]}
+            type="number"
+            label={gettext("Order")}
+            value="0"
+          />
+          <.button type="submit" variant="primary">{gettext("Add")}</.button>
         </.form>
       </div>
     </div>
@@ -241,7 +246,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
     <div class="mt-10">
       <div class="flex items-center gap-2 mb-4">
         <.icon name="hero-bolt" class="size-5 text-base-content/40" />
-        <h2 class="text-lg font-semibold text-base-content">Auto Categories</h2>
+        <h2 class="text-lg font-semibold text-base-content">{gettext("Auto Categories")}</h2>
       </div>
 
       <div
@@ -251,11 +256,11 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
         <table class="table w-full">
           <thead>
             <tr class="border-b border-base-300 bg-base-200/40 text-xs uppercase tracking-wider text-base-content/50">
-              <th class="font-semibold">Name</th>
-              <th class="font-semibold">Type</th>
-              <th class="font-semibold">Details</th>
-              <th class="font-semibold">Order</th>
-              <th class="font-semibold"><span class="sr-only">Actions</span></th>
+              <th class="font-semibold">{gettext("Name")}</th>
+              <th class="font-semibold">{gettext("Type")}</th>
+              <th class="font-semibold">{gettext("Details")}</th>
+              <th class="font-semibold">{gettext("Order")}</th>
+              <th class="font-semibold"><span class="sr-only">{gettext("Actions")}</span></th>
             </tr>
           </thead>
           <tbody>
@@ -276,10 +281,10 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
                 <button
                   phx-click="delete_auto_category"
                   phx-value-id={auto_cat.id}
-                  data-confirm="Are you sure you want to delete this auto category?"
+                  data-confirm={gettext("Are you sure you want to delete this auto category?")}
                   class="text-sm font-medium text-error/70 hover:text-error transition-colors"
                 >
-                  Delete
+                  {gettext("Delete")}
                 </button>
               </td>
             </tr>
@@ -288,7 +293,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
       </div>
 
       <p :if={@race.auto_categories == []} class="text-sm text-base-content/50 mb-4 italic">
-        No auto categories yet. Use the quick-add buttons or add one manually below.
+        {gettext("No auto categories yet. Use the quick-add buttons or add one manually below.")}
       </p>
 
       <%!-- Quick-add presets --%>
@@ -297,47 +302,62 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
           phx-click="add_gender_auto_categories"
           class="btn btn-sm btn-outline gap-1.5"
         >
-          <.icon name="hero-plus" class="size-3.5" /> Add Gender Categories
+          <.icon name="hero-plus" class="size-3.5" /> {gettext("Add Gender Categories")}
         </button>
         <button
           phx-click="add_age_group_auto_categories"
           class="btn btn-sm btn-outline gap-1.5"
         >
-          <.icon name="hero-plus" class="size-3.5" /> Add Standard Age Groups
+          <.icon name="hero-plus" class="size-3.5" /> {gettext("Add Standard Age Groups")}
         </button>
       </div>
 
       <%!-- Add Auto Category Form --%>
       <div class="mt-4 rounded-xl border border-dashed border-base-300 bg-base-200/30 p-5">
         <h3 class="text-sm font-semibold text-base-content/70 mb-4 flex items-center gap-1.5">
-          <.icon name="hero-plus-circle" class="size-4 text-primary/60" /> Add Auto Category
+          <.icon name="hero-plus-circle" class="size-4 text-primary/60" /> {gettext(
+            "Add Auto Category"
+          )}
         </h3>
-        <.form for={@auto_category_form} phx-submit="add_auto_category" class="flex flex-wrap gap-3 items-end">
+        <.form
+          for={@auto_category_form}
+          phx-submit="add_auto_category"
+          class="flex flex-wrap gap-3 items-end"
+        >
           <.input
             field={@auto_category_form[:name]}
             type="text"
-            label="Name"
+            label={gettext("Name")}
             required
-            placeholder="e.g. Men, 20-29"
+            placeholder={gettext("e.g. Men, 20-29")}
           />
           <.input
             field={@auto_category_form[:type]}
             type="select"
-            label="Type"
-            options={[{"Gender", :gender}, {"Age Group", :age_group}]}
+            label={gettext("Type")}
+            options={[{gettext("Gender"), :gender}, {gettext("Age Group"), :age_group}]}
             required
           />
           <.input
             field={@auto_category_form[:gender_value]}
             type="select"
-            label="Gender Value"
-            prompt="(for gender type)"
-            options={[{"Male", :male}, {"Female", :female}, {"Other", :other}]}
+            label={gettext("Gender Value")}
+            prompt={gettext("(for gender type)")}
+            options={[
+              {gettext("Male"), :male},
+              {gettext("Female"), :female},
+              {gettext("Other"), :other}
+            ]}
           />
-          <.input field={@auto_category_form[:min_age]} type="number" label="Min Age" />
-          <.input field={@auto_category_form[:max_age]} type="number" label="Max Age" />
-          <.input field={@auto_category_form[:sort_order]} type="number" label="Order" value="0" />
-          <.button type="submit" variant="primary">Add</.button>
+          <.input field={@auto_category_form[:min_age]} type="number" label={gettext("Min Age")} />
+          <.input field={@auto_category_form[:max_age]} type="number" label={gettext("Max Age")} />
+          <.input
+            field={@auto_category_form[:sort_order]}
+            type="number"
+            label={gettext("Order")}
+            value="0"
+          />
+          <.button type="submit" variant="primary">{gettext("Add")}</.button>
         </.form>
       </div>
     </div>
@@ -346,7 +366,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
     <div class="mt-10">
       <div class="flex items-center gap-2 mb-4">
         <.icon name="hero-scissors" class="size-5 text-base-content/40" />
-        <h2 class="text-lg font-semibold text-base-content">Splits</h2>
+        <h2 class="text-lg font-semibold text-base-content">{gettext("Splits")}</h2>
       </div>
 
       <div
@@ -356,12 +376,12 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
         <table class="table w-full">
           <thead>
             <tr class="border-b border-base-300 bg-base-200/40 text-xs uppercase tracking-wider text-base-content/50">
-              <th class="font-semibold">Name</th>
-              <th class="font-semibold">Short Name</th>
-              <th class="font-semibold">Leg Type</th>
-              <th class="font-semibold">Distance (m)</th>
-              <th class="font-semibold">Order</th>
-              <th class="font-semibold"><span class="sr-only">Actions</span></th>
+              <th class="font-semibold">{gettext("Name")}</th>
+              <th class="font-semibold">{gettext("Short Name")}</th>
+              <th class="font-semibold">{gettext("Leg Type")}</th>
+              <th class="font-semibold">{gettext("Distance (m)")}</th>
+              <th class="font-semibold">{gettext("Order")}</th>
+              <th class="font-semibold"><span class="sr-only">{gettext("Actions")}</span></th>
             </tr>
           </thead>
           <tbody>
@@ -379,10 +399,10 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
                 <button
                   phx-click="delete_split"
                   phx-value-id={split.id}
-                  data-confirm="Are you sure you want to delete this split?"
+                  data-confirm={gettext("Are you sure you want to delete this split?")}
                   class="text-sm font-medium text-error/70 hover:text-error transition-colors"
                 >
-                  Delete
+                  {gettext("Delete")}
                 </button>
               </td>
             </tr>
@@ -391,45 +411,45 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
       </div>
 
       <p :if={@race.splits == []} class="text-sm text-base-content/50 mb-4 italic">
-        No splits yet. Add one below.
+        {gettext("No splits yet. Add one below.")}
       </p>
 
       <%!-- Add Split Form --%>
       <div class="mt-4 rounded-xl border border-dashed border-base-300 bg-base-200/30 p-5">
         <h3 class="text-sm font-semibold text-base-content/70 mb-4 flex items-center gap-1.5">
-          <.icon name="hero-plus-circle" class="size-4 text-primary/60" /> Add Split
+          <.icon name="hero-plus-circle" class="size-4 text-primary/60" /> {gettext("Add Split")}
         </h3>
         <.form for={@split_form} phx-submit="add_split" class="flex flex-wrap gap-3 items-end">
           <.input
             field={@split_form[:name]}
             type="text"
-            label="Name"
+            label={gettext("Name")}
             required
-            placeholder="e.g. Swim"
+            placeholder={gettext("e.g. Swim")}
           />
           <.input
             field={@split_form[:short_name]}
             type="text"
-            label="Short Name"
+            label={gettext("Short Name")}
             required
-            placeholder="e.g. S1"
+            placeholder={gettext("e.g. S1")}
           />
           <.input
             field={@split_form[:leg_type]}
             type="select"
-            label="Leg Type"
+            label={gettext("Leg Type")}
             options={[
-              {"Swim", :swim},
-              {"Bike", :bike},
-              {"Run", :run},
-              {"Transition", :transition},
-              {"Other", :other}
+              {gettext("Swim"), :swim},
+              {gettext("Bike"), :bike},
+              {gettext("Run"), :run},
+              {gettext("Transition"), :transition},
+              {gettext("Other"), :other}
             ]}
             required
           />
-          <.input field={@split_form[:distance_meters]} type="number" label="Distance (m)" />
-          <.input field={@split_form[:sort_order]} type="number" label="Order" value="0" />
-          <.button type="submit" variant="primary">Add</.button>
+          <.input field={@split_form[:distance_meters]} type="number" label={gettext("Distance (m)")} />
+          <.input field={@split_form[:sort_order]} type="number" label={gettext("Order")} value="0" />
+          <.button type="submit" variant="primary">{gettext("Add")}</.button>
         </.form>
       </div>
     </div>
@@ -439,7 +459,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
         navigate={~p"/admin/races"}
         class="text-sm text-base-content/50 hover:text-primary transition-colors flex items-center gap-1"
       >
-        <.icon name="hero-arrow-left" class="size-3.5" /> Back to races
+        <.icon name="hero-arrow-left" class="size-3.5" /> {gettext("Back to races")}
       </.link>
     </div>
     """
@@ -457,7 +477,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
          socket
          |> assign(:race, race)
          |> assign_category_form(Races.change_category(%RaceCategory{}))
-         |> put_flash(:info, "Category added.")}
+         |> put_flash(:info, gettext("Category added."))}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_category_form(socket, changeset)}
@@ -473,7 +493,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
     {:noreply,
      socket
      |> assign(:race, race)
-     |> put_flash(:info, "Category deleted.")}
+     |> put_flash(:info, gettext("Category deleted."))}
   end
 
   @impl true
@@ -488,7 +508,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
          socket
          |> assign(:race, race)
          |> assign_auto_category_form(Races.change_auto_category(%RaceAutoCategory{}))
-         |> put_flash(:info, "Auto category added.")}
+         |> put_flash(:info, gettext("Auto category added."))}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_auto_category_form(socket, changeset)}
@@ -504,7 +524,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
     {:noreply,
      socket
      |> assign(:race, race)
-     |> put_flash(:info, "Auto category deleted.")}
+     |> put_flash(:info, gettext("Auto category deleted."))}
   end
 
   @impl true
@@ -515,7 +535,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
     {:noreply,
      socket
      |> assign(:race, race)
-     |> put_flash(:info, "Gender categories added.")}
+     |> put_flash(:info, gettext("Gender categories added."))}
   end
 
   @impl true
@@ -526,7 +546,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
     {:noreply,
      socket
      |> assign(:race, race)
-     |> put_flash(:info, "Age group categories added.")}
+     |> put_flash(:info, gettext("Age group categories added."))}
   end
 
   @impl true
@@ -541,7 +561,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
          socket
          |> assign(:race, race)
          |> assign_split_form(Races.change_split(%Split{}))
-         |> put_flash(:info, "Split added.")}
+         |> put_flash(:info, gettext("Split added."))}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_split_form(socket, changeset)}
@@ -557,7 +577,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
     {:noreply,
      socket
      |> assign(:race, race)
-     |> put_flash(:info, "Split deleted.")}
+     |> put_flash(:info, gettext("Split deleted."))}
   end
 
   defp assign_category_form(socket, %Ecto.Changeset{} = changeset) do
@@ -572,12 +592,12 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
     assign(socket, :split_form, to_form(changeset))
   end
 
-  defp format_auto_cat_type(:gender), do: "Gender"
-  defp format_auto_cat_type(:age_group), do: "Age Group"
+  defp format_auto_cat_type(:gender), do: gettext("Gender")
+  defp format_auto_cat_type(:age_group), do: gettext("Age Group")
   defp format_auto_cat_type(type), do: to_string(type)
 
   defp format_auto_cat_details(%{type: :gender, gender_value: gv}) when not is_nil(gv) do
-    "Gender = #{gv}"
+    gettext("Gender = %{value}", value: gv)
   end
 
   defp format_auto_cat_details(%{type: :age_group, min_age: min, max_age: max}) do
@@ -586,9 +606,9 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
 
   defp format_auto_cat_details(_), do: "-"
 
-  defp format_age_range(nil, nil), do: "Any"
+  defp format_age_range(nil, nil), do: gettext("Any")
   defp format_age_range(min, nil), do: "#{min}+"
-  defp format_age_range(nil, max), do: "Up to #{max}"
+  defp format_age_range(nil, max), do: gettext("Up to %{max}", max: max)
   defp format_age_range(min, max), do: "#{min}-#{max}"
 
   defp status_pill_class(status) do
@@ -601,13 +621,5 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
       :archived -> "bg-neutral/15 text-neutral"
       _ -> "bg-base-content/10 text-base-content/60"
     end
-  end
-
-  defp format_status(status) do
-    status
-    |> Atom.to_string()
-    |> String.replace("_", " ")
-    |> String.split(" ")
-    |> Enum.map_join(" ", &String.capitalize/1)
   end
 end

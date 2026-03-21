@@ -21,6 +21,7 @@ defmodule Bibtime.Races.Race do
       ]
 
     field :config, :map, default: %{}
+    field :default_locale, :string
 
     has_many :categories, Bibtime.Races.RaceCategory
     has_many :auto_categories, Bibtime.Races.RaceAutoCategory
@@ -34,7 +35,17 @@ defmodule Bibtime.Races.Race do
   @doc false
   def changeset(race, attrs) do
     race
-    |> cast(attrs, [:name, :slug, :description, :date, :location, :race_type, :status, :config])
+    |> cast(attrs, [
+      :name,
+      :slug,
+      :description,
+      :date,
+      :location,
+      :race_type,
+      :status,
+      :config,
+      :default_locale
+    ])
     |> validate_required([:name, :slug, :race_type, :status])
     |> validate_format(:slug, ~r/^[a-z0-9-]+$/,
       message: "must be lowercase alphanumeric and hyphens only"

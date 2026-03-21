@@ -4,6 +4,8 @@ defmodule BibtimeWeb.UserAuth do
   import Plug.Conn
   import Phoenix.Controller
 
+  use Gettext, backend: BibtimeWeb.Gettext
+
   alias Bibtime.Accounts
   alias Bibtime.Accounts.Scope
 
@@ -142,10 +144,12 @@ defmodule BibtimeWeb.UserAuth do
   #
   defp renew_session(conn, _user) do
     delete_csrf_token()
+    preferred_locale = get_session(conn, :locale)
 
     conn
     |> configure_session(renew: true)
     |> clear_session()
+    |> put_session(:locale, preferred_locale)
   end
 
   defp maybe_write_remember_me_cookie(conn, token, %{"remember_me" => "true"}, _),
@@ -174,7 +178,7 @@ defmodule BibtimeWeb.UserAuth do
       conn
     else
       conn
-      |> put_flash(:error, "You must re-authenticate to access this page.")
+      |> put_flash(:error, gettext("You must re-authenticate to access this page."))
       |> maybe_store_return_to()
       |> redirect(to: ~p"/users/log-in")
       |> halt()
@@ -204,7 +208,7 @@ defmodule BibtimeWeb.UserAuth do
       conn
     else
       conn
-      |> put_flash(:error, "You must log in to access this page.")
+      |> put_flash(:error, gettext("You must log in to access this page."))
       |> maybe_store_return_to()
       |> redirect(to: ~p"/users/log-in")
       |> halt()
@@ -221,7 +225,7 @@ defmodule BibtimeWeb.UserAuth do
       conn
     else
       conn
-      |> put_flash(:error, "You don't have permission to access this page.")
+      |> put_flash(:error, gettext("You don't have permission to access this page."))
       |> redirect(to: ~p"/")
       |> halt()
     end
@@ -232,18 +236,20 @@ defmodule BibtimeWeb.UserAuth do
   """
   def on_mount(:assign_current_scope, _params, session, socket) do
     socket = mount_current_scope(socket, session)
+    set_locale_from_session(session)
     {:cont, socket}
   end
 
   def on_mount(:require_authenticated_user, _params, session, socket) do
     socket = mount_current_scope(socket, session)
+    set_locale_from_session(session)
 
     if socket.assigns.current_scope && socket.assigns.current_scope.user do
       {:cont, socket}
     else
       socket =
         socket
-        |> Phoenix.LiveView.put_flash(:error, "You must log in to access this page.")
+        |> Phoenix.LiveView.put_flash(:error, gettext("You must log in to access this page."))
         |> Phoenix.LiveView.redirect(to: ~p"/users/log-in")
 
       {:halt, socket}
@@ -261,6 +267,14 @@ defmodule BibtimeWeb.UserAuth do
         Scope.for_user(nil)
       end
     end)
+  end
+
+  defp set_locale_from_session(session) do
+    locale = session["locale"]
+
+    if locale in BibtimeWeb.Plugs.SetLocale.supported_locales() do
+      Gettext.put_locale(BibtimeWeb.Gettext, locale)
+    end
   end
 
   defp maybe_store_return_to(%{method: "GET"} = conn) do

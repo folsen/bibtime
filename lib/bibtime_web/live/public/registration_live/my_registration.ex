@@ -35,12 +35,12 @@ defmodule BibtimeWeb.Public.RegistrationLive.MyRegistration do
          participant: participant,
          splits: splits,
          result: result,
-         page_title: "My Registration — #{race.name}"
+         page_title: gettext("My Registration") <> " — " <> race.name
        )}
     else
       {:ok,
        socket
-       |> put_flash(:error, "Registration not found")
+       |> put_flash(:error, gettext("Registration not found"))
        |> push_navigate(to: ~p"/races/#{slug}")}
     end
   end
@@ -75,7 +75,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.MyRegistration do
         navigate={~p"/races/#{@race.slug}"}
         class="inline-flex items-center gap-1.5 text-sm text-base-content/50 hover:text-base-content transition-colors mb-6"
       >
-        <.icon name="hero-arrow-left" class="size-4" /> Back to race
+        <.icon name="hero-arrow-left" class="size-4" /> {gettext("Back to race")}
       </.link>
 
       <div class="rounded-xl bg-base-100 border border-base-300/50 shadow-sm overflow-hidden">
@@ -100,7 +100,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.MyRegistration do
               "ml-auto inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
               status_class(@participant.status)
             ]}>
-              {format_status(@participant.status)}
+              {format_participant_status(@participant.status)}
             </span>
           </div>
         </div>
@@ -109,15 +109,15 @@ defmodule BibtimeWeb.Public.RegistrationLive.MyRegistration do
         <div class="px-8 py-5">
           <div class="divide-y divide-base-300/30">
             <div :if={@participant.email} class="flex justify-between py-3">
-              <span class="text-sm text-base-content/50">Email</span>
+              <span class="text-sm text-base-content/50">{gettext("Email")}</span>
               <span class="text-sm text-base-content">{@participant.email}</span>
             </div>
             <div :if={@participant.club} class="flex justify-between py-3">
-              <span class="text-sm text-base-content/50">Club</span>
+              <span class="text-sm text-base-content/50">{gettext("Club")}</span>
               <span class="text-sm text-base-content">{@participant.club}</span>
             </div>
             <div :if={@participant.gender} class="flex justify-between py-3">
-              <span class="text-sm text-base-content/50">Gender</span>
+              <span class="text-sm text-base-content/50">{gettext("Gender")}</span>
               <span class="text-sm text-base-content capitalize">{@participant.gender}</span>
             </div>
           </div>
@@ -126,7 +126,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.MyRegistration do
         <%!-- Split times (during/after race) --%>
         <div :if={@result} class="px-8 py-5 border-t border-base-300/30">
           <h2 class="text-sm uppercase tracking-wide text-base-content/50 font-semibold mb-4">
-            Split Times
+            {gettext("Split Times")}
           </h2>
 
           <div class="space-y-2">
@@ -145,14 +145,14 @@ defmodule BibtimeWeb.Public.RegistrationLive.MyRegistration do
             :if={@result.total_ms}
             class="mt-4 flex items-center justify-between rounded-lg bg-primary/8 border border-primary/20 px-4 py-3"
           >
-            <span class="text-sm font-semibold text-primary/80">Total Time</span>
+            <span class="text-sm font-semibold text-primary/80">{gettext("Total Time")}</span>
             <span class="font-mono text-lg font-bold text-primary">
               {Calculator.format_time(@result.total_ms)}
             </span>
           </div>
 
           <div :if={@result.rank} class="mt-3 text-center">
-            <span class="text-sm text-base-content/50">Overall rank: </span>
+            <span class="text-sm text-base-content/50">{gettext("Overall rank:")}</span>
             <span class="font-mono font-bold text-base-content">{@result.rank}</span>
           </div>
         </div>
@@ -163,7 +163,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.MyRegistration do
             navigate={~p"/races/#{@race.slug}/results"}
             class="btn btn-outline btn-primary btn-sm gap-1.5"
           >
-            <.icon name="hero-trophy" class="size-4" /> Full Results
+            <.icon name="hero-trophy" class="size-4" /> {gettext("Full Results")}
           </.link>
         </div>
       </div>
@@ -178,12 +178,4 @@ defmodule BibtimeWeb.Public.RegistrationLive.MyRegistration do
   defp status_class(:dnf), do: "bg-error/15 text-error"
   defp status_class(:dsq), do: "bg-error/15 text-error"
   defp status_class(_), do: "bg-base-content/10 text-base-content/60"
-
-  defp format_status(:dns), do: "DNS"
-  defp format_status(:dnf), do: "DNF"
-  defp format_status(:dsq), do: "DSQ"
-
-  defp format_status(status) do
-    status |> Atom.to_string() |> String.capitalize()
-  end
 end

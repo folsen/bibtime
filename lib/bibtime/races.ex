@@ -107,7 +107,8 @@ defmodule Bibtime.Races do
               "race_id" => race.id,
               "type" => Atom.to_string(auto_cat.type),
               "name" => auto_cat.name,
-              "gender_value" => if(auto_cat.gender_value, do: Atom.to_string(auto_cat.gender_value)),
+              "gender_value" =>
+                if(auto_cat.gender_value, do: Atom.to_string(auto_cat.gender_value)),
               "min_age" => auto_cat.min_age,
               "max_age" => auto_cat.max_age,
               "sort_order" => auto_cat.sort_order
@@ -219,20 +220,74 @@ defmodule Bibtime.Races do
 
   def add_gender_auto_categories(race_id) do
     [
-      %{"race_id" => race_id, "type" => "gender", "name" => "Men", "gender_value" => "male", "sort_order" => 1},
-      %{"race_id" => race_id, "type" => "gender", "name" => "Women", "gender_value" => "female", "sort_order" => 2}
+      %{
+        "race_id" => race_id,
+        "type" => "gender",
+        "name" => "Men",
+        "gender_value" => "male",
+        "sort_order" => 1
+      },
+      %{
+        "race_id" => race_id,
+        "type" => "gender",
+        "name" => "Women",
+        "gender_value" => "female",
+        "sort_order" => 2
+      }
     ]
     |> Enum.each(&create_auto_category/1)
   end
 
   def add_age_group_auto_categories(race_id) do
     [
-      %{"race_id" => race_id, "type" => "age_group", "name" => "0-19", "min_age" => 0, "max_age" => 20, "sort_order" => 10},
-      %{"race_id" => race_id, "type" => "age_group", "name" => "20-29", "min_age" => 20, "max_age" => 30, "sort_order" => 11},
-      %{"race_id" => race_id, "type" => "age_group", "name" => "30-39", "min_age" => 30, "max_age" => 40, "sort_order" => 12},
-      %{"race_id" => race_id, "type" => "age_group", "name" => "40-49", "min_age" => 40, "max_age" => 50, "sort_order" => 13},
-      %{"race_id" => race_id, "type" => "age_group", "name" => "50-59", "min_age" => 50, "max_age" => 60, "sort_order" => 14},
-      %{"race_id" => race_id, "type" => "age_group", "name" => "60+", "min_age" => 60, "max_age" => nil, "sort_order" => 15}
+      %{
+        "race_id" => race_id,
+        "type" => "age_group",
+        "name" => "0-19",
+        "min_age" => 0,
+        "max_age" => 20,
+        "sort_order" => 10
+      },
+      %{
+        "race_id" => race_id,
+        "type" => "age_group",
+        "name" => "20-29",
+        "min_age" => 20,
+        "max_age" => 30,
+        "sort_order" => 11
+      },
+      %{
+        "race_id" => race_id,
+        "type" => "age_group",
+        "name" => "30-39",
+        "min_age" => 30,
+        "max_age" => 40,
+        "sort_order" => 12
+      },
+      %{
+        "race_id" => race_id,
+        "type" => "age_group",
+        "name" => "40-49",
+        "min_age" => 40,
+        "max_age" => 50,
+        "sort_order" => 13
+      },
+      %{
+        "race_id" => race_id,
+        "type" => "age_group",
+        "name" => "50-59",
+        "min_age" => 50,
+        "max_age" => 60,
+        "sort_order" => 14
+      },
+      %{
+        "race_id" => race_id,
+        "type" => "age_group",
+        "name" => "60+",
+        "min_age" => 60,
+        "max_age" => nil,
+        "sort_order" => 15
+      }
     ]
     |> Enum.each(&create_auto_category/1)
   end

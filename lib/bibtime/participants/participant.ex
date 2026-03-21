@@ -51,9 +51,19 @@ defmodule Bibtime.Participants.Participant do
 
   def registration_changeset(participant, attrs, opts \\ []) do
     required = [:first_name, :last_name, :email]
-    required = if Keyword.get(opts, :require_category, true), do: required ++ [:race_category_id], else: required
-    required = if Keyword.get(opts, :require_gender, false), do: required ++ [:gender], else: required
-    required = if Keyword.get(opts, :require_birth_date, false), do: required ++ [:birth_date], else: required
+
+    required =
+      if Keyword.get(opts, :require_category, true),
+        do: required ++ [:race_category_id],
+        else: required
+
+    required =
+      if Keyword.get(opts, :require_gender, false), do: required ++ [:gender], else: required
+
+    required =
+      if Keyword.get(opts, :require_birth_date, false),
+        do: required ++ [:birth_date],
+        else: required
 
     participant
     |> cast(attrs, [

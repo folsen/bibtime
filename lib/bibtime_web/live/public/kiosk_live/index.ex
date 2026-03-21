@@ -33,7 +33,7 @@ defmodule BibtimeWeb.Public.KioskLive.Index do
        filtered_results: results,
        recently_finished: MapSet.new(),
        # Kiosk display state
-       current_category_label: "Overall",
+       current_category_label: gettext("Overall"),
        current_category_index: 0,
        rotation_enabled: false,
        rotation_timer: nil,
@@ -112,7 +112,7 @@ defmodule BibtimeWeb.Public.KioskLive.Index do
       end
 
     all_categories = build_category_list(socket.assigns)
-    {label, _filter} = Enum.at(all_categories, category_index, {"Overall", nil})
+    {label, _filter} = Enum.at(all_categories, category_index, {gettext("Overall"), nil})
 
     filtered = filter_by_index(socket.assigns.results, all_categories, category_index)
 
@@ -191,23 +191,23 @@ defmodule BibtimeWeb.Public.KioskLive.Index do
                 :if={show_col?(@show_columns, "bib")}
                 class="sticky top-0 z-10 bg-base-100 w-24 px-6 py-4 font-semibold border-b-2 border-base-300/50 text-left"
               >
-                Bib
+                {gettext("Bib")}
               </th>
               <th
                 :if={show_col?(@show_columns, "name")}
                 class="sticky top-0 z-10 bg-base-100 px-6 py-4 font-semibold border-b-2 border-base-300/50 text-left"
               >
-                Name
+                {gettext("Name")}
               </th>
               <th
                 :if={show_col?(@show_columns, "club")}
                 class="sticky top-0 z-10 bg-base-100 px-6 py-4 font-semibold border-b-2 border-base-300/50 text-left"
               >
-                Club
+                {gettext("Club")}
               </th>
               <th
-                :if={show_col?(@show_columns, "splits")}
                 :for={split <- @splits}
+                :if={show_col?(@show_columns, "splits")}
                 class="sticky top-0 z-10 bg-base-100 px-6 py-4 font-semibold border-b-2 border-base-300/50 text-right"
               >
                 {split.short_name}
@@ -216,13 +216,13 @@ defmodule BibtimeWeb.Public.KioskLive.Index do
                 :if={show_col?(@show_columns, "total")}
                 class="sticky top-0 z-10 bg-base-100 px-6 py-4 font-bold border-b-2 border-base-300/50 text-right"
               >
-                Total
+                {gettext("Total")}
               </th>
               <th
                 :if={show_col?(@show_columns, "status")}
                 class="sticky top-0 z-10 bg-base-100 w-32 px-6 py-4 font-semibold border-b-2 border-base-300/50 text-center"
               >
-                Status
+                {gettext("Status")}
               </th>
             </tr>
           </thead>
@@ -300,7 +300,7 @@ defmodule BibtimeWeb.Public.KioskLive.Index do
                 class="text-center px-6 py-3 border-b border-base-300/20"
               >
                 <span class={kiosk_status_class(result.status)}>
-                  {format_status(result.status)}
+                  {format_participant_status(result.status)}
                 </span>
               </td>
             </tr>
@@ -311,7 +311,9 @@ defmodule BibtimeWeb.Public.KioskLive.Index do
         <div :if={@filtered_results == []} class="flex items-center justify-center h-full">
           <div class="text-center">
             <.icon name="hero-clock" class="size-16 text-base-content/20 mx-auto mb-4" />
-            <p class="text-2xl font-medium text-base-content/40">Waiting for results...</p>
+            <p class="text-2xl font-medium text-base-content/40">
+              {gettext("Waiting for results...")}
+            </p>
           </div>
         </div>
       </div>
@@ -481,11 +483,11 @@ defmodule BibtimeWeb.Public.KioskLive.Index do
         {cat.name, {:auto, cat.id}}
       end)
 
-    [{"Overall", nil}] ++ manual ++ auto
+    [{gettext("Overall"), nil}] ++ manual ++ auto
   end
 
   defp filter_by_index(results, all_categories, index) do
-    {_label, filter} = Enum.at(all_categories, index, {"Overall", nil})
+    {_label, filter} = Enum.at(all_categories, index, {gettext("Overall"), nil})
 
     case filter do
       nil ->
@@ -563,12 +565,4 @@ defmodule BibtimeWeb.Public.KioskLive.Index do
 
   defp kiosk_status_class(_),
     do: "text-base-content/40"
-
-  defp format_status(:dns), do: "DNS"
-  defp format_status(:dnf), do: "DNF"
-  defp format_status(:dsq), do: "DSQ"
-  defp format_status(:finished), do: "Finished"
-  defp format_status(:racing), do: "Racing"
-  defp format_status(:registered), do: "Registered"
-  defp format_status(_), do: ""
 end

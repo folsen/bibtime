@@ -52,12 +52,14 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
       <div class="flex items-center justify-between gap-4 pb-3 sm:pb-6">
         <div>
           <div class="flex items-center gap-3">
-            <h1 class="text-2xl font-semibold tracking-tight text-base-content">Timing Console</h1>
+            <h1 class="text-2xl font-semibold tracking-tight text-base-content">
+              {gettext("Timing Console")}
+            </h1>
             <span class={[
               "rounded-full px-2.5 py-0.5 text-xs font-medium",
               status_pill_class(@race.status)
             ]}>
-              {format_status(@race.status)}
+              {format_race_status(@race.status)}
             </span>
           </div>
           <p class="mt-1 text-sm text-base-content/60">{@race.name}</p>
@@ -72,12 +74,16 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
         <div class="rounded-full bg-primary/10 p-5 mb-5">
           <.icon name="hero-play" class="size-12 text-primary/50" />
         </div>
-        <h3 class="text-lg font-semibold text-base-content/80 mb-2">Race has not been started</h3>
+        <h3 class="text-lg font-semibold text-base-content/80 mb-2">
+          {gettext("Race has not been started")}
+        </h3>
         <p class="text-sm text-base-content/50 mb-6 max-w-sm">
-          Once started, the clock will begin and you can record split times for participants.
+          {gettext(
+            "Once started, the clock will begin and you can record split times for participants."
+          )}
         </p>
         <.button phx-click="start_race" variant="primary" class="btn btn-primary btn-lg">
-          <.icon name="hero-play" class="size-5 mr-1" /> Start Race
+          <.icon name="hero-play" class="size-5 mr-1" /> {gettext("Start Race")}
         </.button>
       </div>
 
@@ -89,14 +95,14 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
             {format_elapsed(@elapsed_seconds)}
           </div>
           <p class="mt-2 text-sm text-primary/60 font-medium uppercase tracking-wider">
-            Elapsed since gun start
+            {gettext("Elapsed since gun start")}
           </p>
         </div>
 
         <%!-- Split Selector --%>
         <div :if={@splits != []} class="mb-4 sm:mb-6">
           <label class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2 block">
-            Active Split
+            {gettext("Active Split")}
           </label>
           <div class="flex overflow-x-auto flex-nowrap gap-2">
             <button
@@ -120,14 +126,14 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
         <%!-- Bib Entry Form --%>
         <div class="rounded-xl border border-base-300 bg-base-100 p-4 sm:p-5 shadow-sm mb-4 sm:mb-6">
           <label class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2 block">
-            Bib Number
+            {gettext("Bib Number")}
           </label>
           <form phx-submit="record_time" class="flex items-center gap-3">
             <div class="flex-1">
               <input
                 name="bib"
                 value={@bib_input}
-                placeholder="Enter bib number..."
+                placeholder={gettext("Enter bib number...")}
                 inputmode="numeric"
                 phx-change="update_bib"
                 class="input input-lg w-full font-mono text-lg sm:text-2xl tracking-wider border-base-300 bg-base-100 focus:border-primary/50 focus:ring-primary/20"
@@ -138,7 +144,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
               type="submit"
               class="btn btn-lg bg-primary text-primary-content hover:bg-primary/90 border-none shadow-md font-bold text-base tracking-wide px-8 min-h-[44px]"
             >
-              <.icon name="hero-clock" class="size-5 mr-1" /> Record
+              <.icon name="hero-clock" class="size-5 mr-1" /> {gettext("Record")}
             </button>
           </form>
 
@@ -162,7 +168,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
           <div>
             <% entry = hd(@recent_entries) %>
             <p class="text-xs font-semibold text-success uppercase tracking-wider mb-0.5">
-              Last recorded
+              {gettext("Last recorded")}
             </p>
             <p class="text-base text-base-content">
               <span class="font-mono font-bold text-primary">#{entry.participant.bib_number}</span>
@@ -181,7 +187,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
         <%!-- Next Up --%>
         <div :if={@next_up != []} class="mb-6">
           <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2">
-            Next Up
+            {gettext("Next Up")}
           </h3>
           <div class="flex flex-wrap gap-2">
             <button
@@ -202,7 +208,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
         <%!-- Recent Entries Table --%>
         <div class="mb-8">
           <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3">
-            Recent Entries
+            {gettext("Recent Entries")}
           </h3>
           <div
             :if={@recent_entries != []}
@@ -211,11 +217,11 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
             <table class="table w-full">
               <thead>
                 <tr class="border-b border-base-300 bg-base-200/40 text-xs uppercase tracking-wider text-base-content/50">
-                  <th class="font-semibold">Bib</th>
-                  <th class="font-semibold hidden sm:table-cell">Name</th>
-                  <th class="font-semibold">Split</th>
-                  <th class="font-semibold">Elapsed</th>
-                  <th class="font-semibold"><span class="sr-only">Actions</span></th>
+                  <th class="font-semibold">{gettext("Bib")}</th>
+                  <th class="font-semibold hidden sm:table-cell">{gettext("Name")}</th>
+                  <th class="font-semibold">{gettext("Split")}</th>
+                  <th class="font-semibold">{gettext("Elapsed")}</th>
+                  <th class="font-semibold"><span class="sr-only">{gettext("Actions")}</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -242,10 +248,10 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
                     <button
                       phx-click="delete_entry"
                       phx-value-id={entry.id}
-                      data-confirm="Delete this timing entry?"
+                      data-confirm={gettext("Delete this timing entry?")}
                       class="text-sm font-medium text-error/70 hover:text-error transition-colors"
                     >
-                      Undo
+                      {gettext("Undo")}
                     </button>
                   </td>
                 </tr>
@@ -255,7 +261,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
           <div :if={@recent_entries == []} class="flex flex-col items-center py-8 text-center">
             <.icon name="hero-clock" class="size-8 text-base-content/20 mb-2" />
             <p class="text-sm text-base-content/50">
-              No recordings yet. Enter a bib number above to start recording times.
+              {gettext("No recordings yet. Enter a bib number above to start recording times.")}
             </p>
           </div>
         </div>
@@ -269,8 +275,10 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
               <.icon name="hero-arrow-up-tray" class="size-5 text-base-content/50" />
             </div>
             <div>
-              <h3 class="font-semibold text-sm">CSV Import</h3>
-              <p class="text-xs text-base-content/50">Bulk import timing data from CSV</p>
+              <h3 class="font-semibold text-sm">{gettext("CSV Import")}</h3>
+              <p class="text-xs text-base-content/50">
+                {gettext("Bulk import timing data from CSV")}
+              </p>
             </div>
           </div>
           <.icon
@@ -281,7 +289,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
 
         <div class="border-t border-base-200 px-5 pb-5 pt-4">
           <p class="text-xs text-base-content/50 mb-3 font-mono bg-base-200/50 rounded-lg px-3 py-2">
-            Columns: bib_number, split_short_name, elapsed_time
+            {gettext("Columns: bib_number, split_short_name, elapsed_time")}
           </p>
           <form phx-submit="import_csv">
             <div class="fieldset mb-3">
@@ -293,7 +301,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
               >{@csv_text}</textarea>
             </div>
             <.button type="submit" variant="primary">
-              <.icon name="hero-arrow-up-tray" class="size-4 mr-1" /> Import
+              <.icon name="hero-arrow-up-tray" class="size-4 mr-1" /> {gettext("Import")}
             </.button>
           </form>
 
@@ -303,7 +311,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
           >
             <.icon name="hero-check-circle" class="size-5 text-success shrink-0" />
             <p class="text-sm text-success font-semibold">
-              Successfully imported {@import_result.imported} entries.
+              {gettext("Successfully imported %{count} entries.", count: @import_result.imported)}
             </p>
           </div>
 
@@ -313,11 +321,13 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
           >
             <div class="flex items-center gap-2 mb-2">
               <.icon name="hero-exclamation-triangle" class="size-5 text-warning shrink-0" />
-              <p class="text-sm text-warning font-semibold">Import errors</p>
+              <p class="text-sm text-warning font-semibold">{gettext("Import errors")}</p>
             </div>
             <ul class="space-y-1 text-sm text-base-content/70 ml-7">
               <li :for={err <- @import_errors}>
-                <span class="font-mono text-xs bg-base-200 rounded px-1 py-0.5">Row {err.row}</span>
+                <span class="font-mono text-xs bg-base-200 rounded px-1 py-0.5">
+                  {gettext("Row %{row}", row: err.row)}
+                </span>
                 {err.message}
                 <span class="text-base-content/40">({err.field})</span>
               </li>
@@ -348,7 +358,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
          |> assign(:timer_ref, timer_ref)}
 
       {:error, _changeset} ->
-        {:noreply, assign(socket, :error, "Failed to start race.")}
+        {:noreply, assign(socket, :error, gettext("Failed to start race."))}
     end
   end
 
@@ -374,15 +384,15 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
 
     cond do
       bib == "" ->
-        {:noreply, assign(socket, :error, "Please enter a bib number.")}
+        {:noreply, assign(socket, :error, gettext("Please enter a bib number."))}
 
       is_nil(selected_split) ->
-        {:noreply, assign(socket, :error, "Please select a split point.")}
+        {:noreply, assign(socket, :error, gettext("Please select a split point."))}
 
       true ->
         case Participants.get_participant_by_bib(race.id, bib) do
           nil ->
-            {:noreply, assign(socket, :error, "Unknown bib number: #{bib}")}
+            {:noreply, assign(socket, :error, gettext("Unknown bib number: %{bib}", bib: bib))}
 
           participant ->
             now = DateTime.utc_now()
@@ -419,7 +429,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
         {:noreply, socket}
 
       {:error, _changeset} ->
-        {:noreply, assign(socket, :error, "Failed to delete entry.")}
+        {:noreply, assign(socket, :error, gettext("Failed to delete entry."))}
     end
   end
 
@@ -448,7 +458,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
          socket
          |> assign(:import_result, nil)
          |> assign(:import_errors, [
-           %{row: 0, field: "csv", message: "An unexpected error occurred"}
+           %{row: 0, field: "csv", message: gettext("An unexpected error occurred")}
          ])
          |> assign(:csv_text, csv_text)}
     end
@@ -580,13 +590,5 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
       :archived -> "bg-neutral/15 text-neutral"
       _ -> "bg-base-content/10 text-base-content/60"
     end
-  end
-
-  defp format_status(status) do
-    status
-    |> Atom.to_string()
-    |> String.replace("_", " ")
-    |> String.split(" ")
-    |> Enum.map_join(" ", &String.capitalize/1)
   end
 end

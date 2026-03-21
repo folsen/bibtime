@@ -3,6 +3,7 @@ defmodule Bibtime.Results.Export do
   Exports race results in various formats.
   """
 
+  use Gettext, backend: BibtimeWeb.Gettext
   alias Bibtime.Results.Calculator
 
   @doc """
@@ -19,15 +20,22 @@ defmodule Bibtime.Results.Export do
   end
 
   defp build_header(splits, has_auto_categories) do
-    base = ["Rank", "Bib", "First Name", "Last Name", "Club", "Category"]
+    base = [
+      gettext("Rank"),
+      gettext("Bib"),
+      gettext("First Name"),
+      gettext("Last Name"),
+      gettext("Club"),
+      gettext("Category")
+    ]
 
     auto_cols =
       if has_auto_categories,
-        do: ["Gender Category", "Age Group"],
+        do: [gettext("Gender Category"), gettext("Age Group")],
         else: []
 
     split_cols = Enum.map(splits, & &1.short_name)
-    base ++ auto_cols ++ split_cols ++ ["Total", "Status"]
+    base ++ auto_cols ++ split_cols ++ [gettext("Total"), gettext("Status")]
   end
 
   defp build_row(result, splits, has_auto_categories) do

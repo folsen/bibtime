@@ -11,6 +11,7 @@ defmodule BibtimeWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_scope_for_user
+    plug BibtimeWeb.Plugs.SetLocale
   end
 
   pipeline :api do
@@ -23,11 +24,18 @@ defmodule BibtimeWeb.Router do
 
     get "/", PageController, :home
 
-    live "/races/:slug", Public.RaceLive.Show, :show
-    live "/races/:slug/results", Public.ResultsLive.Index, :index
-    live "/races/:slug/register", Public.RegistrationLive.New, :new
-    live "/races/:slug/register/confirmation/:participant_id", Public.RegistrationLive.Show, :show
-    live "/races/:slug/my-registration/:token", Public.RegistrationLive.MyRegistration, :show
+    live_session :public,
+      on_mount: [{BibtimeWeb.UserAuth, :assign_current_scope}] do
+      live "/races/:slug", Public.RaceLive.Show, :show
+      live "/races/:slug/results", Public.ResultsLive.Index, :index
+      live "/races/:slug/register", Public.RegistrationLive.New, :new
+
+      live "/races/:slug/register/confirmation/:participant_id",
+           Public.RegistrationLive.Show,
+           :show
+
+      live "/races/:slug/my-registration/:token", Public.RegistrationLive.MyRegistration, :show
+    end
 
     get "/races/:slug/results/export/csv", ExportController, :results_csv
   end
@@ -37,6 +45,7 @@ defmodule BibtimeWeb.Router do
     pipe_through :browser
 
     live_session :kiosk,
+      on_mount: [{BibtimeWeb.UserAuth, :assign_current_scope}],
       layout: {BibtimeWeb.Layouts, :kiosk},
       root_layout: {BibtimeWeb.Layouts, :kiosk_root} do
       live "/races/:slug/kiosk", Public.KioskLive.Index, :index
@@ -47,7 +56,9 @@ defmodule BibtimeWeb.Router do
   scope "/", BibtimeWeb do
     pipe_through [:browser, :require_authenticated_user, :require_admin_user]
 
-    live_session :admin, layout: {BibtimeWeb.Layouts, :admin} do
+    live_session :admin,
+      on_mount: [{BibtimeWeb.UserAuth, :require_authenticated_user}],
+      layout: {BibtimeWeb.Layouts, :admin} do
       live "/admin/races", Admin.RaceLive.Index, :index
       live "/admin/races/new", Admin.RaceLive.New, :new
       live "/admin/races/:id", Admin.RaceLive.Show, :show
@@ -106,5 +117,6 @@ defmodule BibtimeWeb.Router do
     get "/users/log-in/:token", UserSessionController, :confirm
     post "/users/log-in", UserSessionController, :create
     delete "/users/log-out", UserSessionController, :delete
+    put "/locale", LocaleController, :update
   end
 end
