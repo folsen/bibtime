@@ -41,3 +41,5 @@ npm-debug.log
 
 # Playwright logs
 .playwright-cli
+
+.DS_Store
