@@ -1,0 +1,22 @@
+services:
+  bibtime:
+    build: .
+    ports:
+      - "4000:4000"
+    environment:
+      DATABASE_PATH: /data/bibtime.db
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-please-change-me-generate-with-mix-phx-gen-secret}
+      PHX_HOST: ${PHX_HOST:-localhost}
+      PORT: "4000"
+    volumes:
+      - bibtime_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  bibtime_data:

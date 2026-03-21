@@ -9,10 +9,26 @@ defmodule Bibtime.Accounts.User do
     field :confirmed_at, :utc_datetime
     field :authenticated_at, :utc_datetime, virtual: true
     field :is_admin, :boolean, default: false
+    field :role, :string, default: "user"
     field :preferred_locale, :string
 
     timestamps(type: :utc_datetime)
   end
+
+  @valid_roles ~w(user timer admin)
+
+  def role_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:role])
+    |> validate_required([:role])
+    |> validate_inclusion(:role, @valid_roles)
+  end
+
+  def admin?(%__MODULE__{role: "admin"}), do: true
+  def admin?(%__MODULE__{}), do: false
+
+  def timer_or_admin?(%__MODULE__{role: role}) when role in ["timer", "admin"], do: true
+  def timer_or_admin?(%__MODULE__{}), do: false
 
   @doc """
   A user changeset for registering or changing the email.

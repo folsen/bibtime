@@ -389,6 +389,62 @@ defmodule Bibtime.AccountsTest do
     end
   end
 
+  describe "list_users/0" do
+    test "returns all users ordered by email" do
+      user1 = user_fixture(%{email: "aaa@test.com"})
+      user2 = user_fixture(%{email: "zzz@test.com"})
+      users = Accounts.list_users()
+      emails = Enum.map(users, & &1.email)
+      assert user1.email in emails
+      assert user2.email in emails
+      assert emails == Enum.sort(emails)
+    end
+  end
+
+  describe "count_admins/0" do
+    test "counts admin users" do
+      assert Accounts.count_admins() == 0
+      user = user_fixture()
+      {:ok, _} = Accounts.update_user_role(user, "admin")
+      assert Accounts.count_admins() == 1
+    end
+  end
+
+  describe "update_user_role/2" do
+    test "updates role to admin" do
+      user = user_fixture()
+      assert user.role == "user"
+      {:ok, updated} = Accounts.update_user_role(user, "admin")
+      assert updated.role == "admin"
+    end
+
+    test "updates role to timer" do
+      user = user_fixture()
+      {:ok, updated} = Accounts.update_user_role(user, "timer")
+      assert updated.role == "timer"
+    end
+
+    test "rejects invalid role" do
+      user = user_fixture()
+      {:error, changeset} = Accounts.update_user_role(user, "superadmin")
+      assert %{role: ["is invalid"]} = errors_on(changeset)
+    end
+  end
+
+  describe "User.admin?/1 and User.timer_or_admin?/1" do
+    test "admin? returns true for admin role" do
+      assert User.admin?(%User{role: "admin"})
+      refute User.admin?(%User{role: "user"})
+      refute User.admin?(%User{role: "timer"})
+    end
+
+    test "timer_or_admin? returns true for timer and admin roles" do
+      assert User.timer_or_admin?(%User{role: "admin"})
+      assert User.timer_or_admin?(%User{role: "timer"})
+      refute User.timer_or_admin?(%User{role: "user"})
+    end
+  end
+
   describe "inspect/2 for the User module" do
     test "does not include password" do
       refute inspect(%User{password: "123456"}) =~ "password: \"123456\""

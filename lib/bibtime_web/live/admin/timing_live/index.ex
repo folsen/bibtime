@@ -5,6 +5,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
   alias Bibtime.Timing
   alias Bibtime.Timing.CSVImport
   alias Bibtime.Participants
+  alias Bibtime.AuditLog
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
@@ -349,6 +350,14 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
 
     case Timing.start_race(%{race_id: race.id, started_at: DateTime.utc_now()}) do
       {:ok, race_start} ->
+        AuditLog.log(
+          socket.assigns.current_scope.user,
+          "race.started",
+          "race",
+          race.id,
+          %{"name" => race.name}
+        )
+
         {:ok, timer_ref} = :timer.send_interval(1_000, self(), :tick)
 
         {:noreply,

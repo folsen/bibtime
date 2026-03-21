@@ -2,6 +2,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Edit do
   use BibtimeWeb, :live_view
 
   alias Bibtime.Races
+  alias Bibtime.AuditLog
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
@@ -112,6 +113,10 @@ defmodule BibtimeWeb.Admin.RaceLive.Edit do
   def handle_event("save", %{"race" => race_params}, socket) do
     case Races.update_race(socket.assigns.race, race_params) do
       {:ok, race} ->
+        AuditLog.log(socket.assigns.current_scope.user, "race.updated", "race", race.id, %{
+          "name" => race.name
+        })
+
         {:noreply,
          socket
          |> put_flash(:info, gettext("Race updated successfully."))

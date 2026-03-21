@@ -25,7 +25,7 @@ admin =
 admin
 |> User.password_changeset(%{password: "password1234"})
 |> Ecto.Changeset.put_change(:confirmed_at, DateTime.utc_now(:second))
-|> Ecto.Changeset.put_change(:is_admin, true)
+|> Ecto.Changeset.put_change(:role, "admin")
 |> Repo.update!()
 
 IO.puts("Created admin user: admin@bibtime.local")

@@ -41,6 +41,18 @@ defmodule Bibtime.AccountsFixtures do
     user
   end
 
+  def admin_user_fixture(attrs \\ %{}) do
+    user = user_fixture(attrs)
+    {:ok, user} = Bibtime.Accounts.update_user_role(user, "admin")
+    user
+  end
+
+  def timer_user_fixture(attrs \\ %{}) do
+    user = user_fixture(attrs)
+    {:ok, user} = Bibtime.Accounts.update_user_role(user, "timer")
+    user
+  end
+
   def user_scope_fixture do
     user = user_fixture()
     user_scope_fixture(user)

@@ -86,6 +86,18 @@ SQLite with WAL mode. Dev: `bibtime_dev.db`, Test: `bibtime_test.db` (sandbox mo
 - No inline `<script>` tags; use colocated JS hooks (`:type={Phoenix.LiveView.ColocatedHook}`) or import into `app.js`
 - Elixir: no index access on lists (`Enum.at` instead), no `if/elsif` (use `cond`/`case`), no nested modules in same file
 
+## Internationalization (i18n)
+
+All user-facing strings must go through the gettext i18n system. Never hardcode display text in templates or flash messages.
+
+- Wrap strings with `gettext("...")` in templates and controllers
+- Use `ngettext("1 item", "%{count} items", count)` for plurals
+- Use `BibtimeWeb.LocaleHelpers` for status labels (`format_race_status/1`, `format_participant_status/1`), date formatting (`format_date/1`, `format_date_short/1`), and select options (`race_type_options/0`, `gender_options/0`, etc.)
+- After adding new strings, run `mix gettext.extract --merge` to update `.pot`/`.po` files
+- Add Swedish translations in `priv/gettext/sv/LC_MESSAGES/default.po`
+- Supported locales: `en` (default), `sv`
+
 ## When implementing new features
 
+- When working from a TODO file (e.g. `PHASE4_TODO.md`), check off completed items (`- [ ]` → `- [x]`) as you finish each one.
 - Always use the playwright-cli skill to run a QA pass after implementing anything. Come up with plan of how to test it, try to explore every codepath and possibility using playwright-cli and then report back a bullet point list of what you tested. Use the `test-server.sh` script to manage the test server as needed.

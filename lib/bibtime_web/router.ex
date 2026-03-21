@@ -66,14 +66,27 @@ defmodule BibtimeWeb.Router do
       live "/admin/races/:id/participants", Admin.ParticipantLive.Index, :index
       live "/admin/races/:id/participants/new", Admin.ParticipantLive.New, :new
       live "/admin/races/:id/participants/:participant_id/edit", Admin.ParticipantLive.Edit, :edit
+      live "/admin/users", Admin.UserLive.Index, :index
+    end
+  end
+
+  # Timer routes (require timer or admin user)
+  scope "/", BibtimeWeb do
+    pipe_through [:browser, :require_authenticated_user, :require_timer_or_admin_user]
+
+    live_session :timer,
+      on_mount: [{BibtimeWeb.UserAuth, :require_authenticated_user}],
+      layout: {BibtimeWeb.Layouts, :admin} do
       live "/admin/races/:id/timing", Admin.TimingLive.Index, :index
     end
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", BibtimeWeb do
-  #   pipe_through :api
-  # end
+  # Health check endpoint for load balancers (no auth, no CSRF)
+  scope "/", BibtimeWeb do
+    pipe_through :api
+
+    get "/healthz", HealthController, :index
+  end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:bibtime, :dev_routes) do

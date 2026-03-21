@@ -4,13 +4,13 @@
 
 Pre-configured split/category setups so organizers don't rebuild from scratch each time.
 
-- [ ] Design `race_templates` table (name, description, race_type, splits JSON, categories JSON)
-- [ ] Seed built-in templates: Standard Triathlon (Olympic), Sprint Triathlon, 5K/10K/Half/Marathon, Duathlon, Aquathlon
-- [ ] Admin UI: "Create race from template" option on race creation page
-- [ ] Auto-populate splits and categories when a template is selected
-- [ ] Admin UI: "Save as template" button on an existing race's settings page
-- [ ] Admin UI: "Clone from previous race" — pick any past race and copy its splits, categories, and config
-- [ ] Allow editing template defaults (admin-only template management page)
+- [x] Design `race_templates` table (name, description, race_type, splits JSON, categories JSON)
+- [x] Seed built-in templates: Standard Triathlon (Olympic), Sprint Triathlon, 5K/10K/Half/Marathon, Duathlon, Aquathlon
+- [x] Admin UI: "Create race from template" option on race creation page
+- [x] Auto-populate splits and categories when a template is selected
+- [x] Admin UI: "Save as template" button on an existing race's settings page
+- [x] Admin UI: "Clone from previous race" — pick any past race and copy its splits, categories, and config
+- [x] Allow editing template defaults (admin-only template management page)
 
 ## 2. Kiosk / Big-Screen Display Mode
 
@@ -29,10 +29,10 @@ A venue-friendly fullscreen leaderboard for projectors and TVs at the race site.
 
 Let participants see their performance across multiple races.
 
-- [ ] New route: `/profile` — logged-in user's personal results dashboard
-- [ ] List all races the user has participated in (via user_id → participants → races)
-- [ ] Show finish time, rank (overall + category), and split breakdown per race
-- [ ] Profile page shows aggregate stats: races completed, podium finishes, DNS/DNF rate
+- [x] New route: `/profile` — logged-in user's personal results dashboard
+- [x] List all races the user has participated in (via user_id → participants → races)
+- [x] Show finish time, rank (overall + category), and split breakdown per race
+- [x] Profile page shows aggregate stats: races completed, podium finishes, DNS/DNF rate
 
 ## 4. Photo Integration
 
@@ -70,39 +70,39 @@ Enable paid race registration for events that charge an entry fee.
 
 The app should work in both Swedish and English since the target audience is Nordic race organizers.
 
-- [ ] Mark all user-facing strings in templates with `gettext()` / `dgettext()`
-- [ ] Create Swedish locale: `priv/gettext/sv/LC_MESSAGES/default.po`
-- [ ] Translate all UI strings: nav, buttons, form labels, status badges, flash messages
-- [ ] Translate email templates (registration confirmation, login instructions)
-- [ ] Translate results page headers and export CSV headers
-- [ ] Language switcher in the nav bar (flag icons or SV/EN toggle)
-- [ ] Store locale preference in user settings (persisted) and session (for anonymous users)
-- [ ] Per-race locale setting: allow organizers to set default language for their race's public pages
-- [ ] Date/time formatting respects locale (Swedish: "20 mars 2026", English: "March 20, 2026")
-- [ ] Pluralization rules for both languages
+- [x] Mark all user-facing strings in templates with `gettext()` / `dgettext()`
+- [x] Create Swedish locale: `priv/gettext/sv/LC_MESSAGES/default.po`
+- [x] Translate all UI strings: nav, buttons, form labels, status badges, flash messages
+- [x] Translate email templates (registration confirmation, login instructions)
+- [x] Translate results page headers and export CSV headers
+- [x] Language switcher in the nav bar (flag icons or SV/EN toggle)
+- [x] Store locale preference in user settings (persisted) and session (for anonymous users)
+- [x] Per-race locale setting: allow organizers to set default language for their race's public pages
+- [x] Date/time formatting respects locale (Swedish: "20 mars 2026", English: "March 20, 2026")
+- [x] Pluralization rules for both languages
 
 ## 7. Admin User Management
 
 Allow existing admins to promote other users, instead of requiring direct DB access.
 
-- [ ] Admin page: `/admin/users` — list all users with role indicators
-- [ ] Toggle admin role from the user list (promote/demote)
-- [ ] Prevent removing admin from yourself (last-admin protection)
-- [ ] Activity log: track admin actions (race created, participant edited, user promoted) in an `audit_log` table
-- [ ] Add timing-only role for volunteers
+- [x] Admin page: `/admin/users` — list all users with role indicators
+- [x] Toggle admin role from the user list (promote/demote)
+- [x] Prevent removing admin from yourself (last-admin protection)
+- [x] Activity log: track admin actions (race created, participant edited, user promoted) in an `audit_log` table
+- [x] Add timing-only role for volunteers
 
 ## 8. Deployment & Self-Hosting
 
 Make it trivial for someone to deploy their own BibTime instance.
 
-- [ ] Create a `Dockerfile` (multi-stage build: deps → compile → release → runtime)
-- [ ] Create `docker-compose.yml` for single-command local deployment
-- [ ] Create `fly.toml` for one-click Fly.io deployment
-- [ ] Add release scripts: `rel/overlays/bin/server`, `rel/overlays/bin/migrate`
-- [ ] Write deployment guide covering: Docker, Fly.io, bare metal (systemd)
-- [ ] Add health check endpoint (`/healthz`) for load balancers
-- [ ] Backup/restore script for SQLite database file
-- [ ] Environment variable documentation (all configurable settings in one place)
+- [x] Create a `Dockerfile` (multi-stage build: deps → compile → release → runtime)
+- [x] Create `docker-compose.yml` for single-command local deployment
+- [x] Create `fly.toml` for one-click Fly.io deployment
+- [x] Add release scripts: `rel/overlays/bin/server`, `rel/overlays/bin/migrate`
+- [x] Write deployment guide covering: Docker, Fly.io, bare metal (systemd)
+- [x] Add health check endpoint (`/healthz`) for load balancers
+- [x] Backup/restore script for SQLite database file
+- [x] Environment variable documentation (all configurable settings in one place)
 
 ## Priority Order (suggested)
 

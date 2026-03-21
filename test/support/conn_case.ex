@@ -57,6 +57,23 @@ defmodule BibtimeWeb.ConnCase do
   end
 
   @doc """
+  Setup helper that registers and logs in an admin user.
+
+      setup :register_and_log_in_admin_user
+  """
+  def register_and_log_in_admin_user(%{conn: conn} = context) do
+    user = Bibtime.AccountsFixtures.admin_user_fixture()
+    scope = Bibtime.Accounts.Scope.for_user(user)
+
+    opts =
+      context
+      |> Map.take([:token_authenticated_at])
+      |> Enum.into([])
+
+    %{conn: log_in_user(conn, user, opts), user: user, scope: scope}
+  end
+
+  @doc """
   Logs the given `user` into the `conn`.
 
   It returns an updated `conn`.

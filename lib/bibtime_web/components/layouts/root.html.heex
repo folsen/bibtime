@@ -51,7 +51,7 @@
             >
               {gettext("Profile")}
             </.link>
-            <%= if @current_scope.user.is_admin do %>
+            <%= if @current_scope.user.role in ["admin", "timer"] do %>
               <.link
                 href={~p"/admin/races"}
                 class="text-base-content/70 hover:text-primary transition-colors"

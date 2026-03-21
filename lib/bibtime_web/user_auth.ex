@@ -8,6 +8,7 @@ defmodule BibtimeWeb.UserAuth do
 
   alias Bibtime.Accounts
   alias Bibtime.Accounts.Scope
+  alias Bibtime.Accounts.User
 
   # Make the remember me cookie valid for 14 days. This should match
   # the session validity setting in UserToken.
@@ -220,8 +221,26 @@ defmodule BibtimeWeb.UserAuth do
   Must be used after `require_authenticated_user`.
   """
   def require_admin_user(conn, _opts) do
-    if conn.assigns.current_scope && conn.assigns.current_scope.user &&
-         conn.assigns.current_scope.user.is_admin do
+    user = conn.assigns[:current_scope] && conn.assigns.current_scope.user
+
+    if user && User.admin?(user) do
+      conn
+    else
+      conn
+      |> put_flash(:error, gettext("You don't have permission to access this page."))
+      |> redirect(to: ~p"/")
+      |> halt()
+    end
+  end
+
+  @doc """
+  Plug for routes that require the user to be a timer or admin.
+  Must be used after `require_authenticated_user`.
+  """
+  def require_timer_or_admin_user(conn, _opts) do
+    user = conn.assigns[:current_scope] && conn.assigns.current_scope.user
+
+    if user && User.timer_or_admin?(user) do
       conn
     else
       conn

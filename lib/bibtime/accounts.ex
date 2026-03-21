@@ -8,6 +8,35 @@ defmodule Bibtime.Accounts do
 
   alias Bibtime.Accounts.{User, UserToken, UserNotifier}
 
+  ## User listing and roles
+
+  @doc """
+  Returns the list of all users, ordered by email.
+  """
+  def list_users do
+    User
+    |> order_by(asc: :email)
+    |> Repo.all()
+  end
+
+  @doc """
+  Returns the number of admin users.
+  """
+  def count_admins do
+    User
+    |> where([u], u.role == "admin")
+    |> Repo.aggregate(:count)
+  end
+
+  @doc """
+  Updates a user's role.
+  """
+  def update_user_role(%User{} = user, new_role) do
+    user
+    |> User.role_changeset(%{role: new_role})
+    |> Repo.update()
+  end
+
   ## Database getters
 
   @doc """

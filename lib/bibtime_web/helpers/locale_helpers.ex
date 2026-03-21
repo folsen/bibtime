@@ -65,6 +65,14 @@ defmodule BibtimeWeb.LocaleHelpers do
     format_date_short(date, locale)
   end
 
+  def format_date_short(%DateTime{} = dt) do
+    format_date_short(DateTime.to_date(dt))
+  end
+
+  def format_date_short(%NaiveDateTime{} = ndt) do
+    format_date_short(NaiveDateTime.to_date(ndt))
+  end
+
   def format_date_short(nil), do: ""
 
   def format_date_short(%Date{} = date, "sv") do
@@ -155,6 +163,14 @@ defmodule BibtimeWeb.LocaleHelpers do
       {gettext("Other"), :other}
     ]
   end
+
+  @doc """
+  Translates a user role string to a display string.
+  """
+  def format_user_role("admin"), do: gettext("Admin")
+  def format_user_role("timer"), do: gettext("Timer")
+  def format_user_role("user"), do: gettext("User")
+  def format_user_role(role), do: String.capitalize(to_string(role))
 
   @doc """
   Returns locale display name.

@@ -3,6 +3,7 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Edit do
 
   alias Bibtime.Races
   alias Bibtime.Participants
+  alias Bibtime.AuditLog
 
   @impl true
   def mount(%{"id" => race_id, "participant_id" => participant_id}, _session, socket) do
@@ -32,7 +33,15 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Edit do
   @impl true
   def handle_event("save", %{"participant" => participant_params}, socket) do
     case Participants.update_participant(socket.assigns.participant, participant_params) do
-      {:ok, _participant} ->
+      {:ok, participant} ->
+        AuditLog.log(
+          socket.assigns.current_scope.user,
+          "participant.updated",
+          "participant",
+          participant.id,
+          %{"bib" => participant.bib_number, "race_id" => socket.assigns.race.id}
+        )
+
         {:noreply,
          socket
          |> put_flash(:info, gettext("Participant updated successfully."))

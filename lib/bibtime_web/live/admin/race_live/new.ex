@@ -4,6 +4,7 @@ defmodule BibtimeWeb.Admin.RaceLive.New do
   alias Bibtime.Races
   alias Bibtime.Races.Race
   alias Bibtime.Races.Templates
+  alias Bibtime.AuditLog
 
   @impl true
   def mount(_params, _session, socket) do
@@ -243,6 +244,10 @@ defmodule BibtimeWeb.Admin.RaceLive.New do
 
     case result do
       {:ok, race} ->
+        AuditLog.log(socket.assigns.current_scope.user, "race.created", "race", race.id, %{
+          "name" => race.name
+        })
+
         {:noreply,
          socket
          |> put_flash(:info, gettext("Race created successfully."))

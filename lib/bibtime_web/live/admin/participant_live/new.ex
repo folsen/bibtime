@@ -4,6 +4,7 @@ defmodule BibtimeWeb.Admin.ParticipantLive.New do
   alias Bibtime.Races
   alias Bibtime.Participants
   alias Bibtime.Participants.Participant
+  alias Bibtime.AuditLog
 
   @impl true
   def mount(%{"id" => race_id}, _session, socket) do
@@ -33,7 +34,15 @@ defmodule BibtimeWeb.Admin.ParticipantLive.New do
     participant_params = Map.put(participant_params, "race_id", socket.assigns.race.id)
 
     case Participants.create_participant(participant_params) do
-      {:ok, _participant} ->
+      {:ok, participant} ->
+        AuditLog.log(
+          socket.assigns.current_scope.user,
+          "participant.created",
+          "participant",
+          participant.id,
+          %{"bib" => participant.bib_number, "race_id" => socket.assigns.race.id}
+        )
+
         {:noreply,
          socket
          |> put_flash(:info, gettext("Participant created successfully."))
