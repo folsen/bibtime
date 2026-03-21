@@ -9,11 +9,11 @@ defmodule BibtimeWeb.ExportController do
     race =
       slug
       |> Races.get_race_by_slug!()
-      |> Bibtime.Repo.preload(:splits)
+      |> Bibtime.Repo.preload([:splits, :auto_categories])
 
     results = Results.get_race_results(race.id)
     splits = Races.list_splits(race.id)
-    csv = Export.to_csv(results, splits)
+    csv = Export.to_csv(results, splits, has_auto_categories: race.auto_categories != [])
 
     filename =
       race.slug

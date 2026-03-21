@@ -10,15 +10,30 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
     race =
       slug
       |> Races.get_race_by_slug!()
-      |> Bibtime.Repo.preload(:categories)
+      |> Bibtime.Repo.preload([:categories, :auto_categories])
 
     if Registration.registration_open?(race) do
-      changeset = Registration.change_registration(%Participant{})
+      has_manual_categories = race.categories != []
+      auto_cat_types = race.auto_categories |> Enum.map(& &1.type) |> Enum.uniq()
+      requires_gender = :gender in auto_cat_types
+      requires_birth_date = :age_group in auto_cat_types
+
+      reg_opts = [
+        require_category: has_manual_categories,
+        require_gender: requires_gender,
+        require_birth_date: requires_birth_date
+      ]
+
+      changeset = Registration.change_registration(%Participant{}, %{}, reg_opts)
 
       {:ok,
        assign(socket,
          race: race,
          form: to_form(changeset),
+         has_manual_categories: has_manual_categories,
+         requires_gender: requires_gender,
+         requires_birth_date: requires_birth_date,
+         reg_opts: reg_opts,
          page_title: "Register — #{race.name}"
        )}
     else
@@ -35,7 +50,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
   def handle_event("validate", %{"participant" => params}, socket) do
     changeset =
       %Participant{}
-      |> Registration.change_registration(params)
+      |> Registration.change_registration(params, socket.assigns.reg_opts)
       |> Map.put(:action, :validate)
 
     {:noreply, assign(socket, form: to_form(changeset))}
@@ -126,6 +141,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
           <.input field={@form[:email]} type="email" label="Email" required />
 
           <.input
+            :if={@has_manual_categories}
             field={@form[:race_category_id]}
             type="select"
             label="Category"
@@ -138,12 +154,25 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
             <.input
               field={@form[:gender]}
               type="select"
-              label="Gender"
-              prompt="(optional)"
+              label={"Gender#{if @requires_gender, do: "", else: ""}"}
+              prompt={if @requires_gender, do: "Select gender", else: "(optional)"}
               options={[{"Male", :male}, {"Female", :female}, {"Other", :other}]}
+              required={@requires_gender}
             />
-            <.input field={@form[:birth_date]} type="date" label="Birth Date" />
+            <.input
+              field={@form[:birth_date]}
+              type="date"
+              label={"Birth Date#{if @requires_birth_date, do: "", else: ""}"}
+              required={@requires_birth_date}
+            />
           </div>
+
+          <p
+            :if={@requires_gender || @requires_birth_date}
+            class="text-sm text-base-content/50 -mt-2"
+          >
+            You'll be automatically placed in categories based on your info.
+          </p>
 
           <.input field={@form[:club]} type="text" label="Club / Team" placeholder="(optional)" />
 

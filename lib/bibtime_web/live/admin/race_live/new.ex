@@ -3,15 +3,45 @@ defmodule BibtimeWeb.Admin.RaceLive.New do
 
   alias Bibtime.Races
   alias Bibtime.Races.Race
+  alias Bibtime.Races.Templates
 
   @impl true
   def mount(_params, _session, socket) do
     changeset = Races.change_race(%Race{}, %{status: :draft})
+    existing_races = Races.list_races()
 
     {:ok,
      socket
      |> assign(:page_title, "New Race")
+     |> assign(:selected_template, "")
+     |> assign(:clone_from, "")
+     |> assign(:existing_races, existing_races)
      |> assign_form(changeset)}
+  end
+
+  @impl true
+  def handle_params(params, _uri, socket) do
+    clone_from = params["clone_from"] || ""
+
+    socket =
+      if clone_from != "" do
+        source = Races.get_race!(clone_from)
+
+        changeset =
+          Races.change_race(%Race{}, %{
+            status: :draft,
+            race_type: source.race_type
+          })
+
+        socket
+        |> assign(:clone_from, clone_from)
+        |> assign(:selected_template, "")
+        |> assign_form(changeset)
+      else
+        socket
+      end
+
+    {:noreply, socket}
   end
 
   @impl true
@@ -23,6 +53,43 @@ defmodule BibtimeWeb.Admin.RaceLive.New do
     </div>
 
     <div class="max-w-2xl">
+      <%!-- Quick Start --%>
+      <div class="rounded-xl border border-base-300 bg-base-100 p-6 shadow-sm mb-6">
+        <h3 class="text-sm font-semibold text-base-content/50 uppercase tracking-wider mb-4">
+          Quick Start
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <form phx-change="select_template">
+            <label class="block text-sm font-medium text-base-content mb-1.5">From Template</label>
+            <select
+              name="template"
+              class="select select-bordered w-full"
+            >
+              {Phoenix.HTML.Form.options_for_select(Templates.options_for_select(), @selected_template)}
+            </select>
+          </form>
+          <form phx-change="select_clone">
+            <label class="block text-sm font-medium text-base-content mb-1.5">
+              Clone from Race
+            </label>
+            <select
+              name="clone_from"
+              class="select select-bordered w-full"
+            >
+              {Phoenix.HTML.Form.options_for_select(
+                [{"Don't clone", ""}] ++
+                  Enum.map(@existing_races, fn r -> {r.name, r.id} end),
+                @clone_from
+              )}
+            </select>
+          </form>
+        </div>
+        <p :if={@selected_template != "" || @clone_from != ""} class="mt-3 text-xs text-info flex items-center gap-1">
+          <.icon name="hero-information-circle" class="size-3.5" />
+          Splits and categories will be auto-created from the selected source.
+        </p>
+      </div>
+
       <div class="rounded-xl border border-base-300 bg-base-100 p-6 shadow-sm">
         <.form for={@form} phx-change="validate" phx-submit="save" class="space-y-6">
           <%!-- Name & Slug --%>
@@ -77,6 +144,56 @@ defmodule BibtimeWeb.Admin.RaceLive.New do
   end
 
   @impl true
+  def handle_event("select_template", %{"template" => template_id}, socket) do
+    socket =
+      if template_id != "" do
+        template = Templates.get(template_id)
+
+        if template do
+          changeset =
+            Races.change_race(%Race{}, %{
+              status: :draft,
+              race_type: template.race_type
+            })
+
+          socket
+          |> assign(:selected_template, template_id)
+          |> assign(:clone_from, "")
+          |> assign_form(changeset)
+        else
+          assign(socket, :selected_template, "")
+        end
+      else
+        assign(socket, :selected_template, "")
+      end
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("select_clone", %{"clone_from" => clone_id}, socket) do
+    socket =
+      if clone_id != "" do
+        source = Races.get_race!(clone_id)
+
+        changeset =
+          Races.change_race(%Race{}, %{
+            status: :draft,
+            race_type: source.race_type
+          })
+
+        socket
+        |> assign(:clone_from, clone_id)
+        |> assign(:selected_template, "")
+        |> assign_form(changeset)
+      else
+        assign(socket, :clone_from, "")
+      end
+
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_event("validate", %{"race" => race_params}, socket) do
     race_params = maybe_generate_slug(race_params)
 
@@ -90,7 +207,19 @@ defmodule BibtimeWeb.Admin.RaceLive.New do
 
   @impl true
   def handle_event("save", %{"race" => race_params}, socket) do
-    case Races.create_race(race_params) do
+    result =
+      cond do
+        socket.assigns.selected_template != "" ->
+          Races.create_race_from_template(race_params, socket.assigns.selected_template)
+
+        socket.assigns.clone_from != "" ->
+          Races.clone_race(socket.assigns.clone_from, race_params)
+
+        true ->
+          Races.create_race(race_params)
+      end
+
+    case result do
       {:ok, race} ->
         {:noreply,
          socket

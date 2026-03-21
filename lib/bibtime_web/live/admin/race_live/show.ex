@@ -2,6 +2,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
   use BibtimeWeb, :live_view
 
   alias Bibtime.Races
+  alias Bibtime.Races.RaceAutoCategory
   alias Bibtime.Races.RaceCategory
   alias Bibtime.Races.Split
 
@@ -14,6 +15,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
      |> assign(:page_title, race.name)
      |> assign(:race, race)
      |> assign_category_form(Races.change_category(%RaceCategory{}))
+     |> assign_auto_category_form(Races.change_auto_category(%RaceAutoCategory{}))
      |> assign_split_form(Races.change_split(%Split{}))}
   end
 
@@ -34,9 +36,17 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
         </div>
         <p class="mt-1 text-sm text-base-content/60 capitalize">{@race.race_type}</p>
       </div>
-      <.button navigate={~p"/admin/races/#{@race.id}/edit"}>
-        <.icon name="hero-pencil-square" class="size-4 mr-1" /> Edit Race
-      </.button>
+      <div class="flex items-center gap-2">
+        <.link
+          navigate={~p"/admin/races/new?clone_from=#{@race.id}"}
+          class="btn btn-sm btn-ghost text-base-content/60 hover:text-base-content"
+        >
+          <.icon name="hero-document-duplicate" class="size-4 mr-1" /> Clone
+        </.link>
+        <.button navigate={~p"/admin/races/#{@race.id}/edit"}>
+          <.icon name="hero-pencil-square" class="size-4 mr-1" /> Edit Race
+        </.button>
+      </div>
     </div>
 
     <%!-- Info Cards Grid --%>
@@ -80,7 +90,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
     </div>
 
     <%!-- Quick Actions --%>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
       <.link
         navigate={~p"/admin/races/#{@race.id}/participants"}
         class="group flex items-center gap-4 rounded-xl border border-base-300 bg-base-100 p-5 shadow-sm hover:border-primary/40 hover:shadow-md transition-all"
@@ -118,6 +128,26 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
           class="size-5 ml-auto text-base-content/30 group-hover:text-secondary/60 transition-colors"
         />
       </.link>
+
+      <a
+        href={~p"/races/#{@race.slug}/kiosk"}
+        target="_blank"
+        class="group flex items-center gap-4 rounded-xl border border-base-300 bg-base-100 p-5 shadow-sm hover:border-accent/40 hover:shadow-md transition-all"
+      >
+        <div class="rounded-lg bg-accent/10 p-3">
+          <.icon name="hero-tv" class="size-6 text-accent" />
+        </div>
+        <div>
+          <div class="font-semibold text-base-content group-hover:text-accent transition-colors">
+            Kiosk Display
+          </div>
+          <div class="text-sm text-base-content/50">Big-screen leaderboard</div>
+        </div>
+        <.icon
+          name="hero-arrow-top-right-on-square"
+          class="size-5 ml-auto text-base-content/30 group-hover:text-accent/60 transition-colors"
+        />
+      </a>
     </div>
 
     <%!-- Categories Section --%>
@@ -202,6 +232,111 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
           <.input field={@category_form[:min_age]} type="number" label="Min Age" />
           <.input field={@category_form[:max_age]} type="number" label="Max Age" />
           <.input field={@category_form[:sort_order]} type="number" label="Order" value="0" />
+          <.button type="submit" variant="primary">Add</.button>
+        </.form>
+      </div>
+    </div>
+
+    <%!-- Auto Categories Section --%>
+    <div class="mt-10">
+      <div class="flex items-center gap-2 mb-4">
+        <.icon name="hero-bolt" class="size-5 text-base-content/40" />
+        <h2 class="text-lg font-semibold text-base-content">Auto Categories</h2>
+      </div>
+
+      <div
+        :if={@race.auto_categories != []}
+        class="overflow-x-auto rounded-xl border border-base-300 bg-base-100 shadow-sm"
+      >
+        <table class="table w-full">
+          <thead>
+            <tr class="border-b border-base-300 bg-base-200/40 text-xs uppercase tracking-wider text-base-content/50">
+              <th class="font-semibold">Name</th>
+              <th class="font-semibold">Type</th>
+              <th class="font-semibold">Details</th>
+              <th class="font-semibold">Order</th>
+              <th class="font-semibold"><span class="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              :for={auto_cat <- @race.auto_categories}
+              id={"auto-category-#{auto_cat.id}"}
+              class="border-b border-base-200 odd:bg-base-100 even:bg-base-200/30"
+            >
+              <td class="py-3 font-medium">{auto_cat.name}</td>
+              <td class="py-3 text-sm capitalize text-base-content/70">
+                {format_auto_cat_type(auto_cat.type)}
+              </td>
+              <td class="py-3 text-sm text-base-content/70">
+                {format_auto_cat_details(auto_cat)}
+              </td>
+              <td class="py-3 text-sm text-base-content/70">{auto_cat.sort_order}</td>
+              <td class="py-3">
+                <button
+                  phx-click="delete_auto_category"
+                  phx-value-id={auto_cat.id}
+                  data-confirm="Are you sure you want to delete this auto category?"
+                  class="text-sm font-medium text-error/70 hover:text-error transition-colors"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p :if={@race.auto_categories == []} class="text-sm text-base-content/50 mb-4 italic">
+        No auto categories yet. Use the quick-add buttons or add one manually below.
+      </p>
+
+      <%!-- Quick-add presets --%>
+      <div class="mt-4 flex flex-wrap gap-2">
+        <button
+          phx-click="add_gender_auto_categories"
+          class="btn btn-sm btn-outline gap-1.5"
+        >
+          <.icon name="hero-plus" class="size-3.5" /> Add Gender Categories
+        </button>
+        <button
+          phx-click="add_age_group_auto_categories"
+          class="btn btn-sm btn-outline gap-1.5"
+        >
+          <.icon name="hero-plus" class="size-3.5" /> Add Standard Age Groups
+        </button>
+      </div>
+
+      <%!-- Add Auto Category Form --%>
+      <div class="mt-4 rounded-xl border border-dashed border-base-300 bg-base-200/30 p-5">
+        <h3 class="text-sm font-semibold text-base-content/70 mb-4 flex items-center gap-1.5">
+          <.icon name="hero-plus-circle" class="size-4 text-primary/60" /> Add Auto Category
+        </h3>
+        <.form for={@auto_category_form} phx-submit="add_auto_category" class="flex flex-wrap gap-3 items-end">
+          <.input
+            field={@auto_category_form[:name]}
+            type="text"
+            label="Name"
+            required
+            placeholder="e.g. Men, 20-29"
+          />
+          <.input
+            field={@auto_category_form[:type]}
+            type="select"
+            label="Type"
+            options={[{"Gender", :gender}, {"Age Group", :age_group}]}
+            required
+          />
+          <.input
+            field={@auto_category_form[:gender_value]}
+            type="select"
+            label="Gender Value"
+            prompt="(for gender type)"
+            options={[{"Male", :male}, {"Female", :female}, {"Other", :other}]}
+          />
+          <.input field={@auto_category_form[:min_age]} type="number" label="Min Age" />
+          <.input field={@auto_category_form[:max_age]} type="number" label="Max Age" />
+          <.input field={@auto_category_form[:sort_order]} type="number" label="Order" value="0" />
           <.button type="submit" variant="primary">Add</.button>
         </.form>
       </div>
@@ -342,6 +477,59 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
   end
 
   @impl true
+  def handle_event("add_auto_category", %{"race_auto_category" => params}, socket) do
+    params = Map.put(params, "race_id", socket.assigns.race.id)
+
+    case Races.create_auto_category(params) do
+      {:ok, _auto_category} ->
+        race = Races.get_race!(socket.assigns.race.id)
+
+        {:noreply,
+         socket
+         |> assign(:race, race)
+         |> assign_auto_category_form(Races.change_auto_category(%RaceAutoCategory{}))
+         |> put_flash(:info, "Auto category added.")}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign_auto_category_form(socket, changeset)}
+    end
+  end
+
+  @impl true
+  def handle_event("delete_auto_category", %{"id" => id}, socket) do
+    auto_category = Races.get_auto_category!(id)
+    {:ok, _} = Races.delete_auto_category(auto_category)
+    race = Races.get_race!(socket.assigns.race.id)
+
+    {:noreply,
+     socket
+     |> assign(:race, race)
+     |> put_flash(:info, "Auto category deleted.")}
+  end
+
+  @impl true
+  def handle_event("add_gender_auto_categories", _params, socket) do
+    Races.add_gender_auto_categories(socket.assigns.race.id)
+    race = Races.get_race!(socket.assigns.race.id)
+
+    {:noreply,
+     socket
+     |> assign(:race, race)
+     |> put_flash(:info, "Gender categories added.")}
+  end
+
+  @impl true
+  def handle_event("add_age_group_auto_categories", _params, socket) do
+    Races.add_age_group_auto_categories(socket.assigns.race.id)
+    race = Races.get_race!(socket.assigns.race.id)
+
+    {:noreply,
+     socket
+     |> assign(:race, race)
+     |> put_flash(:info, "Age group categories added.")}
+  end
+
+  @impl true
   def handle_event("add_split", %{"split" => split_params}, socket) do
     split_params = Map.put(split_params, "race_id", socket.assigns.race.id)
 
@@ -376,9 +564,27 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
     assign(socket, :category_form, to_form(changeset))
   end
 
+  defp assign_auto_category_form(socket, %Ecto.Changeset{} = changeset) do
+    assign(socket, :auto_category_form, to_form(changeset))
+  end
+
   defp assign_split_form(socket, %Ecto.Changeset{} = changeset) do
     assign(socket, :split_form, to_form(changeset))
   end
+
+  defp format_auto_cat_type(:gender), do: "Gender"
+  defp format_auto_cat_type(:age_group), do: "Age Group"
+  defp format_auto_cat_type(type), do: to_string(type)
+
+  defp format_auto_cat_details(%{type: :gender, gender_value: gv}) when not is_nil(gv) do
+    "Gender = #{gv}"
+  end
+
+  defp format_auto_cat_details(%{type: :age_group, min_age: min, max_age: max}) do
+    format_age_range(min, max)
+  end
+
+  defp format_auto_cat_details(_), do: "-"
 
   defp format_age_range(nil, nil), do: "Any"
   defp format_age_range(min, nil), do: "#{min}+"

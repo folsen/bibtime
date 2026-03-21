@@ -30,10 +30,11 @@ defmodule Bibtime.Registration do
     if registration_open?(race) do
       bib_number = Participants.next_bib_number(race.id)
       token = generate_token()
+      reg_opts = registration_opts(race)
 
       changeset =
         %Participant{race_id: race.id, bib_number: bib_number, confirmation_token: token}
-        |> Participant.registration_changeset(attrs)
+        |> Participant.registration_changeset(attrs, reg_opts)
 
       email = Ecto.Changeset.get_change(changeset, :email) || Ecto.Changeset.get_field(changeset, :email)
 
@@ -66,8 +67,19 @@ defmodule Bibtime.Registration do
   @doc """
   Returns a changeset for the registration form.
   """
-  def change_registration(%Participant{} = participant, attrs \\ %{}) do
-    Participant.registration_changeset(participant, attrs)
+  def change_registration(%Participant{} = participant, attrs \\ %{}, opts \\ []) do
+    Participant.registration_changeset(participant, attrs, opts)
+  end
+
+  defp registration_opts(race) do
+    race = Bibtime.Repo.preload(race, [:categories, :auto_categories])
+    auto_cat_types = race.auto_categories |> Enum.map(& &1.type) |> Enum.uniq()
+
+    [
+      require_category: race.categories != [],
+      require_gender: :gender in auto_cat_types,
+      require_birth_date: :age_group in auto_cat_types
+    ]
   end
 
   defp find_or_create_user(nil), do: nil

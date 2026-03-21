@@ -10,10 +10,10 @@ config :bcrypt_elixir, :log_rounds, 1
 # Run `mix help test` for more information.
 config :bibtime, Bibtime.Repo,
   database: Path.expand("../bibtime_test.db", __DIR__),
-  pool_size: 5,
+  pool_size: 1,
   pool: Ecto.Adapters.SQL.Sandbox,
   journal_mode: :wal,
-  busy_timeout: 10000
+  busy_timeout: 30000
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.

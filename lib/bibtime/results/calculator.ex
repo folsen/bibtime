@@ -7,6 +7,7 @@ defmodule Bibtime.Results.Calculator do
   alias Bibtime.Results.ParticipantResult
   alias Bibtime.Participants
   alias Bibtime.Races
+  alias Bibtime.Races.AutoCategorizer
   alias Bibtime.Timing
 
   @doc """
@@ -16,9 +17,11 @@ defmodule Bibtime.Results.Calculator do
   totals populated (but without ranking — use `Ranker` for that).
   """
   def calculate_results(race_id) do
+    race = Races.get_race!(race_id)
     participants = Participants.list_participants(race_id)
     split_times = Timing.get_split_times_for_race(race_id)
     splits = Races.list_splits(race_id)
+    auto_categories = race.auto_categories
     _race_start = Timing.get_race_start(race_id)
 
     split_ids_ordered = Enum.map(splits, & &1.id)
@@ -62,13 +65,16 @@ defmodule Bibtime.Results.Calculator do
           nil
         end
 
+      matched_auto_cats = AutoCategorizer.match(participant, auto_categories, race.date)
+
       %ParticipantResult{
         participant: participant,
         category: participant.race_category,
         splits_completed: splits_completed,
         leg_times: leg_times,
         total_ms: total_ms,
-        status: participant.status
+        status: participant.status,
+        auto_categories: matched_auto_cats
       }
     end)
   end

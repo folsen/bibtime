@@ -23,6 +23,7 @@ defmodule Bibtime.Races.Race do
     field :config, :map, default: %{}
 
     has_many :categories, Bibtime.Races.RaceCategory
+    has_many :auto_categories, Bibtime.Races.RaceAutoCategory
     has_many :splits, Bibtime.Races.Split
     has_many :participants, Bibtime.Participants.Participant
     has_many :race_starts, Bibtime.Timing.RaceStart

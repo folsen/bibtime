@@ -32,6 +32,17 @@ defmodule BibtimeWeb.Router do
     get "/races/:slug/results/export/csv", ExportController, :results_csv
   end
 
+  # Kiosk mode (fullscreen, no nav — for projectors/TVs at race venues)
+  scope "/", BibtimeWeb do
+    pipe_through :browser
+
+    live_session :kiosk,
+      layout: {BibtimeWeb.Layouts, :kiosk},
+      root_layout: {BibtimeWeb.Layouts, :kiosk_root} do
+      live "/races/:slug/kiosk", Public.KioskLive.Index, :index
+    end
+  end
+
   # Admin routes (require admin user)
   scope "/", BibtimeWeb do
     pipe_through [:browser, :require_authenticated_user, :require_admin_user]
@@ -78,6 +89,7 @@ defmodule BibtimeWeb.Router do
 
     live_session :authenticated,
       on_mount: [{BibtimeWeb.UserAuth, :require_authenticated_user}] do
+      live "/profile", Public.ProfileLive.Index, :index
       live "/my-races", Public.MyRacesLive.Index, :index
       live "/my-races/:participant_id/edit", Public.MyRacesLive.Edit, :edit
     end

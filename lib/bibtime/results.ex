@@ -23,7 +23,7 @@ defmodule Bibtime.Results do
   end
 
   @doc """
-  Returns ranked results filtered to the given category.
+  Returns ranked results filtered to the given manual category.
 
   Category ranks reflect positions within that specific category.
   """
@@ -32,5 +32,62 @@ defmodule Bibtime.Results do
     |> get_race_results()
     |> Enum.filter(fn r -> r.category != nil and r.category.id == category_id end)
     |> Ranker.rank_results()
+  end
+
+  @doc """
+  Returns ranked results filtered to the given auto category.
+
+  Participants are included if they match the auto category.
+  """
+  def get_auto_category_results(race_id, auto_category_id) do
+    race_id
+    |> get_race_results()
+    |> Enum.filter(fn r ->
+      Enum.any?(r.auto_categories, &(&1.id == auto_category_id))
+    end)
+    |> Ranker.rank_results()
+  end
+
+  @doc """
+  Returns a list of race result summaries for every race a user has participated in.
+
+  Each entry is a map with:
+    - `:race` — the `%Race{}` struct (with splits preloaded)
+    - `:splits` — ordered list of splits for the race
+    - `:result` — the user's `%ParticipantResult{}` with overall rank
+    - `:category_rank` — rank within their manual category (or nil)
+  """
+  def get_user_race_results(user_id) do
+    alias Bibtime.Participants
+    alias Bibtime.Races
+
+    participants = Participants.list_participants_for_user(user_id)
+
+    Enum.map(participants, fn participant ->
+      race = Races.get_race!(participant.race_id)
+      splits = Races.list_splits(race.id)
+      all_results = get_race_results(race.id)
+
+      result = Enum.find(all_results, fn r -> r.participant.id == participant.id end)
+
+      category_rank =
+        if result && result.category do
+          category_results =
+            all_results
+            |> Enum.filter(fn r -> r.category != nil and r.category.id == result.category.id end)
+            |> Ranker.rank_results()
+
+          cat_result = Enum.find(category_results, fn r -> r.participant.id == participant.id end)
+          if cat_result, do: cat_result.rank
+        end
+
+      %{
+        race: race,
+        splits: splits,
+        result: result,
+        category_rank: category_rank
+      }
+    end)
+    |> Enum.sort_by(fn entry -> entry.race.date end, {:desc, Date})
   end
 end

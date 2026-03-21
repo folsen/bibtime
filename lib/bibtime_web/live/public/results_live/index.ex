@@ -11,7 +11,7 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
     race =
       slug
       |> Races.get_race_by_slug!()
-      |> Bibtime.Repo.preload([:categories, :splits])
+      |> Bibtime.Repo.preload([:categories, :auto_categories, :splits])
 
     results = Results.get_race_results(race.id)
     splits = Races.list_splits(race.id)
@@ -26,7 +26,11 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
        results: results,
        splits: splits,
        categories: race.categories,
+       auto_categories: race.auto_categories,
+       gender_auto_categories: Enum.filter(race.auto_categories, &(&1.type == :gender)),
+       age_group_auto_categories: Enum.filter(race.auto_categories, &(&1.type == :age_group)),
        selected_category: nil,
+       selected_auto_category: nil,
        filtered_results: results,
        recently_finished: MapSet.new(),
        sort_by: "rank",
@@ -37,21 +41,34 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
 
   @impl true
   def handle_params(params, _uri, socket) do
-    category_id = params["category"]
+    category_param = params["category"]
 
-    {selected_category, filtered_results} =
-      if category_id do
-        cat_id = String.to_integer(category_id)
-        category = Enum.find(socket.assigns.categories, &(&1.id == cat_id))
+    {selected_category, selected_auto_category, filtered_results} =
+      case parse_category_param(category_param) do
+        {:manual, cat_id} ->
+          category = Enum.find(socket.assigns.categories, &(&1.id == cat_id))
 
-        filtered =
-          socket.assigns.results
-          |> Enum.filter(fn r -> r.category != nil and r.category.id == cat_id end)
-          |> Ranker.rank_results()
+          filtered =
+            socket.assigns.results
+            |> Enum.filter(fn r -> r.category != nil and r.category.id == cat_id end)
+            |> Ranker.rank_results()
 
-        {category, filtered}
-      else
-        {nil, socket.assigns.results}
+          {category, nil, filtered}
+
+        {:auto, auto_cat_id} ->
+          auto_cat = Enum.find(socket.assigns.auto_categories, &(&1.id == auto_cat_id))
+
+          filtered =
+            socket.assigns.results
+            |> Enum.filter(fn r ->
+              Enum.any?(r.auto_categories, &(&1.id == auto_cat_id))
+            end)
+            |> Ranker.rank_results()
+
+          {nil, auto_cat, filtered}
+
+        nil ->
+          {nil, nil, socket.assigns.results}
       end
 
     # Reset sort to default rank when switching categories
@@ -60,11 +77,17 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
     {:noreply,
      assign(socket,
        selected_category: selected_category,
+       selected_auto_category: selected_auto_category,
        filtered_results: filtered_results,
        sort_by: "rank",
        sort_dir: :asc
      )}
   end
+
+  defp parse_category_param(nil), do: nil
+  defp parse_category_param("auto:" <> id), do: {:auto, String.to_integer(id)}
+  defp parse_category_param("manual:" <> id), do: {:manual, String.to_integer(id)}
+  defp parse_category_param(id), do: {:manual, String.to_integer(id)}
 
   @impl true
   def render(assigns) do
@@ -100,36 +123,80 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
       </div>
 
       <%!-- Category filter tabs --%>
-      <div class="flex flex-wrap gap-2 mb-6" role="tablist">
+      <div class="flex flex-wrap items-center gap-2 mb-6" role="tablist">
         <.link
           patch={~p"/races/#{@race.slug}/results"}
           class={[
             "inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-200",
-            if(@selected_category == nil,
+            if(no_category_selected?(assigns),
               do: "bg-primary text-primary-content shadow-sm",
               else: "bg-base-200/60 text-base-content/60 hover:bg-base-300 hover:text-base-content"
             )
           ]}
           role="tab"
-          aria-selected={@selected_category == nil}
+          aria-selected={no_category_selected?(assigns)}
         >
           Overall
         </.link>
-        <.link
-          :for={category <- @categories}
-          patch={~p"/races/#{@race.slug}/results?category=#{category.id}"}
-          class={[
-            "inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-200",
-            if(@selected_category && @selected_category.id == category.id,
-              do: "bg-primary text-primary-content shadow-sm",
-              else: "bg-base-200/60 text-base-content/60 hover:bg-base-300 hover:text-base-content"
-            )
-          ]}
-          role="tab"
-          aria-selected={@selected_category && @selected_category.id == category.id}
-        >
-          {category.name}
-        </.link>
+        <%= if @categories != [] do %>
+          <.link
+            :for={category <- @categories}
+            patch={~p"/races/#{@race.slug}/results?category=manual:#{category.id}"}
+            class={[
+              "inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-200",
+              if(@selected_category && @selected_category.id == category.id,
+                do: "bg-primary text-primary-content shadow-sm",
+                else: "bg-base-200/60 text-base-content/60 hover:bg-base-300 hover:text-base-content"
+              )
+            ]}
+            role="tab"
+            aria-selected={@selected_category && @selected_category.id == category.id}
+          >
+            {category.name}
+          </.link>
+        <% end %>
+        <%= if @gender_auto_categories != [] do %>
+          <span
+            :if={@categories != []}
+            class="w-px h-6 bg-base-300/60 mx-1"
+          />
+          <.link
+            :for={auto_cat <- @gender_auto_categories}
+            patch={~p"/races/#{@race.slug}/results?category=auto:#{auto_cat.id}"}
+            class={[
+              "inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-200",
+              if(@selected_auto_category && @selected_auto_category.id == auto_cat.id,
+                do: "bg-primary text-primary-content shadow-sm",
+                else: "bg-base-200/60 text-base-content/60 hover:bg-base-300 hover:text-base-content"
+              )
+            ]}
+            role="tab"
+            aria-selected={@selected_auto_category && @selected_auto_category.id == auto_cat.id}
+          >
+            {auto_cat.name}
+          </.link>
+        <% end %>
+        <%= if @age_group_auto_categories != [] do %>
+          <span
+            :if={@categories != [] || @gender_auto_categories != []}
+            class="w-px h-6 bg-base-300/60 mx-1"
+          />
+          <.link
+            :for={auto_cat <- @age_group_auto_categories}
+            patch={~p"/races/#{@race.slug}/results?category=auto:#{auto_cat.id}"}
+            class={[
+              "inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-200",
+              if(@selected_auto_category && @selected_auto_category.id == auto_cat.id,
+                do: "bg-primary text-primary-content shadow-sm",
+                else: "bg-base-200/60 text-base-content/60 hover:bg-base-300 hover:text-base-content"
+              )
+            ]}
+            role="tab"
+            aria-selected={@selected_auto_category && @selected_auto_category.id == auto_cat.id}
+          >
+            {auto_cat.name}
+          </.link>
+        <% end %>
       </div>
 
       <%!-- Results table --%>
@@ -162,7 +229,7 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
                 Club<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="club" />
               </th>
               <th
-                :if={@selected_category == nil}
+                :if={no_category_selected?(assigns)}
                 phx-click="sort" phx-value-col="category"
                 class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-left cursor-pointer hover:text-base-content select-none"
               >
@@ -220,7 +287,7 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
                 {result.participant.club || "\u2014"}
               </td>
               <td
-                :if={@selected_category == nil}
+                :if={no_category_selected?(assigns)}
                 class="text-sm px-3 py-2.5 border-b border-base-300/20"
               >
                 <span
@@ -329,12 +396,21 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
             {Enum.count(@filtered_results, &(&1.status == :racing))} still racing
           </span>
         </div>
-        <a
-          href={~p"/races/#{@race.slug}/results/export/csv"}
-          class="ml-auto inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2 text-sm font-medium text-base-content/70 hover:bg-base-300/50 hover:text-base-content transition-colors"
-        >
-          <.icon name="hero-arrow-down-tray" class="size-4" /> Export CSV
-        </a>
+        <div class="ml-auto flex items-center gap-2">
+          <a
+            href={~p"/races/#{@race.slug}/kiosk"}
+            target="_blank"
+            class="inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2 text-sm font-medium text-base-content/70 hover:bg-base-300/50 hover:text-base-content transition-colors"
+          >
+            <.icon name="hero-tv" class="size-4" /> Kiosk
+          </a>
+          <a
+            href={~p"/races/#{@race.slug}/results/export/csv"}
+            class="inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2 text-sm font-medium text-base-content/70 hover:bg-base-300/50 hover:text-base-content transition-colors"
+          >
+            <.icon name="hero-arrow-down-tray" class="size-4" /> Export CSV
+          </a>
+        </div>
       </div>
     </div>
     """
@@ -395,19 +471,34 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
     results = Results.get_race_results(race.id)
 
     filtered_results =
-      case socket.assigns.selected_category do
-        nil ->
-          results
+      cond do
+        socket.assigns.selected_category ->
+          category = socket.assigns.selected_category
 
-        category ->
           results
           |> Enum.filter(fn r -> r.category != nil and r.category.id == category.id end)
           |> Ranker.rank_results()
+
+        socket.assigns.selected_auto_category ->
+          auto_cat = socket.assigns.selected_auto_category
+
+          results
+          |> Enum.filter(fn r ->
+            Enum.any?(r.auto_categories, &(&1.id == auto_cat.id))
+          end)
+          |> Ranker.rank_results()
+
+        true ->
+          results
       end
 
     filtered_results = sort_results(filtered_results, socket.assigns.sort_by, socket.assigns.sort_dir, socket.assigns.splits)
 
     assign(socket, results: results, filtered_results: filtered_results)
+  end
+
+  defp no_category_selected?(assigns) do
+    assigns.selected_category == nil and assigns.selected_auto_category == nil
   end
 
   defp display_rank(result) do

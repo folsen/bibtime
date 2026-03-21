@@ -49,7 +49,12 @@ defmodule Bibtime.Participants.Participant do
     |> unique_constraint([:race_id, :bib_number])
   end
 
-  def registration_changeset(participant, attrs) do
+  def registration_changeset(participant, attrs, opts \\ []) do
+    required = [:first_name, :last_name, :email]
+    required = if Keyword.get(opts, :require_category, true), do: required ++ [:race_category_id], else: required
+    required = if Keyword.get(opts, :require_gender, false), do: required ++ [:gender], else: required
+    required = if Keyword.get(opts, :require_birth_date, false), do: required ++ [:birth_date], else: required
+
     participant
     |> cast(attrs, [
       :first_name,
@@ -60,7 +65,7 @@ defmodule Bibtime.Participants.Participant do
       :club,
       :race_category_id
     ])
-    |> validate_required([:first_name, :last_name, :email, :race_category_id])
+    |> validate_required(required)
     |> validate_format(:email, ~r/^[^\s]+@[^\s]+\.[^\s]+$/,
       message: "must be a valid email address"
     )

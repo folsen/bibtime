@@ -157,3 +157,31 @@ body {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px oklch(0% 0 0 / 0.06);
 }
+
+/* ── Kiosk / Big-Screen Display ──────────────────────────────────── */
+
+/* Flash animation for new finishers */
+@keyframes kiosk-flash-in {
+  0% { background-color: oklch(62% 0.1 155 / 0.35); }
+  15% { background-color: oklch(62% 0.1 155 / 0.15); }
+  30% { background-color: oklch(62% 0.1 155 / 0.30); }
+  100% { background-color: transparent; }
+}
+
+.kiosk-flash {
+  animation: kiosk-flash-in 10s ease-out;
+}
+
+.kiosk-row {
+  transition: background-color 0.6s ease;
+}
+
+/* Kiosk table: larger row spacing for readability at distance */
+.kiosk-table td {
+  line-height: 1.6;
+}
+
+/* Smooth scroll reset */
+#kiosk-scroll-area {
+  scroll-behavior: auto;
+}

@@ -13,6 +13,7 @@ defmodule Bibtime.Results.ParticipantResult do
     :leg_times,
     :total_ms,
     :rank,
-    :status
+    :status,
+    auto_categories: []
   ]
 end
