@@ -38,16 +38,15 @@ Let participants see their performance across multiple races.
 
 Link finish-line and course photos to bib numbers for participants to find their photos.
 
-- [ ] Design `race_photos` table (race_id, file_path/url, bib_numbers array, split_id, timestamp)
-- [ ] Admin: bulk photo upload interface (drag-and-drop multiple files)
-- [ ] Store photos in S3-compatible object storage
-- [ ] Add `waffle` or `arc` dependency for file upload handling
-- [ ] Manual bib tagging: admin interface to tag bib numbers on uploaded photos
-- [ ] Display photos on participant result rows (thumbnail + lightbox)
-- [ ] Public: photo gallery page per race (`/races/:slug/photos`)
-- [ ] Filter photos by bib number or participant name
-- [ ] Show photos on the "My Races" detail view for logged-in participants
-- [ ] Future: OCR-based auto-detection of bib numbers from photos (stretch goal)
+- [x] Design `race_photos` table (race_id, file_path/url, bib_numbers array, split_id, timestamp)
+- [x] Admin: bulk photo upload interface (drag-and-drop multiple files)
+- [x] Store photos in S3-compatible object storage
+- [x] Add `waffle` or `arc` dependency for file upload handling
+- [x] Manual bib tagging: admin interface to tag bib numbers on uploaded photos
+- [x] Display photos on participant result rows (thumbnail + lightbox)
+- [x] Public: photo gallery page per race (`/races/:slug/photos`)
+- [x] Filter photos by bib number or participant name
+- [x] Show photos on the profile race detail page for logged-in participants
 
 ## 5. Payment Integration (Stripe)
 

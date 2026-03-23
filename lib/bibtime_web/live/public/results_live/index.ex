@@ -1,6 +1,7 @@
 defmodule BibtimeWeb.Public.ResultsLive.Index do
   use BibtimeWeb, :live_view
 
+  alias Bibtime.Photos
   alias Bibtime.Races
   alias Bibtime.Results
   alias Bibtime.Results.Calculator
@@ -16,6 +17,8 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
     results = Results.get_race_results(race.id)
     splits = Races.list_splits(race.id)
 
+    photo_count = Photos.count_photos(race.id)
+
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Bibtime.PubSub, "race:timing:#{race.id}")
     end
@@ -25,6 +28,7 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
        race: race,
        results: results,
        splits: splits,
+       photo_count: photo_count,
        categories: race.categories,
        auto_categories: race.auto_categories,
        gender_auto_categories: Enum.filter(race.auto_categories, &(&1.type == :gender)),
@@ -425,6 +429,14 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
           </span>
         </div>
         <div class="ml-auto flex items-center gap-2">
+          <.link
+            :if={@photo_count > 0}
+            navigate={~p"/races/#{@race.slug}/photos"}
+            class="inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2 text-sm font-medium text-base-content/70 hover:bg-base-300/50 hover:text-base-content transition-colors"
+          >
+            <.icon name="hero-photo" class="size-4" />
+            {ngettext("%{count} Photo", "%{count} Photos", @photo_count)}
+          </.link>
           <a
             href={~p"/races/#{@race.slug}/kiosk"}
             target="_blank"

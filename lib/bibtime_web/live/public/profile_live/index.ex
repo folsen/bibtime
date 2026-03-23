@@ -15,19 +15,8 @@ defmodule BibtimeWeb.Public.ProfileLive.Index do
      assign(socket,
        race_results: race_results,
        stats: stats,
-       expanded_race: nil,
        page_title: gettext("My Profile")
      )}
-  end
-
-  @impl true
-  def handle_event("toggle-race", %{"race-id" => race_id}, socket) do
-    race_id = String.to_integer(race_id)
-
-    expanded =
-      if socket.assigns.expanded_race == race_id, do: nil, else: race_id
-
-    {:noreply, assign(socket, expanded_race: expanded)}
   end
 
   defp compute_stats(race_results) do
@@ -112,11 +101,9 @@ defmodule BibtimeWeb.Public.ProfileLive.Index do
           :for={entry <- @race_results}
           class="rounded-xl bg-base-100 border border-base-300/50 shadow-sm overflow-hidden"
         >
-          <%!-- Race row (always visible) --%>
-          <button
-            phx-click="toggle-race"
-            phx-value-race-id={entry.race.id}
-            class="w-full px-5 py-4 flex items-center gap-4 hover:bg-base-200/40 transition-colors text-left"
+          <.link
+            navigate={~p"/profile/races/#{entry.participant.id}"}
+            class="w-full px-5 py-4 flex items-center gap-4 hover:bg-base-200/40 transition-colors text-left block"
           >
             <%!-- Rank badge --%>
             <div class={[
@@ -153,72 +140,9 @@ defmodule BibtimeWeb.Public.ProfileLive.Index do
               <span class="font-mono text-lg font-bold text-base-content">
                 {if entry.result, do: Calculator.format_time(entry.result.total_ms), else: "--:--"}
               </span>
-              <.icon
-                name={
-                  if @expanded_race == entry.race.id, do: "hero-chevron-up", else: "hero-chevron-down"
-                }
-                class="size-5 text-base-content/30"
-              />
+              <.icon name="hero-chevron-right" class="size-5 text-base-content/30" />
             </div>
-          </button>
-
-          <%!-- Expanded split breakdown --%>
-          <div
-            :if={@expanded_race == entry.race.id && entry.splits != [] && entry.result}
-            class="border-t border-base-300/40 bg-base-200/30 px-5 py-4"
-          >
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-sm font-medium text-base-content/60 uppercase tracking-wider">
-                {gettext("Split Breakdown")}
-              </span>
-              <.link
-                navigate={~p"/races/#{entry.race.slug}/results"}
-                class="text-sm text-primary hover:underline"
-              >
-                {gettext("View full results")}
-              </.link>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="text-xs uppercase tracking-wider text-base-content/40">
-                    <th class="text-left py-1.5 pr-4 font-semibold">{gettext("Split")}</th>
-                    <th class="text-right py-1.5 pl-4 font-semibold">{gettext("Leg Time")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    :for={split <- entry.splits}
-                    class="border-t border-base-300/30"
-                  >
-                    <td class="py-2 pr-4 text-base-content/70">{split.name}</td>
-                    <td class="py-2 pl-4 text-right font-mono text-base-content">
-                      {Calculator.format_time(Map.get(entry.result.leg_times, split.id))}
-                    </td>
-                  </tr>
-                  <tr class="border-t-2 border-base-300/60 font-bold">
-                    <td class="py-2 pr-4 text-base-content">{gettext("Total")}</td>
-                    <td class="py-2 pl-4 text-right font-mono text-base-content">
-                      {Calculator.format_time(entry.result.total_ms)}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <%!-- Auto-category ranks --%>
-            <div
-              :if={entry.result.auto_categories != []}
-              class="mt-3 flex flex-wrap gap-2"
-            >
-              <span
-                :for={auto_cat <- entry.result.auto_categories}
-                class="inline-flex items-center rounded-full bg-base-300/50 px-2.5 py-0.5 text-xs font-medium text-base-content/60"
-              >
-                {auto_cat.name}
-              </span>
-            </div>
-          </div>
+          </.link>
         </div>
       </div>
     </div>

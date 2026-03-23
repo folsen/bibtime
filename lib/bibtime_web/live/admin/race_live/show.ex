@@ -90,7 +90,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
     </div>
 
     <%!-- Quick Actions --%>
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
       <.link
         navigate={~p"/admin/races/#{@race.id}/participants"}
         class="group flex items-center gap-4 rounded-xl border border-base-300 bg-base-100 p-5 shadow-sm hover:border-primary/40 hover:shadow-md transition-all"
@@ -148,6 +148,25 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
           class="size-5 ml-auto text-base-content/30 group-hover:text-accent/60 transition-colors"
         />
       </a>
+
+      <.link
+        navigate={~p"/admin/races/#{@race.id}/photos"}
+        class="group flex items-center gap-4 rounded-xl border border-base-300 bg-base-100 p-5 shadow-sm hover:border-info/40 hover:shadow-md transition-all"
+      >
+        <div class="rounded-lg bg-info/10 p-3">
+          <.icon name="hero-photo" class="size-6 text-info" />
+        </div>
+        <div>
+          <div class="font-semibold text-base-content group-hover:text-info transition-colors">
+            {gettext("Photos")}
+          </div>
+          <div class="text-sm text-base-content/50">{gettext("Upload & tag race photos")}</div>
+        </div>
+        <.icon
+          name="hero-chevron-right"
+          class="size-5 ml-auto text-base-content/30 group-hover:text-info/60 transition-colors"
+        />
+      </.link>
     </div>
 
     <%!-- Categories Section --%>

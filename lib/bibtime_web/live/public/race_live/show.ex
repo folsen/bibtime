@@ -1,6 +1,7 @@
 defmodule BibtimeWeb.Public.RaceLive.Show do
   use BibtimeWeb, :live_view
 
+  alias Bibtime.Photos
   alias Bibtime.Races
   alias Bibtime.Participants
 
@@ -13,12 +14,14 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
 
     participants = Participants.list_participants(race.id)
     participant_count = Participants.count_participants(race.id)
+    photo_count = Photos.count_photos(race.id)
 
     {:ok,
      assign(socket,
        race: race,
        participants: participants,
        participant_count: participant_count,
+       photo_count: photo_count,
        page_title: race.name
      )}
   end
@@ -109,6 +112,35 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
         <p class="text-base-content/80 leading-relaxed">{@race.description}</p>
       </div>
 
+      <%!-- CTA buttons --%>
+      <div class="mb-10 flex flex-wrap gap-4">
+        <.link
+          :if={@race.status == :registration_open}
+          navigate={~p"/races/#{@race.slug}/register"}
+          class="btn btn-primary btn-lg gap-2 shadow-md hover:shadow-lg transition-shadow"
+        >
+          <.icon name="hero-pencil-square" class="size-5" /> {gettext("Register Now")}
+          <.icon name="hero-arrow-right" class="size-5" />
+        </.link>
+        <.link
+          navigate={~p"/races/#{@race.slug}/results"}
+          class={[
+            "btn btn-lg gap-2 shadow-md hover:shadow-lg transition-shadow",
+            if(@race.status == :registration_open, do: "btn-outline btn-primary", else: "btn-primary")
+          ]}
+        >
+          <.icon name="hero-trophy" class="size-5" /> {gettext("View Results")}
+          <.icon name="hero-arrow-right" class="size-5" />
+        </.link>
+        <.link
+          :if={@photo_count > 0}
+          navigate={~p"/races/#{@race.slug}/photos"}
+          class="btn btn-lg btn-outline gap-2 shadow-md hover:shadow-lg transition-shadow"
+        >
+          <.icon name="hero-photo" class="size-5" /> {gettext("View Photos")}
+        </.link>
+      </div>
+
       <%!-- Categories as pills --%>
       <div :if={@race.categories != []} class="mb-10">
         <h2 class="text-lg font-semibold text-base-content mb-4">{gettext("Categories")}</h2>
@@ -124,12 +156,10 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
           </span>
         </div>
       </div>
-
       <%!-- Start List --%>
-      <div
-        :if={@race.status in [:registration_closed, :in_progress, :finished] and @participants != []}
-        class="mb-10"
-      >
+      <div :if={
+        @race.status in [:registration_closed, :in_progress, :finished] and @participants != []
+      }>
         <div class="flex items-center gap-3 mb-4">
           <h2 class="text-lg font-semibold text-base-content">{gettext("Start List")}</h2>
           <span class="inline-flex items-center gap-1.5 rounded-full bg-base-300/50 px-3 py-1 text-xs font-semibold text-base-content/70">
@@ -185,28 +215,6 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
             </tbody>
           </table>
         </div>
-      </div>
-
-      <%!-- CTA buttons --%>
-      <div class="mt-10 flex flex-wrap gap-4">
-        <.link
-          :if={@race.status == :registration_open}
-          navigate={~p"/races/#{@race.slug}/register"}
-          class="btn btn-primary btn-lg gap-2 shadow-md hover:shadow-lg transition-shadow"
-        >
-          <.icon name="hero-pencil-square" class="size-5" /> {gettext("Register Now")}
-          <.icon name="hero-arrow-right" class="size-5" />
-        </.link>
-        <.link
-          navigate={~p"/races/#{@race.slug}/results"}
-          class={[
-            "btn btn-lg gap-2 shadow-md hover:shadow-lg transition-shadow",
-            if(@race.status == :registration_open, do: "btn-outline btn-primary", else: "btn-primary")
-          ]}
-        >
-          <.icon name="hero-trophy" class="size-5" /> {gettext("View Results")}
-          <.icon name="hero-arrow-right" class="size-5" />
-        </.link>
       </div>
     </div>
     """

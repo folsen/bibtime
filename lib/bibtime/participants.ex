@@ -153,4 +153,17 @@ defmodule Bibtime.Participants do
     |> order_by([p], desc: p.inserted_at)
     |> Repo.all()
   end
+
+  @doc """
+  Returns the most recent participant record for a user, or nil.
+
+  Used to pre-fill registration forms with data from past races.
+  """
+  def get_latest_participant_for_user(user_id) do
+    Participant
+    |> where([p], p.user_id == ^user_id)
+    |> order_by([p], desc: p.inserted_at)
+    |> limit(1)
+    |> Repo.one()
+  end
 end

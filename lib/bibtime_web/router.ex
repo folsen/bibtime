@@ -28,6 +28,7 @@ defmodule BibtimeWeb.Router do
       on_mount: [{BibtimeWeb.UserAuth, :assign_current_scope}] do
       live "/races/:slug", Public.RaceLive.Show, :show
       live "/races/:slug/results", Public.ResultsLive.Index, :index
+      live "/races/:slug/photos", Public.PhotoLive.Index, :index
       live "/races/:slug/register", Public.RegistrationLive.New, :new
 
       live "/races/:slug/register/confirmation/:participant_id",
@@ -66,6 +67,7 @@ defmodule BibtimeWeb.Router do
       live "/admin/races/:id/participants", Admin.ParticipantLive.Index, :index
       live "/admin/races/:id/participants/new", Admin.ParticipantLive.New, :new
       live "/admin/races/:id/participants/:participant_id/edit", Admin.ParticipantLive.Edit, :edit
+      live "/admin/races/:id/photos", Admin.PhotoLive.Index, :index
       live "/admin/users", Admin.UserLive.Index, :index
     end
   end
@@ -114,6 +116,7 @@ defmodule BibtimeWeb.Router do
     live_session :authenticated,
       on_mount: [{BibtimeWeb.UserAuth, :require_authenticated_user}] do
       live "/profile", Public.ProfileLive.Index, :index
+      live "/profile/races/:participant_id", Public.ProfileLive.Show, :show
       live "/my-races", Public.MyRacesLive.Index, :index
       live "/my-races/:participant_id/edit", Public.MyRacesLive.Edit, :edit
     end

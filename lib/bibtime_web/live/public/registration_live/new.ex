@@ -2,6 +2,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
   use BibtimeWeb, :live_view
 
   alias Bibtime.Races
+  alias Bibtime.Participants
   alias Bibtime.Registration
   alias Bibtime.Participants.Participant
 
@@ -24,7 +25,8 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
         require_birth_date: requires_birth_date
       ]
 
-      changeset = Registration.change_registration(%Participant{}, %{}, reg_opts)
+      prefill_attrs = prefill_attrs_for_user(socket.assigns.current_scope)
+      changeset = Registration.change_registration(%Participant{}, prefill_attrs, reg_opts)
 
       {:ok,
        assign(socket,
@@ -193,5 +195,27 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
       </div>
     </div>
     """
+  end
+
+  defp prefill_attrs_for_user(%{user: nil}), do: %{}
+  defp prefill_attrs_for_user(nil), do: %{}
+
+  defp prefill_attrs_for_user(%{user: user}) do
+    case Participants.get_latest_participant_for_user(user.id) do
+      %Participant{} = p ->
+        %{
+          "first_name" => p.first_name,
+          "last_name" => p.last_name,
+          "email" => p.email || user.email,
+          "gender" => if(p.gender, do: Atom.to_string(p.gender)),
+          "birth_date" => if(p.birth_date, do: Date.to_iso8601(p.birth_date)),
+          "club" => p.club
+        }
+        |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+        |> Map.new()
+
+      nil ->
+        %{"email" => user.email}
+    end
   end
 end
