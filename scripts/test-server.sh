@@ -47,6 +47,16 @@ do_start() {
   kill_port
 
   echo "Starting test server on port $PORT..."
+
+  # Load .env file if it exists (for Stripe keys, etc.)
+  ENV_ARGS=""
+  if [ -f "$(dirname "$0")/../.env" ]; then
+    set -a
+    # shellcheck disable=SC1091
+    . "$(dirname "$0")/../.env"
+    set +a
+  fi
+
   PORT=$PORT nohup elixir --sname "bibtime_test@localhost" -S mix phx.server > "$LOGFILE" 2>&1 &
   local pid=$!
   echo "$pid" > "$PIDFILE"

@@ -68,6 +68,7 @@ defmodule BibtimeWeb.Router do
       live "/admin/races/:id/participants/new", Admin.ParticipantLive.New, :new
       live "/admin/races/:id/participants/:participant_id/edit", Admin.ParticipantLive.Edit, :edit
       live "/admin/races/:id/photos", Admin.PhotoLive.Index, :index
+      live "/admin/races/:id/payments", Admin.PaymentLive.Index, :index
       live "/admin/users", Admin.UserLive.Index, :index
     end
   end
@@ -88,6 +89,13 @@ defmodule BibtimeWeb.Router do
     pipe_through :api
 
     get "/healthz", HealthController, :index
+  end
+
+  # Stripe webhook endpoint (no auth, no CSRF — signature verified in controller)
+  scope "/webhooks", BibtimeWeb do
+    pipe_through :api
+
+    post "/stripe", StripeWebhookController, :create
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

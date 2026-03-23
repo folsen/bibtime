@@ -52,18 +52,18 @@ Link finish-line and course photos to bib numbers for participants to find their
 
 Enable paid race registration for events that charge an entry fee.
 
-- [ ] Add `stripity_stripe` dependency
-- [ ] Add payment fields to race config: `entry_fee_cents`, `currency`, `payment_required` boolean
-- [ ] Design `payments` table (participant_id, race_id, stripe_payment_intent_id, amount_cents, currency, status, paid_at)
-- [ ] Registration flow: after form submission, redirect to Stripe Checkout for paid races
-- [ ] Handle Stripe webhook for payment confirmation (mark payment as completed)
-- [ ] Only confirm registration after successful payment (pending state until paid)
-- [ ] Admin: have ability to set single-tier early-bird pricing structure or flat rate
-- [ ] Admin: payment overview page per race — total collected, pending, refunded
-- [ ] Admin: manual refund button (triggers Stripe refund API)
-- [ ] Admin: free/comp registration override (skip payment for specific participants)
+- [x] Add `stripity_stripe` dependency
+- [x] Add payment fields to race config: `entry_fee_cents`, `currency`, `payment_required` boolean
+- [x] Design `payments` table (participant_id, race_id, stripe_payment_intent_id, amount_cents, currency, status, paid_at)
+- [x] Registration flow: after form submission, redirect to Stripe Checkout for paid races
+- [x] Handle Stripe webhook for payment confirmation (mark payment as completed)
+- [x] Only confirm registration after successful payment (pending state until paid)
+- [x] Admin: have ability to set single-tier early-bird pricing structure or flat rate
+- [x] Admin: payment overview page per race — total collected, pending, refunded
+- [x] Admin: manual refund button (triggers Stripe refund API)
+- [x] Admin: free/comp registration override (skip payment for specific participants)
 - [ ] Support Stripe Connect for multi-organizer setups (stretch goal)
-- [ ] Receipt emails sent after successful payment
+- [x] Receipt emails sent after successful payment
 
 ## 6. Internationalization (Swedish + English)
 

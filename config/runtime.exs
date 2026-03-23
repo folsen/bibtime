@@ -7,6 +7,42 @@ import Config
 # any compile-time configuration in here, as it won't be applied.
 # The block below contains prod specific runtime configuration.
 
+# Load .env file in dev/test for convenience (Stripe keys, etc.)
+if config_env() in [:dev, :test] do
+  env_file = Path.expand("../.env", __DIR__)
+
+  if File.exists?(env_file) do
+    env_file
+    |> File.read!()
+    |> String.split("\n")
+    |> Enum.each(fn line ->
+      line = String.trim(line)
+
+      case line do
+        "#" <> _ ->
+          :skip
+
+        "" ->
+          :skip
+
+        _ ->
+          case String.split(line, "=", parts: 2) do
+            [key, value] ->
+              key = String.trim(key)
+              value = value |> String.trim() |> String.trim("\"") |> String.trim("'")
+
+              unless System.get_env(key) do
+                System.put_env(key, value)
+              end
+
+            _ ->
+              :skip
+          end
+      end
+    end)
+  end
+end
+
 # ## Using releases
 #
 # If you use `mix release`, you need to explicitly enable the server
@@ -40,6 +76,15 @@ if System.get_env("PHOTO_STORAGE") == "s3" do
       host: s3_host,
       port: String.to_integer(System.get_env("S3_PORT", "443"))
   end
+end
+
+# Stripe configuration (all environments)
+if stripe_key = System.get_env("STRIPE_SECRET_KEY") do
+  config :stripity_stripe, api_key: stripe_key
+end
+
+if stripe_webhook_secret = System.get_env("STRIPE_WEBHOOK_SECRET") do
+  config :stripity_stripe, signing_secret: stripe_webhook_secret
 end
 
 if config_env() == :prod do

@@ -69,7 +69,8 @@ defmodule Bibtime.MixProject do
       {:bandit, "~> 1.5"},
       {:ex_aws, "~> 2.5"},
       {:ex_aws_s3, "~> 2.5"},
-      {:sweet_xml, "~> 0.7"}
+      {:sweet_xml, "~> 0.7"},
+      {:stripity_stripe, "~> 3.2"}
     ]
   end
 

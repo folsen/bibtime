@@ -13,7 +13,7 @@ defmodule Bibtime.Participants.Participant do
     field :chip_id, :string
 
     field :status, Ecto.Enum,
-      values: [:registered, :racing, :dns, :dnf, :dsq, :finished],
+      values: [:pending_payment, :registered, :racing, :dns, :dnf, :dsq, :finished],
       default: :registered
 
     field :registration_data, :map, default: %{}
@@ -24,6 +24,7 @@ defmodule Bibtime.Participants.Participant do
     belongs_to :user, Bibtime.Accounts.User
 
     has_many :split_times, Bibtime.Timing.SplitTime
+    has_many :payments, Bibtime.Payments.Payment
 
     timestamps()
   end

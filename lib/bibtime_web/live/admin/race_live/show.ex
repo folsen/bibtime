@@ -167,6 +167,26 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
           class="size-5 ml-auto text-base-content/30 group-hover:text-info/60 transition-colors"
         />
       </.link>
+
+      <.link
+        :if={@race.payment_required}
+        navigate={~p"/admin/races/#{@race.id}/payments"}
+        class="group flex items-center gap-4 rounded-xl border border-base-300 bg-base-100 p-5 shadow-sm hover:border-success/40 hover:shadow-md transition-all"
+      >
+        <div class="rounded-lg bg-success/10 p-3">
+          <.icon name="hero-banknotes" class="size-6 text-success" />
+        </div>
+        <div>
+          <div class="font-semibold text-base-content group-hover:text-success transition-colors">
+            {gettext("Payments")}
+          </div>
+          <div class="text-sm text-base-content/50">{gettext("Payment overview & refunds")}</div>
+        </div>
+        <.icon
+          name="hero-chevron-right"
+          class="size-5 ml-auto text-base-content/30 group-hover:text-success/60 transition-colors"
+        />
+      </.link>
     </div>
 
     <%!-- Categories Section --%>

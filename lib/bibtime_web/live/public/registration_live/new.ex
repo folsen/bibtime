@@ -3,6 +3,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
 
   alias Bibtime.Races
   alias Bibtime.Participants
+  alias Bibtime.Payments
   alias Bibtime.Registration
   alias Bibtime.Participants.Participant
 
@@ -28,6 +29,8 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
       prefill_attrs = prefill_attrs_for_user(socket.assigns.current_scope)
       changeset = Registration.change_registration(%Participant{}, prefill_attrs, reg_opts)
 
+      fee_cents = Payments.effective_fee_cents(race)
+
       {:ok,
        assign(socket,
          race: race,
@@ -36,6 +39,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
          requires_gender: requires_gender,
          requires_birth_date: requires_birth_date,
          reg_opts: reg_opts,
+         fee_cents: fee_cents,
          page_title: gettext("Register") <> " — " <> race.name
        )}
     else
@@ -43,6 +47,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
        assign(socket,
          race: race,
          form: nil,
+         fee_cents: 0,
          page_title: gettext("Registration") <> " — " <> race.name
        )}
     end
@@ -64,10 +69,33 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
 
     case Registration.register_participant(race, params) do
       {:ok, participant} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, gettext("You're registered!"))
-         |> push_navigate(to: ~p"/races/#{race.slug}/register/confirmation/#{participant.id}")}
+        if race.payment_required do
+          # Redirect to Stripe Checkout for paid races
+          base_url = BibtimeWeb.Endpoint.url()
+
+          success_url =
+            base_url <> ~p"/races/#{race.slug}/register/confirmation/#{participant.id}"
+
+          cancel_url = base_url <> ~p"/races/#{race.slug}/register"
+
+          case Payments.create_checkout_session(participant, race, success_url, cancel_url) do
+            {:ok, checkout_url} ->
+              {:noreply, redirect(socket, external: checkout_url)}
+
+            {:error, reason} ->
+              {:noreply,
+               socket
+               |> put_flash(:error, gettext("Payment setup failed: %{reason}", reason: reason))
+               |> push_navigate(
+                 to: ~p"/races/#{race.slug}/register/confirmation/#{participant.id}"
+               )}
+          end
+        else
+          {:noreply,
+           socket
+           |> put_flash(:info, gettext("You're registered!"))
+           |> push_navigate(to: ~p"/races/#{race.slug}/register/confirmation/#{participant.id}")}
+        end
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}
@@ -95,6 +123,28 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
           {format_date(@race.date)}
           {if @race.location, do: " — #{@race.location}", else: ""}
         </p>
+      </div>
+
+      <%!-- Entry fee banner --%>
+      <div
+        :if={@race.payment_required && @form != nil}
+        class="rounded-lg bg-info/10 border border-info/20 px-5 py-4 mb-6 flex items-center gap-3"
+      >
+        <.icon name="hero-credit-card" class="size-5 text-info shrink-0" />
+        <div>
+          <p class="text-sm font-medium text-base-content">
+            {gettext("Entry fee")}: {Payments.format_amount(@fee_cents, @race.currency)}
+          </p>
+          <p
+            :if={
+              @race.early_bird_fee_cents && @race.early_bird_deadline &&
+                @fee_cents == @race.early_bird_fee_cents
+            }
+            class="text-xs text-base-content/50"
+          >
+            {gettext("Early bird pricing until %{date}", date: format_date(@race.early_bird_deadline))}
+          </p>
+        </div>
       </div>
 
       <%!-- Registration closed message --%>
@@ -188,7 +238,15 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
               type="submit"
               class="btn btn-primary btn-lg w-full gap-2 shadow-md hover:shadow-lg transition-shadow"
             >
-              <.icon name="hero-check-circle" class="size-5" /> {gettext("Complete Registration")}
+              <%= if @race.payment_required do %>
+                <.icon name="hero-credit-card" class="size-5" />
+                {gettext("Register & Pay %{amount}",
+                  amount: Payments.format_amount(@fee_cents, @race.currency)
+                )}
+              <% else %>
+                <.icon name="hero-check-circle" class="size-5" />
+                {gettext("Complete Registration")}
+              <% end %>
             </button>
           </div>
         </.form>

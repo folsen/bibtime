@@ -27,6 +27,7 @@ bibtime_gen-*.tar
 
 # Ignore assets that are produced by build tools.
 /priv/static/assets/
+/priv/static/uploads/
 
 # Ignore digested assets cache.
 /priv/static/cache_manifest.json
@@ -42,4 +43,8 @@ npm-debug.log
 # Playwright logs
 .playwright-cli
 
+# Env file
+.env
+
+# Stupid mac
 .DS_Store

@@ -23,6 +23,13 @@ defmodule Bibtime.Races.Race do
     field :config, :map, default: %{}
     field :default_locale, :string
 
+    # Payment fields
+    field :payment_required, :boolean, default: false
+    field :entry_fee_cents, :integer
+    field :currency, :string, default: "SEK"
+    field :early_bird_fee_cents, :integer
+    field :early_bird_deadline, :date
+
     has_many :categories, Bibtime.Races.RaceCategory
     has_many :auto_categories, Bibtime.Races.RaceAutoCategory
     has_many :splits, Bibtime.Races.Split
@@ -44,12 +51,30 @@ defmodule Bibtime.Races.Race do
       :race_type,
       :status,
       :config,
-      :default_locale
+      :default_locale,
+      :payment_required,
+      :entry_fee_cents,
+      :currency,
+      :early_bird_fee_cents,
+      :early_bird_deadline
     ])
     |> validate_required([:name, :slug, :race_type, :status])
     |> validate_format(:slug, ~r/^[a-z0-9-]+$/,
       message: "must be lowercase alphanumeric and hyphens only"
     )
     |> unique_constraint(:slug)
+    |> validate_inclusion(:currency, ~w(SEK EUR NOK DKK))
+    |> validate_number(:entry_fee_cents, greater_than: 0)
+    |> validate_number(:early_bird_fee_cents, greater_than: 0)
+    |> validate_payment_fields()
+  end
+
+  defp validate_payment_fields(changeset) do
+    if get_field(changeset, :payment_required) do
+      changeset
+      |> validate_required([:entry_fee_cents, :currency])
+    else
+      changeset
+    end
   end
 end

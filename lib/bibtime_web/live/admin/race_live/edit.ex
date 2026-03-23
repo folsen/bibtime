@@ -72,6 +72,68 @@ defmodule BibtimeWeb.Admin.RaceLive.Edit do
             />
           </div>
 
+          <%!-- Payment Settings --%>
+          <div class="pt-4 border-t border-base-200">
+            <h3 class="text-sm font-semibold text-base-content/70 uppercase tracking-wider mb-4">
+              {gettext("Payment Settings")}
+            </h3>
+
+            <div class="space-y-4">
+              <.input
+                field={@form[:payment_required]}
+                type="checkbox"
+                label={gettext("Require payment for registration")}
+              />
+
+              <div
+                :if={Phoenix.HTML.Form.input_value(@form, :payment_required) in [true, "true"]}
+                class="ml-6 space-y-4 pl-4 border-l-2 border-primary/20"
+              >
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <.input
+                      field={@form[:entry_fee_cents]}
+                      type="number"
+                      label={gettext("Entry fee (in smallest currency unit)")}
+                      placeholder="30000"
+                      min="1"
+                      required
+                    />
+                    <p class="text-xs text-base-content/40 mt-1">
+                      {gettext("E.g. 30000 = 300.00 SEK")}
+                    </p>
+                  </div>
+                  <.input
+                    field={@form[:currency]}
+                    type="select"
+                    label={gettext("Currency")}
+                    options={currency_options()}
+                  />
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <.input
+                      field={@form[:early_bird_fee_cents]}
+                      type="number"
+                      label={gettext("Early bird fee (optional)")}
+                      placeholder="25000"
+                      min="1"
+                    />
+                    <p class="text-xs text-base-content/40 mt-1">
+                      {gettext("Leave empty for no early bird pricing")}
+                    </p>
+                  </div>
+                  <.input
+                    field={@form[:early_bird_deadline]}
+                    type="date"
+                    label={gettext("Early bird deadline")}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
           <%!-- Actions --%>
           <div class="flex items-center gap-4 pt-4 border-t border-base-200">
             <.button type="submit" variant="primary">

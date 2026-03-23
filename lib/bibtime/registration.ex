@@ -32,8 +32,15 @@ defmodule Bibtime.Registration do
       token = generate_token()
       reg_opts = registration_opts(race)
 
+      initial_status = if race.payment_required, do: :pending_payment, else: :registered
+
       changeset =
-        %Participant{race_id: race.id, bib_number: bib_number, confirmation_token: token}
+        %Participant{
+          race_id: race.id,
+          bib_number: bib_number,
+          confirmation_token: token,
+          status: initial_status
+        }
         |> Participant.registration_changeset(attrs, reg_opts)
 
       email =
@@ -52,7 +59,13 @@ defmodule Bibtime.Registration do
           end
 
           participant = Repo.preload(participant, :race_category)
-          RegistrationNotifier.deliver_confirmation(participant, race)
+
+          # Only send confirmation email for free races.
+          # For paid races, the email is sent after payment confirmation.
+          unless race.payment_required do
+            RegistrationNotifier.deliver_confirmation(participant, race)
+          end
+
           {:ok, participant}
 
         {:error, changeset} ->

@@ -104,6 +104,7 @@ defmodule BibtimeWeb.LocaleHelpers do
   @doc """
   Translates a participant status atom to a display string.
   """
+  def format_participant_status(:pending_payment), do: gettext("Pending Payment")
   def format_participant_status(:registered), do: gettext("Registered")
   def format_participant_status(:racing), do: gettext("Racing")
   def format_participant_status(:dns), do: "DNS"
@@ -161,6 +162,18 @@ defmodule BibtimeWeb.LocaleHelpers do
       {gettext("Male"), :male},
       {gettext("Female"), :female},
       {gettext("Other"), :other}
+    ]
+  end
+
+  @doc """
+  Returns currency options for select inputs.
+  """
+  def currency_options do
+    [
+      {"SEK", "SEK"},
+      {"EUR", "EUR"},
+      {"NOK", "NOK"},
+      {"DKK", "DKK"}
     ]
   end
 
