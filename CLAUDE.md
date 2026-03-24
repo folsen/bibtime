@@ -72,7 +72,8 @@ Timing events broadcast via PubSub on `"race:timing:#{race_id}"`. Results LiveVi
 
 ### Database
 
-SQLite with WAL mode. Dev: `bibtime_dev.db`, Test: `bibtime_test.db` (sandbox mode).
+- SQLite with WAL mode. Dev: `bibtime_dev.db`, Test: `bibtime_test.db` (sandbox mode).
+- When working with SQLite in development, be aware of WAL mode locking. If database writes don't persist during QA, use sqlite3 directly as a workaround.
 
 ## Key Guidelines from AGENTS.md
 
