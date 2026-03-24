@@ -4,6 +4,8 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
   alias Bibtime.Races
   alias Bibtime.Participants
 
+  @page_size 25
+
   @impl true
   def mount(%{"id" => race_id}, _session, socket) do
     race = Races.get_race!(race_id)
@@ -16,7 +18,9 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
      |> assign(:search, "")
      |> assign(:sort_by, "bib")
      |> assign(:sort_dir, :asc)
-     |> assign(:filtered_participants, sort_participants(participants, "bib", :asc))}
+     |> assign(:page, 1)
+     |> assign(:page_size, @page_size)
+     |> assign_filtered(participants, "bib", :asc)}
   end
 
   @impl true
@@ -36,7 +40,10 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
 
     filtered = sort_participants(filtered, socket.assigns.sort_by, socket.assigns.sort_dir)
 
-    {:noreply, assign(socket, search: search, filtered_participants: filtered)}
+    {:noreply,
+     socket
+     |> assign(search: search, page: 1)
+     |> assign_paginated(filtered)}
   end
 
   @impl true
@@ -48,10 +55,18 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
         {col, :asc}
       end
 
-    filtered = sort_participants(socket.assigns.filtered_participants, sort_by, sort_dir)
+    filtered = sort_participants(socket.assigns.all_filtered, sort_by, sort_dir)
 
     {:noreply,
-     assign(socket, sort_by: sort_by, sort_dir: sort_dir, filtered_participants: filtered)}
+     socket
+     |> assign(sort_by: sort_by, sort_dir: sort_dir, page: 1)
+     |> assign_paginated(filtered)}
+  end
+
+  @impl true
+  def handle_event("paginate", %{"page" => page}, socket) do
+    page = String.to_integer(page)
+    {:noreply, socket |> assign(:page, page) |> paginate(socket.assigns.all_filtered)}
   end
 
   @impl true
@@ -75,6 +90,25 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
     {:noreply, reload_participants(socket)}
   end
 
+  defp assign_filtered(socket, participants, sort_by, sort_dir) do
+    filtered = sort_participants(participants, sort_by, sort_dir)
+    assign_paginated(socket, filtered)
+  end
+
+  defp assign_paginated(socket, all_filtered) do
+    socket
+    |> assign(:all_filtered, all_filtered)
+    |> assign(:total_count, length(all_filtered))
+    |> assign(:total_pages, max(1, ceil(length(all_filtered) / @page_size)))
+    |> paginate(all_filtered)
+  end
+
+  defp paginate(socket, all_filtered) do
+    page = socket.assigns.page
+    page_items = all_filtered |> Enum.drop((page - 1) * @page_size) |> Enum.take(@page_size)
+    assign(socket, :filtered_participants, page_items)
+  end
+
   defp reload_participants(socket) do
     race_id = socket.assigns.race.id
     participants = Participants.list_participants(race_id)
@@ -95,7 +129,9 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
 
     filtered = sort_participants(filtered, socket.assigns.sort_by, socket.assigns.sort_dir)
 
-    assign(socket, participants: participants, filtered_participants: filtered)
+    socket
+    |> assign(:participants, participants)
+    |> assign_paginated(filtered)
   end
 
   @impl true
@@ -131,6 +167,14 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
         </div>
       </form>
     </div>
+
+    <%!-- Pagination top --%>
+    <.pagination
+      page={@page}
+      total_pages={@total_pages}
+      total_count={@total_count}
+      page_size={@page_size}
+    />
 
     <%!-- Table --%>
     <div
@@ -254,8 +298,16 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
       </table>
     </div>
 
+    <%!-- Pagination bottom --%>
+    <.pagination
+      page={@page}
+      total_pages={@total_pages}
+      total_count={@total_count}
+      page_size={@page_size}
+    />
+
     <div
-      :if={@filtered_participants == []}
+      :if={@filtered_participants == [] and @all_filtered == []}
       class="flex flex-col items-center justify-center py-16 text-center"
     >
       <div class="rounded-full bg-base-200 p-4 mb-4">

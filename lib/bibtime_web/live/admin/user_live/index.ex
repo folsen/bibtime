@@ -4,6 +4,8 @@ defmodule BibtimeWeb.Admin.UserLive.Index do
   alias Bibtime.Accounts
   alias Bibtime.AuditLog
 
+  @page_size 25
+
   @impl true
   def mount(_params, _session, socket) do
     users = Accounts.list_users()
@@ -11,8 +13,70 @@ defmodule BibtimeWeb.Admin.UserLive.Index do
 
     {:ok,
      socket
-     |> assign(:users, users)
-     |> assign(:admin_count, admin_count)}
+     |> assign(:all_users, users)
+     |> assign(:admin_count, admin_count)
+     |> assign(:page, 1)
+     |> assign(:page_size, @page_size)
+     |> assign_paginated(users)}
+  end
+
+  defp assign_paginated(socket, all_users) do
+    total = length(all_users)
+
+    socket
+    |> assign(:total_count, total)
+    |> assign(:total_pages, max(1, ceil(total / @page_size)))
+    |> paginate(all_users)
+  end
+
+  defp paginate(socket, all_users) do
+    page = socket.assigns.page
+    page_items = all_users |> Enum.drop((page - 1) * @page_size) |> Enum.take(@page_size)
+    assign(socket, :users, page_items)
+  end
+
+  @impl true
+  def handle_event("paginate", %{"page" => page}, socket) do
+    page = String.to_integer(page)
+    {:noreply, socket |> assign(:page, page) |> paginate(socket.assigns.all_users)}
+  end
+
+  @impl true
+  def handle_event("change_role", %{"user-id" => user_id, "role" => new_role}, socket) do
+    current_user = socket.assigns.current_scope.user
+    target_user = Accounts.get_user!(user_id)
+
+    cond do
+      target_user.id == current_user.id ->
+        {:noreply, put_flash(socket, :error, gettext("You cannot change your own role."))}
+
+      target_user.role == "admin" and new_role != "admin" and socket.assigns.admin_count <= 1 ->
+        {:noreply, put_flash(socket, :error, gettext("Cannot remove the last admin."))}
+
+      true ->
+        old_role = target_user.role
+
+        case Accounts.update_user_role(target_user, new_role) do
+          {:ok, _user} ->
+            AuditLog.log(current_user, "user.role_changed", "user", target_user.id, %{
+              "email" => target_user.email,
+              "old_role" => old_role,
+              "new_role" => new_role
+            })
+
+            users = Accounts.list_users()
+
+            {:noreply,
+             socket
+             |> assign(:all_users, users)
+             |> assign(:admin_count, Accounts.count_admins())
+             |> assign_paginated(users)
+             |> put_flash(:info, gettext("User role updated successfully."))}
+
+          {:error, _changeset} ->
+            {:noreply, put_flash(socket, :error, gettext("Failed to update user role."))}
+        end
+    end
   end
 
   @impl true
@@ -28,6 +92,14 @@ defmodule BibtimeWeb.Admin.UserLive.Index do
         </p>
       </div>
     </div>
+
+    <%!-- Pagination top --%>
+    <.pagination
+      page={@page}
+      total_pages={@total_pages}
+      total_count={@total_count}
+      page_size={@page_size}
+    />
 
     <div
       :if={@users != []}
@@ -87,7 +159,18 @@ defmodule BibtimeWeb.Admin.UserLive.Index do
       </table>
     </div>
 
-    <div :if={@users == []} class="flex flex-col items-center justify-center py-16 text-center">
+    <%!-- Pagination bottom --%>
+    <.pagination
+      page={@page}
+      total_pages={@total_pages}
+      total_count={@total_count}
+      page_size={@page_size}
+    />
+
+    <div
+      :if={@users == [] and @all_users == []}
+      class="flex flex-col items-center justify-center py-16 text-center"
+    >
       <div class="rounded-full bg-primary/10 p-4 mb-4">
         <.icon name="hero-users" class="size-10 text-primary/40" />
       </div>
@@ -96,41 +179,6 @@ defmodule BibtimeWeb.Admin.UserLive.Index do
       </h3>
     </div>
     """
-  end
-
-  @impl true
-  def handle_event("change_role", %{"user-id" => user_id, "role" => new_role}, socket) do
-    current_user = socket.assigns.current_scope.user
-    target_user = Accounts.get_user!(user_id)
-
-    cond do
-      target_user.id == current_user.id ->
-        {:noreply, put_flash(socket, :error, gettext("You cannot change your own role."))}
-
-      target_user.role == "admin" and new_role != "admin" and socket.assigns.admin_count <= 1 ->
-        {:noreply, put_flash(socket, :error, gettext("Cannot remove the last admin."))}
-
-      true ->
-        old_role = target_user.role
-
-        case Accounts.update_user_role(target_user, new_role) do
-          {:ok, _user} ->
-            AuditLog.log(current_user, "user.role_changed", "user", target_user.id, %{
-              "email" => target_user.email,
-              "old_role" => old_role,
-              "new_role" => new_role
-            })
-
-            {:noreply,
-             socket
-             |> assign(:users, Accounts.list_users())
-             |> assign(:admin_count, Accounts.count_admins())
-             |> put_flash(:info, gettext("User role updated successfully."))}
-
-          {:error, _changeset} ->
-            {:noreply, put_flash(socket, :error, gettext("Failed to update user role."))}
-        end
-    end
   end
 
   defp role_pill_class("admin"), do: "bg-primary/15 text-primary"

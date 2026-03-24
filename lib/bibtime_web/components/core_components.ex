@@ -495,4 +495,98 @@ defmodule BibtimeWeb.CoreComponents do
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
   end
+
+  @doc """
+  Renders pagination controls.
+
+  ## Attributes
+
+    * `:page` - Current page number (1-based)
+    * `:total_pages` - Total number of pages
+    * `:total_count` - Total number of items
+    * `:page_size` - Items per page
+
+  Sends a `"paginate"` event with `%{"page" => page_number}` when clicked.
+  """
+  attr :page, :integer, required: true
+  attr :total_pages, :integer, required: true
+  attr :total_count, :integer, required: true
+  attr :page_size, :integer, default: 25
+
+  def pagination(assigns) do
+    ~H"""
+    <nav :if={@total_pages > 1} class="flex items-center justify-between py-2" aria-label="Pagination">
+      <p class="text-xs text-base-content/40">
+        {gettext("Showing %{from}–%{to} of %{total}",
+          from: (@page - 1) * @page_size + 1,
+          to: min(@page * @page_size, @total_count),
+          total: @total_count
+        )}
+      </p>
+      <div class="flex items-center gap-1">
+        <button
+          :if={@page > 1}
+          phx-click="paginate"
+          phx-value-page={@page - 1}
+          class="px-2 py-1 text-xs rounded text-base-content/50 hover:text-base-content hover:bg-base-200 transition-colors"
+        >
+          <.icon name="hero-chevron-left-mini" class="size-4" />
+        </button>
+        <span :if={@page <= 1} class="px-2 py-1 text-xs text-base-content/20">
+          <.icon name="hero-chevron-left-mini" class="size-4" />
+        </span>
+
+        <%= for page_num <- pagination_range(@page, @total_pages) do %>
+          <%= if page_num == :gap do %>
+            <span class="px-1 text-xs text-base-content/30">…</span>
+          <% else %>
+            <button
+              phx-click="paginate"
+              phx-value-page={page_num}
+              class={[
+                "min-w-[28px] px-2 py-1 text-xs rounded transition-colors",
+                if(page_num == @page,
+                  do: "bg-primary/10 text-primary font-semibold",
+                  else: "text-base-content/50 hover:text-base-content hover:bg-base-200"
+                )
+              ]}
+            >
+              {page_num}
+            </button>
+          <% end %>
+        <% end %>
+
+        <button
+          :if={@page < @total_pages}
+          phx-click="paginate"
+          phx-value-page={@page + 1}
+          class="px-2 py-1 text-xs rounded text-base-content/50 hover:text-base-content hover:bg-base-200 transition-colors"
+        >
+          <.icon name="hero-chevron-right-mini" class="size-4" />
+        </button>
+        <span :if={@page >= @total_pages} class="px-2 py-1 text-xs text-base-content/20">
+          <.icon name="hero-chevron-right-mini" class="size-4" />
+        </span>
+      </div>
+    </nav>
+    """
+  end
+
+  @doc false
+  def pagination_range(_current, total) when total <= 7 do
+    Enum.to_list(1..total)
+  end
+
+  def pagination_range(current, total) do
+    cond do
+      current <= 3 ->
+        Enum.to_list(1..4) ++ [:gap, total]
+
+      current >= total - 2 ->
+        [1, :gap] ++ Enum.to_list((total - 3)..total)
+
+      true ->
+        [1, :gap, current - 1, current, current + 1, :gap, total]
+    end
+  end
 end
