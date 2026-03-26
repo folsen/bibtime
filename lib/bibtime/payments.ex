@@ -58,7 +58,7 @@ defmodule Bibtime.Payments do
       end
 
     checkout_params = %{
-      mode: "payment",
+      mode: :payment,
       success_url: success_url,
       cancel_url: cancel_url,
       line_items: [
