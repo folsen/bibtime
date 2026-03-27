@@ -106,7 +106,7 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
   defp paginate(socket, all_filtered) do
     page = socket.assigns.page
     page_items = all_filtered |> Enum.drop((page - 1) * @page_size) |> Enum.take(@page_size)
-    assign(socket, :filtered_participants, page_items)
+    stream(socket, :filtered_participants, page_items, reset: true)
   end
 
   defp reload_participants(socket) do
@@ -178,7 +178,7 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
 
     <%!-- Table --%>
     <div
-      :if={@filtered_participants != []}
+      :if={@total_count > 0}
       class="overflow-x-auto rounded-xl border border-base-300 bg-base-100 shadow-sm"
     >
       <table class="table w-full">
@@ -237,10 +237,10 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
             <th class="font-semibold"><span class="sr-only">{gettext("Actions")}</span></th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="participants" phx-update="stream">
           <tr
-            :for={participant <- @filtered_participants}
-            id={"participant-#{participant.id}"}
+            :for={{dom_id, participant} <- @streams.filtered_participants}
+            id={dom_id}
             class="border-b border-base-200 odd:bg-base-100 even:bg-base-200/30 hover:bg-primary/5 transition-colors"
           >
             <td class="py-3">
@@ -307,7 +307,7 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
     />
 
     <div
-      :if={@filtered_participants == [] and @all_filtered == []}
+      :if={@total_count == 0}
       class="flex flex-col items-center justify-center py-16 text-center"
     >
       <div class="rounded-full bg-base-200 p-4 mb-4">

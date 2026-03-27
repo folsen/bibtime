@@ -6,7 +6,11 @@ defmodule BibtimeWeb.Admin.RaceLive.Index do
   @impl true
   def mount(_params, _session, socket) do
     races = Races.list_races()
-    {:ok, assign(socket, :races, races)}
+
+    {:ok,
+     socket
+     |> assign(:race_count, length(races))
+     |> stream(:races, races)}
   end
 
   @impl true
@@ -25,7 +29,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Index do
     </div>
 
     <div
-      :if={@races != []}
+      :if={@race_count > 0}
       class="overflow-x-auto rounded-xl border border-base-300 bg-base-100 shadow-sm"
     >
       <table class="table w-full">
@@ -39,10 +43,10 @@ defmodule BibtimeWeb.Admin.RaceLive.Index do
             <th class="font-semibold"><span class="sr-only">{gettext("Actions")}</span></th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="races" phx-update="stream">
           <tr
-            :for={race <- @races}
-            id={"race-#{race.id}"}
+            :for={{dom_id, race} <- @streams.races}
+            id={dom_id}
             class="border-b border-base-200 odd:bg-base-100 even:bg-base-200/30 hover:bg-primary/5 transition-colors"
           >
             <td class="py-3">
@@ -91,7 +95,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Index do
       </table>
     </div>
 
-    <div :if={@races == []} class="flex flex-col items-center justify-center py-16 text-center">
+    <div :if={@race_count == 0} class="flex flex-col items-center justify-center py-16 text-center">
       <div class="rounded-full bg-primary/10 p-4 mb-4">
         <.icon name="hero-trophy" class="size-10 text-primary/40" />
       </div>
