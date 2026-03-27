@@ -16,32 +16,45 @@ defmodule BibtimeWeb.Public.KioskLive.Index do
       |> Races.get_race_by_slug!()
       |> Bibtime.Repo.preload([:categories, :auto_categories, :splits])
 
-    results = Results.get_race_results(race.id)
-    splits = Races.list_splits(race.id)
-
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Bibtime.PubSub, "race:timing:#{race.id}")
     end
 
-    {:ok,
-     assign(socket,
-       race: race,
-       results: results,
-       splits: splits,
-       categories: race.categories,
-       auto_categories: race.auto_categories,
-       filtered_results: results,
-       recently_finished: MapSet.new(),
-       # Kiosk display state
-       current_category_label: gettext("Overall"),
-       current_category_index: 0,
-       rotation_enabled: false,
-       rotation_timer: nil,
-       # Configurable via URL params
-       scroll_speed: "normal",
-       show_columns: MapSet.new(["rank", "bib", "name", "total", "status"]),
-       page_title: "#{race.name} — Live Results"
-     )}
+    socket =
+      socket
+      |> assign(
+        race: race,
+        results: [],
+        splits: [],
+        loading: true,
+        categories: race.categories,
+        auto_categories: race.auto_categories,
+        filtered_results: [],
+        recently_finished: MapSet.new(),
+        current_category_label: gettext("Overall"),
+        current_category_index: 0,
+        rotation_enabled: false,
+        rotation_timer: nil,
+        scroll_speed: "normal",
+        show_columns: MapSet.new(["rank", "bib", "name", "total", "status"]),
+        page_title: "#{race.name} — Live Results"
+      )
+
+    socket =
+      if connected?(socket) do
+        race_id = race.id
+
+        start_async(socket, :load_kiosk_data, fn ->
+          %{
+            results: Results.get_race_results(race_id),
+            splits: Races.list_splits(race_id)
+          }
+        end)
+      else
+        socket
+      end
+
+    {:ok, socket}
   end
 
   @impl true
@@ -176,8 +189,16 @@ defmodule BibtimeWeb.Public.KioskLive.Index do
         </div>
       </div>
 
+      <%!-- Loading state --%>
+      <div :if={@loading} class="flex-1 min-h-0 flex items-center justify-center">
+        <div class="text-center">
+          <div class="loading loading-spinner loading-lg text-primary mb-4"></div>
+          <p class="text-xl text-base-content/40">{gettext("Loading results...")}</p>
+        </div>
+      </div>
+
       <%!-- Scrollable results area --%>
-      <div id="kiosk-scroll-area" class="flex-1 min-h-0 overflow-hidden">
+      <div :if={!@loading} id="kiosk-scroll-area" class="flex-1 min-h-0 overflow-hidden">
         <table class="w-full border-separate border-spacing-0 kiosk-table">
           <thead>
             <tr class="text-lg uppercase tracking-wider text-base-content/50">
@@ -396,6 +417,29 @@ defmodule BibtimeWeb.Public.KioskLive.Index do
       }
     </script>
     """
+  end
+
+  # --- Async data loading ---
+
+  @impl true
+  def handle_async(:load_kiosk_data, {:ok, data}, socket) do
+    all_categories = build_category_list(socket.assigns)
+
+    filtered =
+      filter_by_index(data.results, all_categories, socket.assigns.current_category_index)
+
+    {:noreply,
+     assign(socket,
+       results: data.results,
+       splits: data.splits,
+       loading: false,
+       filtered_results: filtered
+     )}
+  end
+
+  @impl true
+  def handle_async(:load_kiosk_data, {:exit, _reason}, socket) do
+    {:noreply, assign(socket, loading: false)}
   end
 
   # --- PubSub handlers ---

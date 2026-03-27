@@ -9,18 +9,46 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
   @impl true
   def mount(%{"id" => race_id}, _session, socket) do
     race = Races.get_race!(race_id)
-    participants = Participants.list_participants(race_id)
 
-    {:ok,
+    socket =
+      socket
+      |> assign(:race, race)
+      |> assign(:participants, [])
+      |> assign(:search, "")
+      |> assign(:sort_by, "bib")
+      |> assign(:sort_dir, :asc)
+      |> assign(:page, 1)
+      |> assign(:page_size, @page_size)
+      |> assign(:loading, true)
+      |> assign(:all_filtered, [])
+      |> assign(:total_count, 0)
+      |> assign(:total_pages, 1)
+      |> assign(:filtered_participants, [])
+
+    socket =
+      if connected?(socket) do
+        start_async(socket, :load_participants, fn ->
+          Participants.list_participants(race_id)
+        end)
+      else
+        socket
+      end
+
+    {:ok, socket}
+  end
+
+  @impl true
+  def handle_async(:load_participants, {:ok, participants}, socket) do
+    {:noreply,
      socket
-     |> assign(:race, race)
      |> assign(:participants, participants)
-     |> assign(:search, "")
-     |> assign(:sort_by, "bib")
-     |> assign(:sort_dir, :asc)
-     |> assign(:page, 1)
-     |> assign(:page_size, @page_size)
-     |> assign_filtered(participants, "bib", :asc)}
+     |> assign(:loading, false)
+     |> assign_filtered(participants, socket.assigns.sort_by, socket.assigns.sort_dir)}
+  end
+
+  @impl true
+  def handle_async(:load_participants, {:exit, _reason}, socket) do
+    {:noreply, assign(socket, loading: false)}
   end
 
   @impl true
@@ -168,8 +196,21 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
       </form>
     </div>
 
+    <%!-- Loading skeleton --%>
+    <div :if={@loading} class="rounded-xl border border-base-300 bg-base-100 shadow-sm p-6">
+      <div class="animate-pulse space-y-4">
+        <div class="h-8 bg-base-200 rounded-lg w-full"></div>
+        <div class="h-6 bg-base-200/60 rounded w-11/12"></div>
+        <div class="h-6 bg-base-200/60 rounded w-full"></div>
+        <div class="h-6 bg-base-200/60 rounded w-10/12"></div>
+        <div class="h-6 bg-base-200/60 rounded w-full"></div>
+        <div class="h-6 bg-base-200/60 rounded w-9/12"></div>
+      </div>
+    </div>
+
     <%!-- Pagination top --%>
     <.pagination
+      :if={!@loading}
       page={@page}
       total_pages={@total_pages}
       total_count={@total_count}
@@ -178,7 +219,7 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
 
     <%!-- Table --%>
     <div
-      :if={@total_count > 0}
+      :if={!@loading and @total_count > 0}
       class="overflow-x-auto rounded-xl border border-base-300 bg-base-100 shadow-sm"
     >
       <table class="table w-full">
@@ -300,6 +341,7 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
 
     <%!-- Pagination bottom --%>
     <.pagination
+      :if={!@loading}
       page={@page}
       total_pages={@total_pages}
       total_count={@total_count}
@@ -307,7 +349,7 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
     />
 
     <div
-      :if={@total_count == 0}
+      :if={!@loading and @total_count == 0}
       class="flex flex-col items-center justify-center py-16 text-center"
     >
       <div class="rounded-full bg-base-200 p-4 mb-4">

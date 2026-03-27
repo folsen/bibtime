@@ -14,78 +14,92 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
       |> Races.get_race_by_slug!()
       |> Bibtime.Repo.preload([:categories, :auto_categories, :splits])
 
-    results = Results.get_race_results(race.id)
-    splits = Races.list_splits(race.id)
-
-    photo_count = Photos.count_photos(race.id)
-
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Bibtime.PubSub, "race:timing:#{race.id}")
     end
 
-    {:ok,
-     assign(socket,
-       race: race,
-       results: results,
-       splits: splits,
-       photo_count: photo_count,
-       categories: race.categories,
-       auto_categories: race.auto_categories,
-       gender_auto_categories: Enum.filter(race.auto_categories, &(&1.type == :gender)),
-       age_group_auto_categories: Enum.filter(race.auto_categories, &(&1.type == :age_group)),
-       selected_category: nil,
-       selected_auto_category: nil,
-       filtered_results: results,
-       recently_finished: MapSet.new(),
-       sort_by: "rank",
-       sort_dir: :asc,
-       page_title: gettext("Results") <> " - " <> race.name
-     )}
+    socket =
+      socket
+      |> assign(
+        race: race,
+        results: [],
+        splits: [],
+        photo_count: 0,
+        loading: true,
+        categories: race.categories,
+        auto_categories: race.auto_categories,
+        gender_auto_categories: Enum.filter(race.auto_categories, &(&1.type == :gender)),
+        age_group_auto_categories: Enum.filter(race.auto_categories, &(&1.type == :age_group)),
+        selected_category: nil,
+        selected_auto_category: nil,
+        filtered_results: [],
+        recently_finished: MapSet.new(),
+        sort_by: "rank",
+        sort_dir: :asc,
+        page_title: gettext("Results") <> " - " <> race.name
+      )
+
+    socket =
+      if connected?(socket) do
+        race_id = race.id
+
+        start_async(socket, :load_results_data, fn ->
+          %{
+            results: Results.get_race_results(race_id),
+            splits: Races.list_splits(race_id),
+            photo_count: Photos.count_photos(race_id)
+          }
+        end)
+      else
+        socket
+      end
+
+    {:ok, socket}
   end
 
   @impl true
   def handle_params(params, _uri, socket) do
     category_param = params["category"]
 
-    {selected_category, selected_auto_category, filtered_results} =
+    {selected_category, selected_auto_category} =
       case parse_category_param(category_param) do
         {:manual, cat_id} ->
-          category = Enum.find(socket.assigns.categories, &(&1.id == cat_id))
-
-          filtered =
-            socket.assigns.results
-            |> Enum.filter(fn r -> r.category != nil and r.category.id == cat_id end)
-            |> Ranker.rank_results()
-
-          {category, nil, filtered}
+          {Enum.find(socket.assigns.categories, &(&1.id == cat_id)), nil}
 
         {:auto, auto_cat_id} ->
-          auto_cat = Enum.find(socket.assigns.auto_categories, &(&1.id == auto_cat_id))
-
-          filtered =
-            socket.assigns.results
-            |> Enum.filter(fn r ->
-              Enum.any?(r.auto_categories, &(&1.id == auto_cat_id))
-            end)
-            |> Ranker.rank_results()
-
-          {nil, auto_cat, filtered}
+          {nil, Enum.find(socket.assigns.auto_categories, &(&1.id == auto_cat_id))}
 
         nil ->
-          {nil, nil, socket.assigns.results}
+          {nil, nil}
       end
 
-    # Reset sort to default rank when switching categories
-    filtered_results = sort_results(filtered_results, "rank", :asc)
-
     {:noreply,
-     assign(socket,
+     socket
+     |> assign(
        selected_category: selected_category,
        selected_auto_category: selected_auto_category,
-       filtered_results: filtered_results,
        sort_by: "rank",
        sort_dir: :asc
-     )}
+     )
+     |> apply_category_filter()}
+  end
+
+  @impl true
+  def handle_async(:load_results_data, {:ok, data}, socket) do
+    {:noreply,
+     socket
+     |> assign(
+       results: data.results,
+       splits: data.splits,
+       photo_count: data.photo_count,
+       loading: false
+     )
+     |> apply_category_filter()}
+  end
+
+  @impl true
+  def handle_async(:load_results_data, {:exit, _reason}, socket) do
+    {:noreply, assign(socket, loading: false)}
   end
 
   defp parse_category_param(nil), do: nil
@@ -203,8 +217,20 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
         <% end %>
       </div>
 
+      <%!-- Loading skeleton --%>
+      <div :if={@loading} class="rounded-xl border border-base-300/50 bg-base-100 p-6">
+        <div class="animate-pulse space-y-4">
+          <div class="h-8 bg-base-200 rounded-lg w-full"></div>
+          <div class="h-6 bg-base-200/60 rounded w-11/12"></div>
+          <div class="h-6 bg-base-200/60 rounded w-full"></div>
+          <div class="h-6 bg-base-200/60 rounded w-10/12"></div>
+          <div class="h-6 bg-base-200/60 rounded w-full"></div>
+          <div class="h-6 bg-base-200/60 rounded w-9/12"></div>
+        </div>
+      </div>
+
       <%!-- Results table --%>
-      <div class="overflow-x-auto rounded-xl border border-base-300/50 bg-base-100">
+      <div :if={!@loading} class="overflow-x-auto rounded-xl border border-base-300/50 bg-base-100">
         <table class="w-full border-separate border-spacing-0">
           <thead>
             <tr class="text-xs uppercase tracking-wider text-base-content/50">
@@ -391,7 +417,7 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
       </div>
 
       <%!-- Empty state --%>
-      <div :if={@filtered_results == []} class="text-center py-16">
+      <div :if={!@loading and @filtered_results == []} class="text-center py-16">
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-base-200 mb-4">
           <.icon name="hero-clock" class="size-8 text-base-content/30" />
         </div>
@@ -402,7 +428,7 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
       </div>
 
       <%!-- Stats footer --%>
-      <div :if={@filtered_results != []} class="mt-6 flex flex-wrap items-center gap-3">
+      <div :if={!@loading and @filtered_results != []} class="mt-6 flex flex-wrap items-center gap-3">
         <div class="inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2">
           <.icon name="hero-users" class="size-4 text-primary/60" />
           <span class="text-sm font-medium text-base-content/70">
@@ -512,21 +538,29 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
     race = socket.assigns.race
     results = Results.get_race_results(race.id)
 
+    socket
+    |> assign(results: results)
+    |> apply_category_filter()
+  end
+
+  defp apply_category_filter(socket) do
+    results = socket.assigns.results
+
     filtered_results =
       cond do
         socket.assigns.selected_category ->
-          category = socket.assigns.selected_category
+          cat_id = socket.assigns.selected_category.id
 
           results
-          |> Enum.filter(fn r -> r.category != nil and r.category.id == category.id end)
+          |> Enum.filter(fn r -> r.category != nil and r.category.id == cat_id end)
           |> Ranker.rank_results()
 
         socket.assigns.selected_auto_category ->
-          auto_cat = socket.assigns.selected_auto_category
+          auto_cat_id = socket.assigns.selected_auto_category.id
 
           results
           |> Enum.filter(fn r ->
-            Enum.any?(r.auto_categories, &(&1.id == auto_cat.id))
+            Enum.any?(r.auto_categories, &(&1.id == auto_cat_id))
           end)
           |> Ranker.rank_results()
 
@@ -535,13 +569,9 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
       end
 
     filtered_results =
-      sort_results(
-        filtered_results,
-        socket.assigns.sort_by,
-        socket.assigns.sort_dir
-      )
+      sort_results(filtered_results, socket.assigns.sort_by, socket.assigns.sort_dir)
 
-    assign(socket, results: results, filtered_results: filtered_results)
+    assign(socket, filtered_results: filtered_results)
   end
 
   defp no_category_selected?(assigns) do

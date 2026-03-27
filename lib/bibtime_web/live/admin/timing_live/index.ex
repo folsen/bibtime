@@ -17,8 +17,6 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
       Phoenix.PubSub.subscribe(Bibtime.PubSub, "race:timing:#{race.id}")
     end
 
-    recent_entries = load_recent_entries(race.id)
-
     socket =
       socket
       |> assign(:race, race)
@@ -26,8 +24,9 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
       |> assign(:splits, splits)
       |> assign(:selected_split, List.first(splits))
       |> assign(:bib_input, "")
-      |> assign(:recent_entries, recent_entries)
-      |> assign(:next_up, load_next_up(race.id))
+      |> assign(:recent_entries, [])
+      |> assign(:next_up, [])
+      |> assign(:timing_loading, true)
       |> assign(:error, nil)
       |> assign(:elapsed_seconds, compute_elapsed_seconds(race_start))
       |> assign(:csv_text, "")
@@ -35,14 +34,42 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
       |> assign(:import_errors, [])
 
     socket =
-      if race_start && connected?(socket) do
-        {:ok, timer_ref} = :timer.send_interval(1_000, self(), :tick)
-        assign(socket, :timer_ref, timer_ref)
+      if connected?(socket) do
+        race_id = race.id
+
+        socket =
+          start_async(socket, :load_timing_data, fn ->
+            %{
+              recent_entries: load_recent_entries(race_id),
+              next_up: load_next_up(race_id)
+            }
+          end)
+
+        if race_start do
+          {:ok, timer_ref} = :timer.send_interval(1_000, self(), :tick)
+          assign(socket, :timer_ref, timer_ref)
+        else
+          assign(socket, :timer_ref, nil)
+        end
       else
         assign(socket, :timer_ref, nil)
       end
 
     {:ok, socket}
+  end
+
+  @impl true
+  def handle_async(:load_timing_data, {:ok, data}, socket) do
+    {:noreply,
+     socket
+     |> assign(:recent_entries, data.recent_entries)
+     |> assign(:next_up, data.next_up)
+     |> assign(:timing_loading, false)}
+  end
+
+  @impl true
+  def handle_async(:load_timing_data, {:exit, _reason}, socket) do
+    {:noreply, assign(socket, timing_loading: false)}
   end
 
   @impl true
@@ -186,7 +213,17 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
         </div>
 
         <%!-- Next Up --%>
-        <div :if={@next_up != []} class="mb-6">
+        <div :if={@timing_loading} class="mb-6">
+          <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2">
+            {gettext("Next Up")}
+          </h3>
+          <div class="animate-pulse flex gap-2">
+            <div class="h-10 bg-base-200 rounded-lg w-32"></div>
+            <div class="h-10 bg-base-200 rounded-lg w-36"></div>
+            <div class="h-10 bg-base-200 rounded-lg w-28"></div>
+          </div>
+        </div>
+        <div :if={!@timing_loading and @next_up != []} class="mb-6">
           <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2">
             {gettext("Next Up")}
           </h3>
@@ -211,8 +248,13 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
           <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3">
             {gettext("Recent Entries")}
           </h3>
+          <div :if={@timing_loading} class="animate-pulse space-y-3">
+            <div class="h-6 bg-base-200 rounded w-full"></div>
+            <div class="h-6 bg-base-200/60 rounded w-11/12"></div>
+            <div class="h-6 bg-base-200/60 rounded w-full"></div>
+          </div>
           <div
-            :if={@recent_entries != []}
+            :if={!@timing_loading and @recent_entries != []}
             class="overflow-x-auto rounded-xl border border-base-300 bg-base-100 shadow-sm"
           >
             <table class="table w-full">
@@ -259,7 +301,10 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
               </tbody>
             </table>
           </div>
-          <div :if={@recent_entries == []} class="flex flex-col items-center py-8 text-center">
+          <div
+            :if={!@timing_loading and @recent_entries == []}
+            class="flex flex-col items-center py-8 text-center"
+          >
             <.icon name="hero-clock" class="size-8 text-base-content/20 mb-2" />
             <p class="text-sm text-base-content/50">
               {gettext("No recordings yet. Enter a bib number above to start recording times.")}
