@@ -59,7 +59,7 @@ defmodule Bibtime.Races do
 
         case create_race(race_attrs) do
           {:ok, race} ->
-            apply_template(race, template)
+            copy_race_children(race, template)
             get_race!(race.id)
 
           {:error, changeset} ->
@@ -79,42 +79,7 @@ defmodule Bibtime.Races do
 
       case create_race(race_attrs) do
         {:ok, race} ->
-          for cat <- source.categories do
-            create_category(%{
-              "race_id" => race.id,
-              "name" => cat.name,
-              "distance_label" => cat.distance_label,
-              "gender" => Atom.to_string(cat.gender),
-              "min_age" => cat.min_age,
-              "max_age" => cat.max_age,
-              "sort_order" => cat.sort_order
-            })
-          end
-
-          for split <- source.splits do
-            create_split(%{
-              "race_id" => race.id,
-              "name" => split.name,
-              "short_name" => split.short_name,
-              "leg_type" => Atom.to_string(split.leg_type),
-              "distance_meters" => split.distance_meters,
-              "sort_order" => split.sort_order
-            })
-          end
-
-          for auto_cat <- source.auto_categories do
-            create_auto_category(%{
-              "race_id" => race.id,
-              "type" => Atom.to_string(auto_cat.type),
-              "name" => auto_cat.name,
-              "gender_value" =>
-                if(auto_cat.gender_value, do: Atom.to_string(auto_cat.gender_value)),
-              "min_age" => auto_cat.min_age,
-              "max_age" => auto_cat.max_age,
-              "sort_order" => auto_cat.sort_order
-            })
-          end
-
+          copy_race_children(race, source)
           get_race!(race.id)
 
         {:error, changeset} ->
@@ -123,18 +88,20 @@ defmodule Bibtime.Races do
     end)
   end
 
-  defp apply_template(race, template) do
-    for cat <- template.categories do
+  defp copy_race_children(race, source) do
+    for cat <- source.categories do
       create_category(%{
         "race_id" => race.id,
         "name" => cat.name,
         "distance_label" => cat.distance_label,
         "gender" => Atom.to_string(cat.gender),
+        "min_age" => Map.get(cat, :min_age),
+        "max_age" => Map.get(cat, :max_age),
         "sort_order" => cat.sort_order
       })
     end
 
-    for split <- template.splits do
+    for split <- source.splits do
       create_split(%{
         "race_id" => race.id,
         "name" => split.name,
@@ -145,14 +112,15 @@ defmodule Bibtime.Races do
       })
     end
 
-    for auto_cat <- Map.get(template, :auto_categories, []) do
+    for auto_cat <- Map.get(source, :auto_categories, []) do
       create_auto_category(%{
         "race_id" => race.id,
         "type" => Atom.to_string(auto_cat.type),
         "name" => auto_cat.name,
-        "gender_value" => if(auto_cat[:gender_value], do: Atom.to_string(auto_cat.gender_value)),
-        "min_age" => auto_cat[:min_age],
-        "max_age" => auto_cat[:max_age],
+        "gender_value" =>
+          if(Map.get(auto_cat, :gender_value), do: Atom.to_string(auto_cat.gender_value)),
+        "min_age" => Map.get(auto_cat, :min_age),
+        "max_age" => Map.get(auto_cat, :max_age),
         "sort_order" => auto_cat.sort_order
       })
     end
