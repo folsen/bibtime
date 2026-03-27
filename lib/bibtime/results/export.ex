@@ -34,7 +34,15 @@ defmodule Bibtime.Results.Export do
         do: [gettext("Gender Category"), gettext("Age Group")],
         else: []
 
-    split_cols = Enum.map(splits, & &1.short_name)
+    split_cols =
+      Enum.flat_map(splits, fn split ->
+        if split.pace_display != :none and split.distance_meters do
+          [split.short_name, "#{split.short_name} #{gettext("Pace")}"]
+        else
+          [split.short_name]
+        end
+      end)
+
     base ++ auto_cols ++ split_cols ++ [gettext("Total"), gettext("Status")]
   end
 
@@ -67,8 +75,16 @@ defmodule Bibtime.Results.Export do
     base = base ++ auto_cols
 
     split_times =
-      Enum.map(splits, fn split ->
-        Calculator.format_time(Map.get(result.leg_times, split.id))
+      Enum.flat_map(splits, fn split ->
+        time = Map.get(result.leg_times, split.id)
+        formatted_time = Calculator.format_time(time)
+
+        if split.pace_display != :none and split.distance_meters do
+          pace = Calculator.format_pace(time, split.distance_meters, split.pace_display) || ""
+          [formatted_time, pace]
+        else
+          [formatted_time]
+        end
       end)
 
     total = Calculator.format_time(result.total_ms)

@@ -178,6 +178,18 @@ defmodule BibtimeWeb.LocaleHelpers do
   end
 
   @doc """
+  Returns translated pace display options for select inputs.
+  """
+  def pace_display_options do
+    [
+      {gettext("None"), :none},
+      {gettext("min/km"), :min_per_km},
+      {gettext("min/100m"), :min_per_100m},
+      {gettext("km/h"), :km_per_h}
+    ]
+  end
+
+  @doc """
   Translates a user role string to a display string.
   """
   def format_user_role("admin"), do: gettext("Admin")

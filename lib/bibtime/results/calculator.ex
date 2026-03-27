@@ -98,6 +98,42 @@ defmodule Bibtime.Results.Calculator do
     end
   end
 
+  @doc """
+  Formats pace/speed for a leg given time in ms, distance in meters, and display mode.
+
+  Returns `nil` when pace cannot be computed (missing time or distance, or display is `:none`).
+  """
+  def format_pace(_ms, _distance_meters, :none), do: nil
+  def format_pace(nil, _distance_meters, _mode), do: nil
+  def format_pace(_ms, nil, _mode), do: nil
+  def format_pace(_ms, 0, _mode), do: nil
+
+  def format_pace(ms, distance_meters, :min_per_km) do
+    # minutes per kilometer
+    km = distance_meters / 1000
+    seconds_per_km = ms / 1000 / km
+    mins = trunc(seconds_per_km / 60)
+    secs = trunc(rem(trunc(seconds_per_km), 60))
+    "#{mins}:#{pad(secs)} /km"
+  end
+
+  def format_pace(ms, distance_meters, :min_per_100m) do
+    # minutes per 100m (swimming)
+    hundreds = distance_meters / 100
+    seconds_per_100m = ms / 1000 / hundreds
+    mins = trunc(seconds_per_100m / 60)
+    secs = trunc(rem(trunc(seconds_per_100m), 60))
+    "#{mins}:#{pad(secs)} /100m"
+  end
+
+  def format_pace(ms, distance_meters, :km_per_h) do
+    # kilometers per hour
+    hours = ms / 1000 / 3600
+    km = distance_meters / 1000
+    speed = km / hours
+    :erlang.float_to_binary(speed, decimals: 1) <> " km/h"
+  end
+
   # ---------------------------------------------------------------------------
   # Private helpers
   # ---------------------------------------------------------------------------

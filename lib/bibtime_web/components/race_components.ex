@@ -63,19 +63,33 @@ defmodule BibtimeWeb.RaceComponents do
 
   defp rank_class(rank, :sm) do
     case rank do
-      1 -> "inline-flex items-center justify-center w-7 h-7 rounded-full bg-warning/20 text-warning font-bold text-sm font-mono"
-      2 -> "inline-flex items-center justify-center w-7 h-7 rounded-full bg-base-300/60 text-base-content/70 font-bold text-sm font-mono"
-      3 -> "inline-flex items-center justify-center w-7 h-7 rounded-full bg-secondary/15 text-secondary font-bold text-sm font-mono"
-      _ -> "font-mono text-sm text-base-content/60"
+      1 ->
+        "inline-flex items-center justify-center w-7 h-7 rounded-full bg-warning/20 text-warning font-bold text-sm font-mono"
+
+      2 ->
+        "inline-flex items-center justify-center w-7 h-7 rounded-full bg-base-300/60 text-base-content/70 font-bold text-sm font-mono"
+
+      3 ->
+        "inline-flex items-center justify-center w-7 h-7 rounded-full bg-secondary/15 text-secondary font-bold text-sm font-mono"
+
+      _ ->
+        "font-mono text-sm text-base-content/60"
     end
   end
 
   defp rank_class(rank, :lg) do
     case rank do
-      1 -> "inline-flex items-center justify-center w-10 h-10 rounded-full bg-warning/25 text-warning font-bold text-xl font-mono"
-      2 -> "inline-flex items-center justify-center w-10 h-10 rounded-full bg-base-300/60 text-base-content/70 font-bold text-xl font-mono"
-      3 -> "inline-flex items-center justify-center w-10 h-10 rounded-full bg-secondary/20 text-secondary font-bold text-xl font-mono"
-      _ -> "font-mono text-xl text-base-content/60"
+      1 ->
+        "inline-flex items-center justify-center w-10 h-10 rounded-full bg-warning/25 text-warning font-bold text-xl font-mono"
+
+      2 ->
+        "inline-flex items-center justify-center w-10 h-10 rounded-full bg-base-300/60 text-base-content/70 font-bold text-xl font-mono"
+
+      3 ->
+        "inline-flex items-center justify-center w-10 h-10 rounded-full bg-secondary/20 text-secondary font-bold text-xl font-mono"
+
+      _ ->
+        "font-mono text-xl text-base-content/60"
     end
   end
 end

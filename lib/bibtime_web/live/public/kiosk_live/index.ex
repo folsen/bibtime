@@ -300,7 +300,20 @@ defmodule BibtimeWeb.Public.KioskLive.Index do
                     :for={split <- @splits}
                     class="text-right font-mono text-xl px-6 py-3 border-b border-base-300/20 text-base-content/70"
                   >
-                    {Calculator.format_time(Map.get(result.leg_times, split.id))}
+                    <div>{Calculator.format_time(Map.get(result.leg_times, split.id))}</div>
+                    <div
+                      :if={
+                        pace_text =
+                          Calculator.format_pace(
+                            Map.get(result.leg_times, split.id),
+                            split.distance_meters,
+                            split.pace_display
+                          )
+                      }
+                      class="text-sm text-base-content/40"
+                    >
+                      {pace_text}
+                    </div>
                   </td>
                 <% end %>
               <% end %>

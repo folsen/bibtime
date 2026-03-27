@@ -7,6 +7,11 @@ defmodule Bibtime.Races.Split do
     field :short_name, :string
     field :leg_type, Ecto.Enum, values: [:swim, :bike, :run, :transition, :other]
     field :distance_meters, :integer
+
+    field :pace_display, Ecto.Enum,
+      values: [:none, :min_per_km, :min_per_100m, :km_per_h],
+      default: :none
+
     field :sort_order, :integer, default: 0
 
     belongs_to :race, Bibtime.Races.Race
@@ -18,7 +23,15 @@ defmodule Bibtime.Races.Split do
   @doc false
   def changeset(split, attrs) do
     split
-    |> cast(attrs, [:name, :short_name, :leg_type, :distance_meters, :sort_order, :race_id])
+    |> cast(attrs, [
+      :name,
+      :short_name,
+      :leg_type,
+      :distance_meters,
+      :pace_display,
+      :sort_order,
+      :race_id
+    ])
     |> validate_required([:name, :short_name, :leg_type, :race_id])
   end
 end

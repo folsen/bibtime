@@ -363,7 +363,20 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
                   :for={split <- @splits}
                   class="text-right font-mono text-sm px-3 py-2.5 border-b border-base-300/20 text-base-content/70"
                 >
-                  {Calculator.format_time(Map.get(result.leg_times, split.id))}
+                  <div>{Calculator.format_time(Map.get(result.leg_times, split.id))}</div>
+                  <div
+                    :if={
+                      pace_text =
+                        Calculator.format_pace(
+                          Map.get(result.leg_times, split.id),
+                          split.distance_meters,
+                          split.pace_display
+                        )
+                    }
+                    class="text-xs text-base-content/40"
+                  >
+                    {pace_text}
+                  </div>
                 </td>
                 <td class="text-right font-mono text-base font-bold px-3 py-2.5 border-b border-base-300/20 text-base-content">
                   {Calculator.format_time(result.total_ms)}
