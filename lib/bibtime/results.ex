@@ -6,6 +6,8 @@ defmodule Bibtime.Results do
   delegating to the Calculator and Ranker modules.
   """
 
+  import Ecto.Query
+
   alias Bibtime.Results.Calculator
   alias Bibtime.Results.Ranker
 
@@ -60,13 +62,34 @@ defmodule Bibtime.Results do
   def get_user_race_results(user_id) do
     alias Bibtime.Participants
     alias Bibtime.Races
+    alias Bibtime.Repo
 
     participants = Participants.list_participants_for_user(user_id)
+    race_ids = participants |> Enum.map(& &1.race_id) |> Enum.uniq()
+
+    # Batch-fetch all races with full preloads (1 query instead of N)
+    races_by_id =
+      Races.Race
+      |> where([r], r.id in ^race_ids)
+      |> Repo.all()
+      |> Repo.preload([:categories, :auto_categories, :splits])
+      |> Map.new(fn race -> {race.id, race} end)
+
+    # Batch-fetch all splits grouped by race_id (1 query instead of N)
+    splits_by_race_id =
+      Races.Split
+      |> where([s], s.race_id in ^race_ids)
+      |> order_by(:sort_order)
+      |> Repo.all()
+      |> Enum.group_by(& &1.race_id)
+
+    # Compute results once per unique race (avoiding duplicate expensive calculations)
+    results_by_race_id = Map.new(race_ids, fn race_id -> {race_id, get_race_results(race_id)} end)
 
     Enum.map(participants, fn participant ->
-      race = Races.get_race!(participant.race_id)
-      splits = Races.list_splits(race.id)
-      all_results = get_race_results(race.id)
+      race = Map.fetch!(races_by_id, participant.race_id)
+      splits = Map.get(splits_by_race_id, race.id, [])
+      all_results = Map.fetch!(results_by_race_id, race.id)
 
       result = Enum.find(all_results, fn r -> r.participant.id == participant.id end)
 
