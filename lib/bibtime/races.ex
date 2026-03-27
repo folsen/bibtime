@@ -20,10 +20,13 @@ defmodule Bibtime.Races do
     |> Repo.all()
   end
 
-  def get_race!(id) do
-    Race
-    |> Repo.get!(id)
-    |> Repo.preload([:categories, :auto_categories, :splits])
+  def get_race!(id, opts \\ []) do
+    race = Repo.get!(Race, id)
+
+    case Keyword.get(opts, :preload) do
+      nil -> race
+      preloads -> Repo.preload(race, preloads)
+    end
   end
 
   def get_race_by_slug!(slug) do
@@ -60,7 +63,7 @@ defmodule Bibtime.Races do
         case create_race(race_attrs) do
           {:ok, race} ->
             copy_race_children(race, template)
-            get_race!(race.id)
+            get_race!(race.id, preload: [:categories, :auto_categories, :splits])
 
           {:error, changeset} ->
             Repo.rollback(changeset)
@@ -72,7 +75,7 @@ defmodule Bibtime.Races do
   end
 
   def clone_race(source_race_id, race_attrs) do
-    source = get_race!(source_race_id)
+    source = get_race!(source_race_id, preload: [:categories, :auto_categories, :splits])
 
     Repo.transaction(fn ->
       race_attrs = Map.put_new(race_attrs, "race_type", Atom.to_string(source.race_type))
@@ -80,7 +83,7 @@ defmodule Bibtime.Races do
       case create_race(race_attrs) do
         {:ok, race} ->
           copy_race_children(race, source)
-          get_race!(race.id)
+          get_race!(race.id, preload: [:categories, :auto_categories, :splits])
 
         {:error, changeset} ->
           Repo.rollback(changeset)

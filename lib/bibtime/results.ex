@@ -124,8 +124,7 @@ defmodule Bibtime.Results do
         }
       end
 
-    race = Races.get_race!(race_id)
-    race = Bibtime.Repo.preload(race, :auto_categories)
+    race = Races.get_race!(race_id, preload: [:auto_categories])
 
     auto_categories =
       Enum.map(race.auto_categories, fn auto_cat ->

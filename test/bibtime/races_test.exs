@@ -56,13 +56,25 @@ defmodule Bibtime.RacesTest do
   end
 
   describe "get_race!/1" do
-    test "returns race with preloaded categories and splits" do
+    test "returns race without preloads by default" do
       race = create_race!()
 
       Repo.insert!(%RaceCategory{name: "Elite", race_id: race.id})
       Repo.insert!(%Split{name: "Swim", short_name: "swim", leg_type: :swim, race_id: race.id})
 
       fetched = Races.get_race!(race.id)
+      assert fetched.id == race.id
+      assert %Ecto.Association.NotLoaded{} = fetched.categories
+      assert %Ecto.Association.NotLoaded{} = fetched.splits
+    end
+
+    test "preloads specified associations" do
+      race = create_race!()
+
+      Repo.insert!(%RaceCategory{name: "Elite", race_id: race.id})
+      Repo.insert!(%Split{name: "Swim", short_name: "swim", leg_type: :swim, race_id: race.id})
+
+      fetched = Races.get_race!(race.id, preload: [:categories, :splits])
       assert fetched.id == race.id
       assert length(fetched.categories) == 1
       assert hd(fetched.categories).name == "Elite"

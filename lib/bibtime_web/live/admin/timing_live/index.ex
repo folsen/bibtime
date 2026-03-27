@@ -9,7 +9,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
-    race = Races.get_race!(id)
+    race = Races.get_race!(id, preload: [:splits])
     race_start = Timing.get_race_start(race.id)
     splits = race.splits |> Enum.sort_by(& &1.sort_order)
 

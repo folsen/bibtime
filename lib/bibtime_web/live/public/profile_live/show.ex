@@ -15,9 +15,7 @@ defmodule BibtimeWeb.Public.ProfileLive.Show do
     # Verify the participant belongs to the current user
     case participant.user_id do
       id when id == user.id ->
-        race =
-          Races.get_race!(participant.race_id)
-          |> Bibtime.Repo.preload([:categories, :auto_categories])
+        race = Races.get_race!(participant.race_id, preload: [:categories, :auto_categories])
 
         splits = Races.list_splits(race.id)
         all_results = Results.get_race_results(race.id)

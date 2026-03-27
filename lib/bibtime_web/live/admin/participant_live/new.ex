@@ -8,7 +8,7 @@ defmodule BibtimeWeb.Admin.ParticipantLive.New do
 
   @impl true
   def mount(%{"id" => race_id}, _session, socket) do
-    race = Races.get_race!(race_id)
+    race = Races.get_race!(race_id, preload: [:categories])
     changeset = Participants.change_participant(%Participant{race_id: race.id})
     category_options = Enum.map(race.categories, fn c -> {c.name, c.id} end)
 

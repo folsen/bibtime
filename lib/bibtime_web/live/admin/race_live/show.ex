@@ -8,7 +8,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
-    race = Races.get_race!(id)
+    race = Races.get_race!(id, preload: [:categories, :auto_categories, :splits])
 
     {:ok,
      socket
@@ -505,7 +505,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
 
     case Races.create_category(category_params) do
       {:ok, _category} ->
-        race = Races.get_race!(socket.assigns.race.id)
+        race = Races.get_race!(socket.assigns.race.id, preload: [:categories, :auto_categories, :splits])
 
         {:noreply,
          socket
@@ -522,7 +522,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
   def handle_event("delete_category", %{"id" => id}, socket) do
     category = Races.get_category!(id)
     {:ok, _} = Races.delete_category(category)
-    race = Races.get_race!(socket.assigns.race.id)
+    race = Races.get_race!(socket.assigns.race.id, preload: [:categories, :auto_categories, :splits])
 
     {:noreply,
      socket
@@ -536,7 +536,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
 
     case Races.create_auto_category(params) do
       {:ok, _auto_category} ->
-        race = Races.get_race!(socket.assigns.race.id)
+        race = Races.get_race!(socket.assigns.race.id, preload: [:categories, :auto_categories, :splits])
 
         {:noreply,
          socket
@@ -553,7 +553,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
   def handle_event("delete_auto_category", %{"id" => id}, socket) do
     auto_category = Races.get_auto_category!(id)
     {:ok, _} = Races.delete_auto_category(auto_category)
-    race = Races.get_race!(socket.assigns.race.id)
+    race = Races.get_race!(socket.assigns.race.id, preload: [:categories, :auto_categories, :splits])
 
     {:noreply,
      socket
@@ -564,7 +564,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
   @impl true
   def handle_event("add_gender_auto_categories", _params, socket) do
     Races.add_gender_auto_categories(socket.assigns.race.id)
-    race = Races.get_race!(socket.assigns.race.id)
+    race = Races.get_race!(socket.assigns.race.id, preload: [:categories, :auto_categories, :splits])
 
     {:noreply,
      socket
@@ -575,7 +575,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
   @impl true
   def handle_event("add_age_group_auto_categories", _params, socket) do
     Races.add_age_group_auto_categories(socket.assigns.race.id)
-    race = Races.get_race!(socket.assigns.race.id)
+    race = Races.get_race!(socket.assigns.race.id, preload: [:categories, :auto_categories, :splits])
 
     {:noreply,
      socket
@@ -589,7 +589,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
 
     case Races.create_split(split_params) do
       {:ok, _split} ->
-        race = Races.get_race!(socket.assigns.race.id)
+        race = Races.get_race!(socket.assigns.race.id, preload: [:categories, :auto_categories, :splits])
 
         {:noreply,
          socket
@@ -606,7 +606,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
   def handle_event("delete_split", %{"id" => id}, socket) do
     split = Races.get_split!(id)
     {:ok, _} = Races.delete_split(split)
-    race = Races.get_race!(socket.assigns.race.id)
+    race = Races.get_race!(socket.assigns.race.id, preload: [:categories, :auto_categories, :splits])
 
     {:noreply,
      socket

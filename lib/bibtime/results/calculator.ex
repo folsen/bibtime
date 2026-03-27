@@ -17,7 +17,7 @@ defmodule Bibtime.Results.Calculator do
   totals populated (but without ranking — use `Ranker` for that).
   """
   def calculate_results(race_id) do
-    race = Races.get_race!(race_id)
+    race = Races.get_race!(race_id, preload: [:auto_categories])
     participants = Participants.list_participants(race_id)
     split_times = Timing.get_split_times_for_race(race_id)
     splits = Races.list_splits(race_id)
