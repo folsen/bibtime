@@ -148,15 +148,15 @@ defmodule Bibtime.Accounts do
   def update_user_email(user, token) do
     context = "change:#{user.email}"
 
-    Repo.transact(fn ->
+    Repo.transaction(fn ->
       with {:ok, query} <- UserToken.verify_change_email_token_query(token, context),
            %UserToken{sent_to: email} <- Repo.one(query),
            {:ok, user} <- Repo.update(User.email_changeset(user, %{email: email})),
            {_count, _result} <-
              Repo.delete_all(from(UserToken, where: [user_id: ^user.id, context: ^context])) do
-        {:ok, user}
+        user
       else
-        _ -> {:error, :transaction_aborted}
+        _ -> Repo.rollback(:transaction_aborted)
       end
     end)
   end
@@ -322,13 +322,19 @@ defmodule Bibtime.Accounts do
   ## Token helper
 
   defp update_user_and_delete_all_tokens(changeset) do
-    Repo.transact(fn ->
-      with {:ok, user} <- Repo.update(changeset) do
-        tokens_to_expire = Repo.all_by(UserToken, user_id: user.id)
+    Repo.transaction(fn ->
+      case Repo.update(changeset) do
+        {:ok, user} ->
+          tokens_to_expire = Repo.all(from(t in UserToken, where: t.user_id == ^user.id))
 
-        Repo.delete_all(from(t in UserToken, where: t.id in ^Enum.map(tokens_to_expire, & &1.id)))
+          Repo.delete_all(
+            from(t in UserToken, where: t.id in ^Enum.map(tokens_to_expire, & &1.id))
+          )
 
-        {:ok, {user, tokens_to_expire}}
+          {user, tokens_to_expire}
+
+        {:error, changeset} ->
+          Repo.rollback(changeset)
       end
     end)
   end
