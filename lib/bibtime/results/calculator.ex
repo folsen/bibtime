@@ -22,8 +22,6 @@ defmodule Bibtime.Results.Calculator do
     split_times = Timing.get_split_times_for_race(race_id)
     splits = Races.list_splits(race_id)
     auto_categories = race.auto_categories
-    _race_start = Timing.get_race_start(race_id)
-
     split_ids_ordered = Enum.map(splits, & &1.id)
     total_splits = length(split_ids_ordered)
 

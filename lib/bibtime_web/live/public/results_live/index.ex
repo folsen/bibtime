@@ -76,7 +76,7 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
       end
 
     # Reset sort to default rank when switching categories
-    filtered_results = sort_results(filtered_results, "rank", :asc, socket.assigns.splits)
+    filtered_results = sort_results(filtered_results, "rank", :asc)
 
     {:noreply,
      assign(socket,
@@ -466,7 +466,7 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
       end
 
     filtered_results =
-      sort_results(socket.assigns.filtered_results, sort_by, sort_dir, socket.assigns.splits)
+      sort_results(socket.assigns.filtered_results, sort_by, sort_dir)
 
     {:noreply,
      assign(socket, sort_by: sort_by, sort_dir: sort_dir, filtered_results: filtered_results)}
@@ -538,8 +538,7 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
       sort_results(
         filtered_results,
         socket.assigns.sort_by,
-        socket.assigns.sort_dir,
-        socket.assigns.splits
+        socket.assigns.sort_dir
       )
 
     assign(socket, results: results, filtered_results: filtered_results)
@@ -584,7 +583,7 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
   defp toggle_dir(:asc), do: :desc
   defp toggle_dir(:desc), do: :asc
 
-  defp sort_results(results, sort_by, sort_dir, _splits) do
+  defp sort_results(results, sort_by, sort_dir) do
     sorted =
       case sort_by do
         "rank" ->
