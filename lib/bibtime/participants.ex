@@ -113,15 +113,8 @@ defmodule Bibtime.Participants do
     max =
       Participant
       |> where([p], p.race_id == ^race_id)
-      |> select([p], p.bib_number)
-      |> Repo.all()
-      |> Enum.map(fn bib ->
-        case Integer.parse(bib) do
-          {n, _} -> n
-          :error -> 0
-        end
-      end)
-      |> Enum.max(fn -> 0 end)
+      |> select([p], max(fragment("CAST(? AS INTEGER)", p.bib_number)))
+      |> Repo.one() || 0
 
     Integer.to_string(max + 1)
   end
