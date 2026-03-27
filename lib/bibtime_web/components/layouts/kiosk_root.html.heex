@@ -10,19 +10,7 @@
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
     </script>
-    <script>
-      (() => {
-        const params = new URLSearchParams(window.location.search);
-        const theme = params.get("theme");
-        if (theme === "light" || theme === "dark") {
-          document.documentElement.setAttribute("data-theme", theme);
-        } else {
-          const stored = localStorage.getItem("phx:theme");
-          if (stored && stored !== "system") {
-            document.documentElement.setAttribute("data-theme", stored);
-          }
-        }
-      })();
+    <script src={~p"/assets/js/kiosk-theme.js"}>
     </script>
   </head>
   <body class="bg-base-100 text-base-content min-h-screen overflow-hidden cursor-none">
