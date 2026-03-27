@@ -254,21 +254,36 @@ defmodule Bibtime.Payments do
   Returns payment summary stats for a race.
   """
   def race_payment_summary(race_id) do
-    payments =
-      Repo.all(from p in Payment, where: p.race_id == ^race_id)
+    stats =
+      Repo.all(
+        from p in Payment,
+          where: p.race_id == ^race_id,
+          group_by: p.status,
+          select: {p.status, count(p.id), sum(p.amount_cents)}
+      )
 
-    completed = Enum.filter(payments, &(&1.status == :completed))
-    pending = Enum.filter(payments, &(&1.status == :pending))
-    refunded = Enum.filter(payments, &(&1.status == :refunded))
+    stats_map = Map.new(stats, fn {status, count, sum} -> {status, {count, sum || 0}} end)
+
+    {completed_count, total_collected} = Map.get(stats_map, :completed, {0, 0})
+    {pending_count, total_pending} = Map.get(stats_map, :pending, {0, 0})
+    {refunded_count, total_refunded} = Map.get(stats_map, :refunded, {0, 0})
+
+    currency =
+      Repo.one(
+        from p in Payment,
+          where: p.race_id == ^race_id,
+          select: p.currency,
+          limit: 1
+      )
 
     %{
-      total_collected_cents: completed |> Enum.map(& &1.amount_cents) |> Enum.sum(),
-      total_pending_cents: pending |> Enum.map(& &1.amount_cents) |> Enum.sum(),
-      total_refunded_cents: refunded |> Enum.map(& &1.amount_cents) |> Enum.sum(),
-      completed_count: length(completed),
-      pending_count: length(pending),
-      refunded_count: length(refunded),
-      currency: List.first(payments) && List.first(payments).currency
+      total_collected_cents: total_collected,
+      total_pending_cents: total_pending,
+      total_refunded_cents: total_refunded,
+      completed_count: completed_count,
+      pending_count: pending_count,
+      refunded_count: refunded_count,
+      currency: currency
     }
   end
 
