@@ -261,9 +261,7 @@ defmodule BibtimeWeb.Public.KioskLive.Index do
                 :if={show_col?(@show_columns, "rank")}
                 class="text-center px-6 py-3 border-b border-base-300/20"
               >
-                <span :if={display_rank(result)} class={kiosk_rank_class(display_rank(result))}>
-                  {display_rank(result)}
-                </span>
+                <.rank_badge :if={display_rank(result)} rank={display_rank(result)} size={:lg} />
                 <span
                   :if={display_rank(result) == nil && result.status in [:dns, :dnf, :dsq]}
                   class="text-base-content/20 text-xl"
@@ -565,22 +563,6 @@ defmodule BibtimeWeb.Public.KioskLive.Index do
 
   defp display_rank(result) do
     if result.status == :finished, do: result.rank, else: nil
-  end
-
-  defp kiosk_rank_class(1) do
-    "inline-flex items-center justify-center w-10 h-10 rounded-full bg-warning/25 text-warning font-bold text-xl font-mono"
-  end
-
-  defp kiosk_rank_class(2) do
-    "inline-flex items-center justify-center w-10 h-10 rounded-full bg-base-300/60 text-base-content/70 font-bold text-xl font-mono"
-  end
-
-  defp kiosk_rank_class(3) do
-    "inline-flex items-center justify-center w-10 h-10 rounded-full bg-secondary/20 text-secondary font-bold text-xl font-mono"
-  end
-
-  defp kiosk_rank_class(_rank) do
-    "font-mono text-xl text-base-content/60"
   end
 
   defp kiosk_status_class(:dns),

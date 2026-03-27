@@ -126,12 +126,10 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
             <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-base-content truncate">
               {@race.name}
             </h1>
-            <span class={[
-              "inline-flex items-center shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold tracking-wide uppercase",
-              status_pill_class(@race.status)
-            ]}>
-              {format_race_status(@race.status)}
-            </span>
+            <.status_pill
+              status={@race.status}
+              class="inline-flex items-center shrink-0 font-semibold tracking-wide uppercase"
+            />
           </div>
           <p class="text-sm text-base-content/50 ml-11">
             {if @race.date, do: format_date(@race.date), else: ""}
@@ -321,9 +319,7 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
               ]}
             >
               <td class="text-center px-3 py-2.5 border-b border-base-300/20">
-                <span :if={display_rank(result)} class={rank_class(display_rank(result))}>
-                  {display_rank(result)}
-                </span>
+                <.rank_badge :if={display_rank(result)} rank={display_rank(result)} />
                 <span
                   :if={display_rank(result) == nil && result.status in [:dns, :dnf, :dsq]}
                   class="text-base-content/30"
@@ -580,34 +576,6 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
 
   defp display_rank(result) do
     if result.status == :finished, do: result.rank, else: nil
-  end
-
-  defp rank_class(rank) when rank == 1 do
-    "inline-flex items-center justify-center w-7 h-7 rounded-full bg-warning/20 text-warning font-bold text-sm font-mono"
-  end
-
-  defp rank_class(rank) when rank == 2 do
-    "inline-flex items-center justify-center w-7 h-7 rounded-full bg-base-300/60 text-base-content/70 font-bold text-sm font-mono"
-  end
-
-  defp rank_class(rank) when rank == 3 do
-    "inline-flex items-center justify-center w-7 h-7 rounded-full bg-secondary/15 text-secondary font-bold text-sm font-mono"
-  end
-
-  defp rank_class(_rank) do
-    "font-mono text-sm text-base-content/60"
-  end
-
-  defp status_pill_class(status) do
-    case status do
-      :draft -> "bg-base-300/50 text-base-content/60"
-      :registration_open -> "bg-info/15 text-info"
-      :registration_closed -> "bg-warning/15 text-warning"
-      :in_progress -> "bg-success/15 text-success"
-      :finished -> "bg-accent/15 text-accent"
-      :archived -> "bg-neutral/15 text-neutral"
-      _ -> "bg-base-300/50 text-base-content/60"
-    end
   end
 
   defp toggle_dir(:asc), do: :desc

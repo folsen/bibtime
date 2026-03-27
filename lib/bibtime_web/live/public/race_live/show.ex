@@ -38,12 +38,10 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
               {@race.name}
             </h1>
             <div class="flex flex-wrap items-center gap-3">
-              <span class={[
-                "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold tracking-wide uppercase",
-                status_pill_class(@race.status)
-              ]}>
-                {format_race_status(@race.status)}
-              </span>
+              <.status_pill
+                status={@race.status}
+                class="inline-flex items-center px-3 py-1 font-semibold tracking-wide uppercase"
+              />
               <span
                 :if={@participant_count > 0}
                 class="inline-flex items-center gap-1.5 rounded-full bg-base-300/50 px-3 py-1 text-xs font-semibold text-base-content/70"
@@ -218,17 +216,5 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
       </div>
     </div>
     """
-  end
-
-  defp status_pill_class(status) do
-    case status do
-      :draft -> "bg-base-300/50 text-base-content/60"
-      :registration_open -> "bg-info/15 text-info"
-      :registration_closed -> "bg-warning/15 text-warning"
-      :in_progress -> "bg-success/15 text-success"
-      :finished -> "bg-accent/15 text-accent"
-      :archived -> "bg-neutral/15 text-neutral"
-      _ -> "bg-base-300/50 text-base-content/60"
-    end
   end
 end

@@ -86,6 +86,7 @@ defmodule BibtimeWeb do
       import Phoenix.HTML
       # Core UI components
       import BibtimeWeb.CoreComponents
+      import BibtimeWeb.RaceComponents
 
       # Locale-aware formatting helpers
       import BibtimeWeb.LocaleHelpers

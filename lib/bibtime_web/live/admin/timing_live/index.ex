@@ -83,12 +83,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
             <h1 class="text-2xl font-semibold tracking-tight text-base-content">
               {gettext("Timing Console")}
             </h1>
-            <span class={[
-              "rounded-full px-2.5 py-0.5 text-xs font-medium",
-              status_pill_class(@race.status)
-            ]}>
-              {format_race_status(@race.status)}
-            </span>
+            <.status_pill status={@race.status} />
           </div>
           <p class="mt-1 text-sm text-base-content/60">{@race.name}</p>
         </div>
@@ -632,17 +627,5 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
     |> Enum.map_join(", ", fn {field, messages} ->
       "#{field} #{Enum.join(messages, ", ")}"
     end)
-  end
-
-  defp status_pill_class(status) do
-    case status do
-      :draft -> "bg-base-content/10 text-base-content/60"
-      :registration_open -> "bg-info/15 text-info"
-      :registration_closed -> "bg-warning/15 text-warning"
-      :in_progress -> "bg-success/15 text-success"
-      :finished -> "bg-accent/15 text-accent"
-      :archived -> "bg-neutral/15 text-neutral"
-      _ -> "bg-base-content/10 text-base-content/60"
-    end
   end
 end
