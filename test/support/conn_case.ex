@@ -33,6 +33,7 @@ defmodule BibtimeWeb.ConnCase do
 
   setup tags do
     Bibtime.DataCase.setup_sandbox(tags)
+    Bibtime.RateLimiter.reset()
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 

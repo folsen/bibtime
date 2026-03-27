@@ -14,8 +14,7 @@ defmodule Bibtime.Application do
        repos: Application.fetch_env!(:bibtime, :ecto_repos), skip: skip_migrations?()},
       {DNSCluster, query: Application.get_env(:bibtime, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Bibtime.PubSub},
-      # Start a worker by calling: Bibtime.Worker.start_link(arg)
-      # {Bibtime.Worker, arg},
+      Bibtime.RateLimiter,
       # Start to serve requests, typically the last entry
       BibtimeWeb.Endpoint
     ]

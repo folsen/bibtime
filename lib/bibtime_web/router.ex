@@ -31,6 +31,10 @@ defmodule BibtimeWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :rate_limited do
+    plug BibtimeWeb.Plugs.RateLimiter
+  end
+
   # Public routes (no auth required)
   scope "/", BibtimeWeb do
     pipe_through :browser
@@ -148,7 +152,7 @@ defmodule BibtimeWeb.Router do
   end
 
   scope "/", BibtimeWeb do
-    pipe_through [:browser]
+    pipe_through [:browser, :rate_limited]
 
     get "/users/log-in", UserSessionController, :new
     get "/users/log-in/:token", UserSessionController, :confirm
