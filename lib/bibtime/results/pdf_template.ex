@@ -23,6 +23,7 @@ defmodule Bibtime.Results.PdfTemplate do
       #{header_section(race)}
       #{stats_bar(results)}
       #{results_table(results, splits, has_auto_categories)}
+      #{accolades_section(results, splits)}
       #{footer(race)}
     </body>
     </html>
@@ -214,6 +215,116 @@ defmodule Bibtime.Results.PdfTemplate do
 
   defp status_badge(status) do
     "<span class=\"status-badge\">#{escape(to_string(status))}</span>"
+  end
+
+  defp accolades_section(results, splits) do
+    finished = Enum.filter(results, &(&1.status == :finished))
+
+    if finished == [] do
+      ""
+    else
+      split_accolades =
+        splits
+        |> Enum.filter(&(&1.leg_type in [:swim, :bike, :run]))
+        |> Enum.flat_map(fn split ->
+          case fastest_for_split(finished, split) do
+            nil -> []
+            accolade -> [accolade]
+          end
+        end)
+
+      gender_accolades =
+        [:female, :male]
+        |> Enum.flat_map(fn gender ->
+          case fastest_by_gender(finished, gender) do
+            nil -> []
+            accolade -> [accolade]
+          end
+        end)
+
+      accolades = split_accolades ++ gender_accolades
+
+      if accolades == [] do
+        ""
+      else
+        cards = Enum.map_join(accolades, &accolade_card/1)
+
+        """
+        <div class="accolades">
+          <div class="accolades-header">#{escape(gettext("Accolades"))}</div>
+          <div class="accolades-grid">#{cards}</div>
+        </div>
+        """
+      end
+    end
+  end
+
+  defp fastest_for_split(results, split) do
+    results
+    |> Enum.filter(fn r -> Map.get(r.leg_times, split.id) != nil end)
+    |> Enum.min_by(fn r -> Map.get(r.leg_times, split.id) end, fn -> nil end)
+    |> case do
+      nil ->
+        nil
+
+      result ->
+        time_ms = Map.get(result.leg_times, split.id)
+
+        label =
+          case split.leg_type do
+            :swim -> gettext("Fastest Swim")
+            :bike -> gettext("Fastest Bike")
+            :run -> gettext("Fastest Run")
+          end
+
+        %{
+          emoji: split_emoji(split.leg_type),
+          label: label,
+          name: "#{result.participant.first_name} #{result.participant.last_name}",
+          detail: Calculator.format_time(time_ms)
+        }
+    end
+  end
+
+  defp fastest_by_gender(results, gender) do
+    results
+    |> Enum.filter(fn r ->
+      r.participant.gender == gender and r.total_ms != nil
+    end)
+    |> Enum.min_by(& &1.total_ms, fn -> nil end)
+    |> case do
+      nil ->
+        nil
+
+      result ->
+        {emoji, label} =
+          case gender do
+            :female -> {"\u{1F3C6}", gettext("Fastest Woman Overall")}
+            :male -> {"\u{1F3C6}", gettext("Fastest Man Overall")}
+          end
+
+        %{
+          emoji: emoji,
+          label: label,
+          name: "#{result.participant.first_name} #{result.participant.last_name}",
+          detail: Calculator.format_time(result.total_ms)
+        }
+    end
+  end
+
+  defp split_emoji(:swim), do: "\u{1F3CA}"
+  defp split_emoji(:bike), do: "\u{1F6B4}"
+  defp split_emoji(:run), do: "\u{1F3C3}"
+
+  defp accolade_card(accolade) do
+    """
+    <div class="accolade-card">
+      <div class="accolade-emoji">#{accolade.emoji}</div>
+      <div class="accolade-label">#{escape(accolade.label)}</div>
+      <div class="accolade-name">#{escape(accolade.name)}</div>
+      <div class="accolade-detail">#{escape(accolade.detail)}</div>
+    </div>
+    """
   end
 
   defp footer(race) do
@@ -461,6 +572,67 @@ defmodule Bibtime.Results.PdfTemplate do
     .status-badge.dns { background: #fef3c7; color: #92400e; }
     .status-badge.dnf { background: #fee2e2; color: #991b1b; }
     .status-badge.dsq { background: #fee2e2; color: #991b1b; }
+
+    /* Accolades */
+    .accolades {
+      margin-top: 20px;
+      page-break-inside: avoid;
+    }
+
+    .accolades-header {
+      font-size: 11pt;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #1e1b4b;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .accolades-grid {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .accolade-card {
+      background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+      border: 1px solid #ddd6fe;
+      border-radius: 10px;
+      padding: 10px 18px;
+      text-align: center;
+      min-width: 140px;
+    }
+
+    .accolade-emoji {
+      font-size: 18pt;
+      line-height: 1.2;
+      margin-bottom: 2px;
+    }
+
+    .accolade-label {
+      font-size: 7pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #6366f1;
+      margin-bottom: 4px;
+    }
+
+    .accolade-name {
+      font-size: 9pt;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 2px;
+    }
+
+    .accolade-detail {
+      font-family: "SF Mono", "Cascadia Code", "Fira Code", monospace;
+      font-size: 9pt;
+      font-weight: 600;
+      color: #6366f1;
+    }
 
     .footer {
       margin-top: 16px;
