@@ -480,6 +480,12 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
             <.icon name="hero-tv" class="size-4" /> {gettext("Kiosk")}
           </a>
           <a
+            href={~p"/races/#{@race.slug}/results/export/pdf"}
+            class="inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2 text-sm font-medium text-base-content/70 hover:bg-base-300/50 hover:text-base-content transition-colors"
+          >
+            <.icon name="hero-document-text" class="size-4" /> {gettext("Export PDF")}
+          </a>
+          <a
             href={~p"/races/#{@race.slug}/results/export/csv"}
             class="inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2 text-sm font-medium text-base-content/70 hover:bg-base-300/50 hover:text-base-content transition-colors"
           >

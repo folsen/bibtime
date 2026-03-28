@@ -5,6 +5,22 @@ defmodule Bibtime.Results.Export do
 
   use Gettext, backend: BibtimeWeb.Gettext
   alias Bibtime.Results.Calculator
+  alias Bibtime.Results.PdfTemplate
+
+  @doc """
+  Generates a PDF binary of race results.
+  """
+  def to_pdf(race, results, splits, opts \\ []) do
+    html = PdfTemplate.render(race, results, splits, opts)
+
+    ChromicPDF.print_to_pdf({:html, html},
+      print_to_pdf: %{
+        landscape: true,
+        printBackground: true,
+        preferCSSPageSize: true
+      }
+    )
+  end
 
   @doc """
   Converts a list of ParticipantResult structs to a CSV string.

@@ -161,7 +161,8 @@ msgstr "Admin"
 msgid "Admin Panel"
 msgstr "Adminpanel"
 
-#: lib/bibtime/results/export.ex:34
+#: lib/bibtime/results/export.ex:50
+#: lib/bibtime/results/pdf_template.ex:86
 #: lib/bibtime_web/live/admin/race_live/show.ex:372
 #: lib/bibtime_web/live/admin/race_live/show.ex:659
 #, elixir-autogen, elixir-format
@@ -259,7 +260,8 @@ msgstr "Tillbaka till loppsidan"
 msgid "Back to races"
 msgstr "Tillbaka till lopp"
 
-#: lib/bibtime/results/export.ex:25
+#: lib/bibtime/results/export.ex:41
+#: lib/bibtime/results/pdf_template.ex:100
 #: lib/bibtime_web/live/admin/participant_live/index.ex:233
 #: lib/bibtime_web/live/admin/timing_live/index.ex:258
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:215
@@ -321,7 +323,8 @@ msgstr "Avbryt"
 msgid "Categories"
 msgstr "Kategorier"
 
-#: lib/bibtime/results/export.ex:29
+#: lib/bibtime/results/export.ex:45
+#: lib/bibtime/results/pdf_template.ex:103
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:88
 #: lib/bibtime_web/live/admin/participant_live/index.ex:254
 #: lib/bibtime_web/live/admin/participant_live/new.ex:89
@@ -376,7 +379,8 @@ msgstr "Klona"
 msgid "Clone from Race"
 msgstr "Klona från lopp"
 
-#: lib/bibtime/results/export.ex:28
+#: lib/bibtime/results/export.ex:44
+#: lib/bibtime/results/pdf_template.ex:102
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:83
 #: lib/bibtime_web/live/admin/participant_live/index.ex:265
 #: lib/bibtime_web/live/admin/participant_live/new.ex:84
@@ -605,7 +609,7 @@ msgstr "Ange bibnummer..."
 msgid "Enter your email to receive a login link, or log in with your password below."
 msgstr "Ange din e-postadress för att få en inloggningslänk, eller logga in med ditt lösenord nedan."
 
-#: lib/bibtime_web/live/public/results_live/index.ex:486
+#: lib/bibtime_web/live/public/results_live/index.ex:492
 #, elixir-autogen, elixir-format
 msgid "Export CSV"
 msgstr "Exportera CSV"
@@ -637,6 +641,8 @@ msgstr "Fyll i uppgifterna för att skapa ett nytt lopp."
 msgid "Find a race and register to see it here."
 msgstr "Hitta ett lopp och anmäl dig för att se det här."
 
+#: lib/bibtime/results/pdf_template.ex:63
+#: lib/bibtime/results/pdf_template.ex:204
 #: lib/bibtime_web/helpers/locale_helpers.ex:93
 #: lib/bibtime_web/helpers/locale_helpers.ex:113
 #: lib/bibtime_web/helpers/locale_helpers.ex:152
@@ -646,7 +652,7 @@ msgstr "Hitta ett lopp och anmäl dig för att se det här."
 msgid "Finished"
 msgstr "Avslutad"
 
-#: lib/bibtime/results/export.ex:26
+#: lib/bibtime/results/export.ex:42
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:72
 #: lib/bibtime_web/live/admin/participant_live/new.ex:73
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:112
@@ -665,6 +671,7 @@ msgstr "Från mall"
 msgid "Full Results"
 msgstr "Fullständiga resultat"
 
+#: lib/bibtime/results/pdf_template.ex:85
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:79
 #: lib/bibtime_web/live/admin/participant_live/new.ex:80
 #: lib/bibtime_web/live/admin/race_live/show.ex:203
@@ -756,7 +763,7 @@ msgstr "Kiosk"
 msgid "Kiosk Display"
 msgstr "Kioskvisning"
 
-#: lib/bibtime/results/export.ex:27
+#: lib/bibtime/results/export.ex:43
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:73
 #: lib/bibtime_web/live/admin/participant_live/new.ex:74
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:119
@@ -898,6 +905,7 @@ msgstr "Mina lopp"
 msgid "My Registration"
 msgstr "Min anmälan"
 
+#: lib/bibtime/results/pdf_template.ex:101
 #: lib/bibtime_web/live/admin/participant_live/index.ex:240
 #: lib/bibtime_web/live/admin/race_live/edit.ex:35
 #: lib/bibtime_web/live/admin/race_live/index.ex:38
@@ -1044,6 +1052,7 @@ msgstr "Deltagare har skapats."
 msgid "Participant updated successfully."
 msgstr "Deltagare har uppdaterats."
 
+#: lib/bibtime/results/pdf_template.ex:59
 #: lib/bibtime_web/components/layouts/admin.html.heex:79
 #: lib/bibtime_web/live/admin/participant_live/index.ex:171
 #: lib/bibtime_web/live/admin/race_live/show.ex:98
@@ -1140,6 +1149,7 @@ msgstr "Lopp har uppdaterats."
 msgid "Races"
 msgstr "Lopp"
 
+#: lib/bibtime/results/pdf_template.ex:208
 #: lib/bibtime_web/helpers/locale_helpers.ex:109
 #, elixir-autogen, elixir-format
 msgid "Racing"
@@ -1360,7 +1370,8 @@ msgstr "Startlista"
 msgid "Start Race"
 msgstr "Starta lopp"
 
-#: lib/bibtime/results/export.ex:46
+#: lib/bibtime/results/export.ex:62
+#: lib/bibtime/results/pdf_template.ex:107
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:95
 #: lib/bibtime_web/live/admin/participant_live/index.ex:272
 #: lib/bibtime_web/live/admin/payment_live/index.ex:111
@@ -1424,7 +1435,8 @@ msgstr "Tips: Om du föredrar lösenord kan du aktivera det i användarinställn
 msgid "To see sent emails, visit"
 msgstr "För att se skickade e-postmeddelanden, besök"
 
-#: lib/bibtime/results/export.ex:46
+#: lib/bibtime/results/export.ex:62
+#: lib/bibtime/results/pdf_template.ex:106
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:240
 #: lib/bibtime_web/live/public/profile_live/show.ex:125
 #: lib/bibtime_web/live/public/results_live/index.ex:292
@@ -1639,12 +1651,12 @@ msgstr "förenklad."
 msgid "the mailbox page"
 msgstr "brevlådesidan"
 
-#: lib/bibtime/results/export.ex:34
+#: lib/bibtime/results/export.ex:50
 #, elixir-autogen, elixir-format
 msgid "Gender Category"
 msgstr "Könskategori"
 
-#: lib/bibtime/results/export.ex:24
+#: lib/bibtime/results/export.ex:40
 #, elixir-autogen, elixir-format
 msgid "Rank"
 msgstr "Placering"
@@ -2216,7 +2228,7 @@ msgstr "För många inloggningsförsök. Försök igen senare."
 msgid "None"
 msgstr "Ingen"
 
-#: lib/bibtime/results/export.ex:40
+#: lib/bibtime/results/export.ex:56
 #, elixir-autogen, elixir-format
 msgid "Pace"
 msgstr "Tempo"
@@ -2241,3 +2253,18 @@ msgstr "min/100m"
 #, elixir-autogen, elixir-format
 msgid "min/km"
 msgstr "min/km"
+
+#: lib/bibtime_web/live/public/results_live/index.ex:486
+#, elixir-autogen, elixir-format
+msgid "Export PDF"
+msgstr "Exportera PDF"
+
+#: lib/bibtime/results/pdf_template.ex:46
+#, elixir-autogen, elixir-format
+msgid "Official Results"
+msgstr "Officiella resultat"
+
+#: lib/bibtime/results/pdf_template.ex:225
+#, elixir-autogen, elixir-format
+msgid "Powered by BibTime"
+msgstr "Drivs av BibTime"

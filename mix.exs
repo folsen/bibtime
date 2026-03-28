@@ -72,7 +72,8 @@ defmodule Bibtime.MixProject do
       {:ex_aws_s3, "~> 2.5"},
       {:sweet_xml, "~> 0.7"},
       {:stripity_stripe, "~> 3.2"},
-      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:chromic_pdf, "~> 1.17"}
     ]
   end
 

@@ -152,7 +152,8 @@ msgstr ""
 msgid "Admin Panel"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:34
+#: lib/bibtime/results/export.ex:50
+#: lib/bibtime/results/pdf_template.ex:86
 #: lib/bibtime_web/live/admin/race_live/show.ex:372
 #: lib/bibtime_web/live/admin/race_live/show.ex:659
 #, elixir-autogen, elixir-format
@@ -250,7 +251,8 @@ msgstr ""
 msgid "Back to races"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:25
+#: lib/bibtime/results/export.ex:41
+#: lib/bibtime/results/pdf_template.ex:100
 #: lib/bibtime_web/live/admin/participant_live/index.ex:233
 #: lib/bibtime_web/live/admin/timing_live/index.ex:258
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:215
@@ -312,7 +314,8 @@ msgstr ""
 msgid "Categories"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:29
+#: lib/bibtime/results/export.ex:45
+#: lib/bibtime/results/pdf_template.ex:103
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:88
 #: lib/bibtime_web/live/admin/participant_live/index.ex:254
 #: lib/bibtime_web/live/admin/participant_live/new.ex:89
@@ -367,7 +370,8 @@ msgstr ""
 msgid "Clone from Race"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:28
+#: lib/bibtime/results/export.ex:44
+#: lib/bibtime/results/pdf_template.ex:102
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:83
 #: lib/bibtime_web/live/admin/participant_live/index.ex:265
 #: lib/bibtime_web/live/admin/participant_live/new.ex:84
@@ -596,7 +600,7 @@ msgstr ""
 msgid "Enter your email to receive a login link, or log in with your password below."
 msgstr ""
 
-#: lib/bibtime_web/live/public/results_live/index.ex:486
+#: lib/bibtime_web/live/public/results_live/index.ex:492
 #, elixir-autogen, elixir-format
 msgid "Export CSV"
 msgstr ""
@@ -628,6 +632,8 @@ msgstr ""
 msgid "Find a race and register to see it here."
 msgstr ""
 
+#: lib/bibtime/results/pdf_template.ex:63
+#: lib/bibtime/results/pdf_template.ex:204
 #: lib/bibtime_web/helpers/locale_helpers.ex:93
 #: lib/bibtime_web/helpers/locale_helpers.ex:113
 #: lib/bibtime_web/helpers/locale_helpers.ex:152
@@ -637,7 +643,7 @@ msgstr ""
 msgid "Finished"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:26
+#: lib/bibtime/results/export.ex:42
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:72
 #: lib/bibtime_web/live/admin/participant_live/new.ex:73
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:112
@@ -656,6 +662,7 @@ msgstr ""
 msgid "Full Results"
 msgstr ""
 
+#: lib/bibtime/results/pdf_template.ex:85
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:79
 #: lib/bibtime_web/live/admin/participant_live/new.ex:80
 #: lib/bibtime_web/live/admin/race_live/show.ex:203
@@ -747,7 +754,7 @@ msgstr ""
 msgid "Kiosk Display"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:27
+#: lib/bibtime/results/export.ex:43
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:73
 #: lib/bibtime_web/live/admin/participant_live/new.ex:74
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:119
@@ -889,6 +896,7 @@ msgstr ""
 msgid "My Registration"
 msgstr ""
 
+#: lib/bibtime/results/pdf_template.ex:101
 #: lib/bibtime_web/live/admin/participant_live/index.ex:240
 #: lib/bibtime_web/live/admin/race_live/edit.ex:35
 #: lib/bibtime_web/live/admin/race_live/index.ex:38
@@ -1035,6 +1043,7 @@ msgstr ""
 msgid "Participant updated successfully."
 msgstr ""
 
+#: lib/bibtime/results/pdf_template.ex:59
 #: lib/bibtime_web/components/layouts/admin.html.heex:79
 #: lib/bibtime_web/live/admin/participant_live/index.ex:171
 #: lib/bibtime_web/live/admin/race_live/show.ex:98
@@ -1131,6 +1140,7 @@ msgstr ""
 msgid "Races"
 msgstr ""
 
+#: lib/bibtime/results/pdf_template.ex:208
 #: lib/bibtime_web/helpers/locale_helpers.ex:109
 #, elixir-autogen, elixir-format
 msgid "Racing"
@@ -1351,7 +1361,8 @@ msgstr ""
 msgid "Start Race"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:46
+#: lib/bibtime/results/export.ex:62
+#: lib/bibtime/results/pdf_template.ex:107
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:95
 #: lib/bibtime_web/live/admin/participant_live/index.ex:272
 #: lib/bibtime_web/live/admin/payment_live/index.ex:111
@@ -1415,7 +1426,8 @@ msgstr ""
 msgid "To see sent emails, visit"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:46
+#: lib/bibtime/results/export.ex:62
+#: lib/bibtime/results/pdf_template.ex:106
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:240
 #: lib/bibtime_web/live/public/profile_live/show.ex:125
 #: lib/bibtime_web/live/public/results_live/index.ex:292
@@ -1630,12 +1642,12 @@ msgstr ""
 msgid "the mailbox page"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:34
+#: lib/bibtime/results/export.ex:50
 #, elixir-autogen, elixir-format
 msgid "Gender Category"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:24
+#: lib/bibtime/results/export.ex:40
 #, elixir-autogen, elixir-format
 msgid "Rank"
 msgstr ""
@@ -2207,7 +2219,7 @@ msgstr ""
 msgid "None"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:40
+#: lib/bibtime/results/export.ex:56
 #, elixir-autogen, elixir-format
 msgid "Pace"
 msgstr ""
@@ -2231,4 +2243,19 @@ msgstr ""
 #: lib/bibtime_web/helpers/locale_helpers.ex:186
 #, elixir-autogen, elixir-format
 msgid "min/km"
+msgstr ""
+
+#: lib/bibtime_web/live/public/results_live/index.ex:486
+#, elixir-autogen, elixir-format
+msgid "Export PDF"
+msgstr ""
+
+#: lib/bibtime/results/pdf_template.ex:46
+#, elixir-autogen, elixir-format
+msgid "Official Results"
+msgstr ""
+
+#: lib/bibtime/results/pdf_template.ex:225
+#, elixir-autogen, elixir-format
+msgid "Powered by BibTime"
 msgstr ""
