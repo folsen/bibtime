@@ -2,9 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
-
-BibTime is a self-hosted race timing platform built with Elixir/Phoenix 1.8 + LiveView, using SQLite (via `ecto_sqlite3`) for single-file deployment simplicity. It handles race management, participant registration, real-time timing, and live results with kiosk display mode.
+For project structure, data model, contexts, routes, and dependencies see **[ARCHITECTURE.md](ARCHITECTURE.md)**.
 
 ## Common Commands
 
@@ -22,60 +20,12 @@ scripts/test-server.sh start|stop|status|restart  # Manage test server on port 4
 
 **Always run `mix precommit` before committing.** The `precommit` alias runs in the `:test` env.
 
-## Architecture
-
-### Contexts (Business Logic Layer)
-
-All business logic lives in context modules under `lib/bibtime/`:
-
-| Context | Purpose |
-|---------|---------|
-| `Bibtime.Accounts` | User auth (bcrypt, phx.gen.auth) |
-| `Bibtime.Races` | Race CRUD, categories, auto-categories, splits, templates |
-| `Bibtime.Participants` | Competitor management, bib assignment, status tracking |
-| `Bibtime.Timing` | Split time recording, race starts, PubSub broadcasting |
-| `Bibtime.Results` | Results calculation (Calculator) + ranking (Ranker) |
-| `Bibtime.Registration` | Public registration flow, auto bib/user creation |
-
-### Data Model
-
-- **Race** → has_many categories, auto_categories, splits, participants, race_starts
-- **Participant** → belongs_to race, race_category, user; has_many split_times
-- **SplitTime** → belongs_to participant, split
-- Race statuses: `draft → registration_open → registration_closed → in_progress → finished → archived`
-- Participant statuses: `registered → racing → dns/dnf/dsq/finished`
-
-### Real-Time Updates
-
-Timing events broadcast via PubSub on `"race:timing:#{race_id}"`. Results LiveView and Kiosk LiveView subscribe and re-rank on `{:split_time_recorded, split_time}` and `{:split_time_deleted, split_time}` messages.
-
-### Web Layer (`lib/bibtime_web/`)
-
-**Route structure** (see `router.ex`):
-- Public: `/races/:slug`, `/races/:slug/results`, `/races/:slug/register`
-- Kiosk: `/races/:slug/kiosk` (fullscreen layout, no nav)
-- Admin: `/admin/races/*` (requires `require_authenticated_user` + `require_admin_user`)
-- Authenticated: `/profile`, `/my-races`
-- Auth: `/users/log-in`, `/users/log-out`
-
-**Layouts**: `app` (public), `admin` (sidebar nav), `kiosk` (fullscreen), `kiosk_root`
-
-**LiveViews** are organized under `lib/bibtime_web/live/admin/` and `lib/bibtime_web/live/public/`.
-
-### Frontend
-
-- **Tailwind CSS v4** — configured in `assets/css/app.css` (no `tailwind.config.js`)
-- **esbuild** — bundles `assets/js/app.js`
-- Custom DaisyUI-style theme with light/dark modes
-- Fonts: DM Sans (body), DM Mono (timing data)
-- Heroicons via `<.icon name="hero-x-mark" />` component
-
-### Database
+## Database Notes
 
 - SQLite with WAL mode. Dev: `bibtime_dev.db`, Test: `bibtime_test.db` (sandbox mode).
-- When working with SQLite in development, be aware of WAL mode locking. If database writes don't persist during QA, use sqlite3 directly as a workaround.
+- Be aware of WAL mode locking. If database writes don't persist during QA, use sqlite3 directly as a workaround.
 
-## Key Guidelines from AGENTS.md
+## Coding Guidelines
 
 - Use `:req` for HTTP requests (not HTTPoison/Tesla)
 - Always begin LiveView templates with `<Layouts.app flash={@flash} ...>`
@@ -89,14 +39,12 @@ Timing events broadcast via PubSub on `"race:timing:#{race_id}"`. Results LiveVi
 
 ## Internationalization (i18n)
 
-All user-facing strings must go through the gettext i18n system. Never hardcode display text in templates or flash messages.
+All user-facing strings must go through gettext. Never hardcode display text.
 
-- Wrap strings with `gettext("...")` in templates and controllers
-- Use `ngettext("1 item", "%{count} items", count)` for plurals
-- Use `BibtimeWeb.LocaleHelpers` for status labels (`format_race_status/1`, `format_participant_status/1`), date formatting (`format_date/1`, `format_date_short/1`), and select options (`race_type_options/0`, `gender_options/0`, etc.)
-- After adding new strings, run `mix gettext.extract --merge` to update `.pot`/`.po` files
-- Add Swedish translations in `priv/gettext/sv/LC_MESSAGES/default.po`
-- Supported locales: `en` (default), `sv`
+- `gettext("...")` in templates/controllers; `ngettext(...)` for plurals
+- Use `BibtimeWeb.LocaleHelpers` for status labels, date formatting, and select options
+- After adding new strings: `mix gettext.extract --merge`
+- Swedish translations: `priv/gettext/sv/LC_MESSAGES/default.po`
 
 ## When implementing new features
 
