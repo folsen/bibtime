@@ -16,7 +16,9 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
      |> assign(:race, race)
      |> assign_category_form(Races.change_category(%RaceCategory{}))
      |> assign_auto_category_form(Races.change_auto_category(%RaceAutoCategory{}))
-     |> assign_split_form(Races.change_split(%Split{}))}
+     |> assign_split_form(Races.change_split(%Split{}))
+     |> assign(:editing_split_id, nil)
+     |> assign(:edit_split_form, nil)}
   end
 
   @impl true
@@ -420,30 +422,107 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
             </tr>
           </thead>
           <tbody>
-            <tr
-              :for={split <- @race.splits}
-              id={"split-#{split.id}"}
-              class="border-b border-base-200 odd:bg-base-100 even:bg-base-200/30"
-            >
-              <td class="py-3 font-medium">{split.name}</td>
-              <td class="py-3 text-sm font-mono text-base-content/70">{split.short_name}</td>
-              <td class="py-3 text-sm capitalize text-base-content/70">{split.leg_type}</td>
-              <td class="py-3 text-sm text-base-content/70">{split.distance_meters || "-"}</td>
-              <td class="py-3 text-sm text-base-content/70">
-                {format_pace_display(split.pace_display)}
-              </td>
-              <td class="py-3 text-sm text-base-content/70">{split.sort_order}</td>
-              <td class="py-3">
-                <button
-                  phx-click="delete_split"
-                  phx-value-id={split.id}
-                  data-confirm={gettext("Are you sure you want to delete this split?")}
-                  class="text-sm font-medium text-error/70 hover:text-error transition-colors"
+            <%= for split <- @race.splits do %>
+              <%= if @editing_split_id == split.id do %>
+                <tr id={"split-#{split.id}"} class="border-b border-base-200 bg-primary/5">
+                  <td colspan="7" class="py-2">
+                    <.form
+                      for={@edit_split_form}
+                      phx-submit="update_split"
+                      id="edit-split-form"
+                      class="flex flex-wrap gap-3 items-end"
+                    >
+                      <.input
+                        field={@edit_split_form[:name]}
+                        type="text"
+                        label={gettext("Name")}
+                        required
+                      />
+                      <.input
+                        field={@edit_split_form[:short_name]}
+                        type="text"
+                        label={gettext("Short Name")}
+                        required
+                      />
+                      <.input
+                        field={@edit_split_form[:leg_type]}
+                        type="select"
+                        label={gettext("Leg Type")}
+                        options={[
+                          {gettext("Swim"), :swim},
+                          {gettext("Bike"), :bike},
+                          {gettext("Run"), :run},
+                          {gettext("Transition"), :transition},
+                          {gettext("Other"), :other}
+                        ]}
+                        required
+                      />
+                      <.input
+                        field={@edit_split_form[:distance_meters]}
+                        type="number"
+                        label={gettext("Distance (m)")}
+                      />
+                      <.input
+                        field={@edit_split_form[:pace_display]}
+                        type="select"
+                        label={gettext("Pace Display")}
+                        options={pace_display_options()}
+                      />
+                      <.input
+                        field={@edit_split_form[:sort_order]}
+                        type="number"
+                        label={gettext("Order")}
+                      />
+                      <div class="flex items-center gap-2">
+                        <.button type="submit" variant="primary">
+                          {gettext("Save")}
+                        </.button>
+                        <button
+                          type="button"
+                          phx-click="cancel_edit_split"
+                          class="text-sm font-medium text-base-content/50 hover:text-base-content transition-colors"
+                        >
+                          {gettext("Cancel")}
+                        </button>
+                      </div>
+                    </.form>
+                  </td>
+                </tr>
+              <% else %>
+                <tr
+                  id={"split-#{split.id}"}
+                  class="border-b border-base-200 odd:bg-base-100 even:bg-base-200/30"
                 >
-                  {gettext("Delete")}
-                </button>
-              </td>
-            </tr>
+                  <td class="py-3 font-medium">{split.name}</td>
+                  <td class="py-3 text-sm font-mono text-base-content/70">{split.short_name}</td>
+                  <td class="py-3 text-sm capitalize text-base-content/70">{split.leg_type}</td>
+                  <td class="py-3 text-sm text-base-content/70">{split.distance_meters || "-"}</td>
+                  <td class="py-3 text-sm text-base-content/70">
+                    {format_pace_display(split.pace_display)}
+                  </td>
+                  <td class="py-3 text-sm text-base-content/70">{split.sort_order}</td>
+                  <td class="py-3">
+                    <div class="flex items-center gap-3">
+                      <button
+                        phx-click="edit_split"
+                        phx-value-id={split.id}
+                        class="text-sm font-medium text-primary/70 hover:text-primary transition-colors"
+                      >
+                        {gettext("Edit")}
+                      </button>
+                      <button
+                        phx-click="delete_split"
+                        phx-value-id={split.id}
+                        data-confirm={gettext("Are you sure you want to delete this split?")}
+                        class="text-sm font-medium text-error/70 hover:text-error transition-colors"
+                      >
+                        {gettext("Delete")}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            <% end %>
           </tbody>
         </table>
       </div>
@@ -626,6 +705,48 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_split_form(socket, changeset)}
+    end
+  end
+
+  @impl true
+  def handle_event("edit_split", %{"id" => id}, socket) do
+    split = Races.get_split!(id)
+    changeset = Races.change_split(split)
+
+    {:noreply,
+     socket
+     |> assign(:editing_split_id, split.id)
+     |> assign(:edit_split_form, to_form(changeset, as: "edit_split"))}
+  end
+
+  @impl true
+  def handle_event("cancel_edit_split", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:editing_split_id, nil)
+     |> assign(:edit_split_form, nil)}
+  end
+
+  @impl true
+  def handle_event("update_split", %{"edit_split" => split_params}, socket) do
+    split = Races.get_split!(socket.assigns.editing_split_id)
+
+    case Races.update_split(split, split_params) do
+      {:ok, _split} ->
+        race =
+          Races.get_race!(socket.assigns.race.id,
+            preload: [:categories, :auto_categories, :splits]
+          )
+
+        {:noreply,
+         socket
+         |> assign(:race, race)
+         |> assign(:editing_split_id, nil)
+         |> assign(:edit_split_form, nil)
+         |> put_flash(:info, gettext("Split updated."))}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :edit_split_form, to_form(changeset, as: "edit_split"))}
     end
   end
 

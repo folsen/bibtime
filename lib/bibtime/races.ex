@@ -24,8 +24,17 @@ defmodule Bibtime.Races do
     race = Repo.get!(Race, id)
 
     case Keyword.get(opts, :preload) do
-      nil -> race
-      preloads -> Repo.preload(race, preloads)
+      nil ->
+        race
+
+      preloads ->
+        preloads =
+          Enum.map(preloads, fn
+            :splits -> {:splits, order_by(Split, :sort_order)}
+            other -> other
+          end)
+
+        Repo.preload(race, preloads)
     end
   end
 
