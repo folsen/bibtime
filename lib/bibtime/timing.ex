@@ -165,6 +165,7 @@ defmodule Bibtime.Timing do
         cond do
           total_splits > 0 and recorded >= total_splits -> :finished
           recorded > 0 -> :racing
+          participant.status == :checked_in -> :checked_in
           true -> :registered
         end
 

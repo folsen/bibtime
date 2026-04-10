@@ -172,6 +172,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.MyRegistration do
   end
 
   defp status_class(:registered), do: "bg-base-content/10 text-base-content/60"
+  defp status_class(:checked_in), do: "bg-success/15 text-success"
   defp status_class(:racing), do: "bg-info/15 text-info"
   defp status_class(:finished), do: "bg-success/15 text-success"
   defp status_class(:dns), do: "bg-warning/15 text-warning"

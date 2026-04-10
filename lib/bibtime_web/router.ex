@@ -99,6 +99,7 @@ defmodule BibtimeWeb.Router do
       on_mount: [{BibtimeWeb.UserAuth, :require_authenticated_user}],
       layout: {BibtimeWeb.Layouts, :admin} do
       live "/admin/races/:id/timing", Admin.TimingLive.Index, :index
+      live "/admin/races/:id/check-in", Admin.CheckInLive.Index, :index
     end
   end
 

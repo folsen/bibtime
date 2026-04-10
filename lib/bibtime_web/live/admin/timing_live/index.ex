@@ -595,7 +595,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
       |> Enum.into(%{}, fn {pid, times} -> {pid, length(times)} end)
 
     participants
-    |> Enum.filter(&(&1.status in [:registered, :racing]))
+    |> Enum.filter(&(&1.status in [:registered, :checked_in, :racing]))
     |> Enum.map(fn p ->
       %{
         bib_number: p.bib_number,

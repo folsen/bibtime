@@ -106,6 +106,7 @@ defmodule BibtimeWeb.LocaleHelpers do
   """
   def format_participant_status(:pending_payment), do: gettext("Pending Payment")
   def format_participant_status(:registered), do: gettext("Registered")
+  def format_participant_status(:checked_in), do: gettext("Checked In")
   def format_participant_status(:racing), do: gettext("Racing")
   def format_participant_status(:dns), do: "DNS"
   def format_participant_status(:dnf), do: "DNF"

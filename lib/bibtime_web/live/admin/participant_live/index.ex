@@ -370,6 +370,7 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
   defp participant_status_pill(status) do
     case status do
       :registered -> "bg-base-content/10 text-base-content/60"
+      :checked_in -> "bg-success/15 text-success"
       :racing -> "bg-info/15 text-info"
       :dns -> "bg-warning/15 text-warning"
       :dnf -> "bg-warning/15 text-warning"

@@ -5,7 +5,7 @@ defmodule Bibtime.Results.Ranker do
 
   alias Bibtime.Results.ParticipantResult
 
-  @active_statuses [:registered, :racing, :finished]
+  @active_statuses [:registered, :checked_in, :racing, :finished]
 
   @doc """
   Ranks results overall.

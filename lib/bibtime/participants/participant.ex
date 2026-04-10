@@ -11,9 +11,10 @@ defmodule Bibtime.Participants.Participant do
     field :gender, Ecto.Enum, values: [:male, :female, :other]
     field :club, :string
     field :chip_id, :string
+    field :checked_in_at, :utc_datetime
 
     field :status, Ecto.Enum,
-      values: [:pending_payment, :registered, :racing, :dns, :dnf, :dsq, :finished],
+      values: [:pending_payment, :registered, :checked_in, :racing, :dns, :dnf, :dsq, :finished],
       default: :registered
 
     field :registration_data, :map, default: %{}
@@ -41,6 +42,7 @@ defmodule Bibtime.Participants.Participant do
       :gender,
       :club,
       :chip_id,
+      :checked_in_at,
       :status,
       :registration_data,
       :race_id,

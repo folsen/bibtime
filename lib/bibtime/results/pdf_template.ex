@@ -209,6 +209,10 @@ defmodule Bibtime.Results.PdfTemplate do
     "<span class=\"status-badge racing\">#{escape(gettext("Racing"))}</span>"
   end
 
+  defp status_badge(:checked_in) do
+    "<span class=\"status-badge racing\">#{escape(gettext("Checked In"))}</span>"
+  end
+
   defp status_badge(:dns), do: "<span class=\"status-badge dns\">DNS</span>"
   defp status_badge(:dnf), do: "<span class=\"status-badge dnf\">DNF</span>"
   defp status_badge(:dsq), do: "<span class=\"status-badge dsq\">DSQ</span>"

@@ -64,6 +64,67 @@ defmodule Bibtime.Participants do
   end
 
   @doc """
+  Checks in a participant by assigning a chip_id and setting status to :checked_in.
+
+  Broadcasts `{:participant_checked_in, participant}` on `"race:checkin:<race_id>"`.
+  """
+  def check_in_participant(%Participant{} = participant, chip_id) do
+    participant
+    |> Participant.changeset(%{
+      chip_id: chip_id,
+      checked_in_at: DateTime.utc_now() |> DateTime.truncate(:second),
+      status: :checked_in
+    })
+    |> Repo.update()
+    |> case do
+      {:ok, updated} ->
+        Phoenix.PubSub.broadcast(
+          Bibtime.PubSub,
+          "race:checkin:#{updated.race_id}",
+          {:participant_checked_in, updated}
+        )
+
+        {:ok, updated}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
+  end
+
+  @doc """
+  Unchecks a participant by clearing chip_id and checked_in_at, reverting status to :registered.
+
+  Broadcasts `{:participant_unchecked, participant}` on `"race:checkin:<race_id>"`.
+  """
+  def uncheck_in_participant(%Participant{} = participant) do
+    participant
+    |> Participant.changeset(%{chip_id: nil, checked_in_at: nil, status: :registered})
+    |> Repo.update()
+    |> case do
+      {:ok, updated} ->
+        Phoenix.PubSub.broadcast(
+          Bibtime.PubSub,
+          "race:checkin:#{updated.race_id}",
+          {:participant_unchecked, updated}
+        )
+
+        {:ok, updated}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
+  end
+
+  @doc """
+  Returns the count of checked-in participants for a race.
+  """
+  def count_checked_in_participants(race_id) do
+    Participant
+    |> where([p], p.race_id == ^race_id and not is_nil(p.checked_in_at))
+    |> Repo.aggregate(:count)
+  end
+
+  @doc """
   Deletes a participant.
   """
   def delete_participant(%Participant{} = participant) do

@@ -598,6 +598,10 @@ defmodule BibtimeWeb.Public.KioskLive.Index do
     do:
       "inline-flex items-center rounded-full bg-info/15 text-info px-3 py-1 text-base font-semibold"
 
+  defp kiosk_status_class(:checked_in),
+    do:
+      "inline-flex items-center rounded-full bg-success/15 text-success px-3 py-1 text-base font-semibold"
+
   defp kiosk_status_class(:registered),
     do:
       "inline-flex items-center rounded-full bg-base-content/10 text-base-content/60 px-3 py-1 text-base font-semibold"
