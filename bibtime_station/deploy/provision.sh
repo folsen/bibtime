@@ -72,6 +72,14 @@ rm -f /tmp/bibtime_station.service /tmp/bibtime_station.env
 
 sudo systemctl daemon-reload
 sudo systemctl enable bibtime_station
+
+# Enable GPIO3 power button (clean shutdown on press, wake on press when halted)
+if ! grep -q 'gpio-shutdown' /boot/firmware/config.txt 2>/dev/null; then
+  echo 'dtoverlay=gpio-shutdown,gpio_pin=3' | sudo tee -a /boot/firmware/config.txt >/dev/null
+  echo "Enabled gpio-shutdown overlay (GPIO3 power button)"
+else
+  echo "gpio-shutdown overlay already configured"
+fi
 REMOTE
 
 echo "--- Installing hex and rebar..."
