@@ -85,6 +85,9 @@ defmodule BibtimeWeb.Admin.StationLive.Index do
                 <div class="text-xs text-base-content/50 font-mono">
                   {gettext("Reads: %{n}", n: get_metadata(station, "reads_total", "-"))}
                 </div>
+                <div class="text-xs text-base-content/50 font-mono">
+                  {gettext("Up: %{t}", t: format_uptime(get_metadata(station, "uptime_seconds", nil)))}
+                </div>
                 <div class="text-xs text-base-content/60 font-mono">
                   {station.firmware_version || "-"}
                 </div>
@@ -258,6 +261,19 @@ defmodule BibtimeWeb.Admin.StationLive.Index do
   defp stale?(last_seen_at, now) do
     DateTime.diff(now, last_seen_at, :second) > @stale_threshold_seconds
   end
+
+  defp format_uptime(nil), do: "-"
+
+  defp format_uptime(seconds) when is_integer(seconds) do
+    cond do
+      seconds < 60 -> gettext("%{n}s", n: seconds)
+      seconds < 3600 -> gettext("%{n}m", n: div(seconds, 60))
+      seconds < 86400 -> gettext("%{h}h %{m}m", h: div(seconds, 3600), m: div(rem(seconds, 3600), 60))
+      true -> gettext("%{d}d %{h}h", d: div(seconds, 86400), h: div(rem(seconds, 86400), 3600))
+    end
+  end
+
+  defp format_uptime(_), do: "-"
 
   defp format_last_seen(nil, _now), do: gettext("never")
 
