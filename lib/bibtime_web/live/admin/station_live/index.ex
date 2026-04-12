@@ -82,6 +82,12 @@ defmodule BibtimeWeb.Admin.StationLive.Index do
                   ]} />
                   <span class="text-sm font-medium text-base-content">{station.name}</span>
                 </div>
+                <div
+                  :if={station.status == :error and not stale?(station.last_seen_at, @now)}
+                  class="text-xs font-medium text-error"
+                >
+                  {format_error_reason(station)}
+                </div>
                 <div class="text-xs text-base-content/50 font-mono">
                   {format_last_seen(station.last_seen_at, @now)}
                 </div>
@@ -288,10 +294,17 @@ defmodule BibtimeWeb.Admin.StationLive.Index do
 
   defp format_uptime_seconds(seconds) when is_integer(seconds) do
     cond do
-      seconds < 60 -> gettext("%{n}s", n: seconds)
-      seconds < 3600 -> gettext("%{n}m", n: div(seconds, 60))
-      seconds < 86400 -> gettext("%{h}h %{m}m", h: div(seconds, 3600), m: div(rem(seconds, 3600), 60))
-      true -> gettext("%{d}d %{h}h", d: div(seconds, 86400), h: div(rem(seconds, 86400), 3600))
+      seconds < 60 ->
+        gettext("%{n}s", n: seconds)
+
+      seconds < 3600 ->
+        gettext("%{n}m", n: div(seconds, 60))
+
+      seconds < 86400 ->
+        gettext("%{h}h %{m}m", h: div(seconds, 3600), m: div(rem(seconds, 3600), 60))
+
+      true ->
+        gettext("%{d}d %{h}h", d: div(seconds, 86400), h: div(rem(seconds, 86400), 3600))
     end
   end
 
@@ -308,6 +321,15 @@ defmodule BibtimeWeb.Admin.StationLive.Index do
       diff < 60 -> gettext("%{n}s ago", n: diff)
       diff < 3600 -> gettext("%{n}m ago", n: div(diff, 60))
       true -> gettext("%{n}h ago", n: div(diff, 3600))
+    end
+  end
+
+  defp format_error_reason(station) do
+    case get_metadata(station, "error_reason", nil) do
+      "reader_process_down" -> gettext("Reader crashed")
+      "reader_port_closed" -> gettext("Reader disconnected")
+      nil -> gettext("Error")
+      other -> other
     end
   end
 end

@@ -237,9 +237,18 @@ defmodule Bibtime.Timing do
 
     status =
       case status_override do
-        nil -> :online
-        status when is_atom(status) -> status
-        status when is_binary(status) -> safe_station_status(status)
+        nil ->
+          # Derive status from reader_connected when no explicit override
+          case Map.get(metadata, "reader_connected") do
+            false -> :error
+            _ -> :online
+          end
+
+        status when is_atom(status) ->
+          status
+
+        status when is_binary(status) ->
+          safe_station_status(status)
       end
 
     attrs =

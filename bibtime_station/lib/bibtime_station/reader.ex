@@ -33,6 +33,13 @@ defmodule BibtimeStation.Reader do
     GenServer.call(server, :stop_inventory)
   end
 
+  @doc "Returns `true` when the UART port is open and reading."
+  def port_open?(server \\ @name) do
+    GenServer.call(server, :port_open?)
+  catch
+    :exit, _ -> false
+  end
+
   # -------- GenServer callbacks --------
 
   @impl true
@@ -137,6 +144,10 @@ defmodule BibtimeStation.Reader do
   def handle_info(_msg, state), do: {:noreply, state}
 
   @impl true
+  def handle_call(:port_open?, _from, state) do
+    {:reply, state.opened?, state}
+  end
+
   def handle_call(:stop_inventory, _from, %{uart: nil} = state), do: {:reply, :ok, state}
 
   def handle_call(:stop_inventory, _from, %{uart: pid} = state) do

@@ -82,14 +82,20 @@ defmodule BibtimeStation.Heartbeat do
 
   defp build_payload(state) do
     now = System.monotonic_time(:millisecond)
+    {reader_connected, error_reason} = reader_status()
 
-    %{
+    payload = %{
       firmware_version: firmware_version(),
       uptime_seconds: div(now - state.started_at, 1000),
       reads_total: safe_read_count(),
       buffer_size: safe_buffer_size(),
-      reader_connected: reader_alive?()
+      reader_connected: reader_connected
     }
+
+    case error_reason do
+      nil -> Map.put(payload, :status, "online")
+      reason -> Map.merge(payload, %{status: "error", error_reason: reason})
+    end
   end
 
   defp firmware_version do
@@ -113,10 +119,22 @@ defmodule BibtimeStation.Heartbeat do
     end
   end
 
-  defp reader_alive? do
+  defp reader_status do
     case Process.whereis(BibtimeStation.Reader) do
-      nil -> false
-      pid -> Process.alive?(pid)
+      nil ->
+        {false, "reader_process_down"}
+
+      pid ->
+        case Process.alive?(pid) do
+          false ->
+            {false, "reader_process_down"}
+
+          true ->
+            case BibtimeStation.Reader.port_open?(pid) do
+              true -> {true, nil}
+              false -> {false, "reader_port_closed"}
+            end
+        end
     end
   end
 
