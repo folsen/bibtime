@@ -5,7 +5,7 @@ defmodule BibtimeWeb.Admin.StationLive.Index do
   alias Bibtime.Timing
   alias Bibtime.Timing.TimingStation
 
-  @stale_threshold_seconds 30
+  @stale_threshold_seconds 20
 
   @impl true
   def mount(%{"id" => race_id}, _session, socket) do
@@ -60,7 +60,10 @@ defmodule BibtimeWeb.Admin.StationLive.Index do
       <div class="space-y-4">
         <div
           :for={split <- @splits}
-          class="rounded-xl border border-base-300 bg-base-100 shadow-sm p-5"
+          class={[
+            "rounded-xl border shadow-sm p-5",
+            split_card_class(@assigned_map[split.id], @now)
+          ]}
         >
           <div class="flex items-center justify-between gap-4">
             <div>
@@ -86,7 +89,7 @@ defmodule BibtimeWeb.Admin.StationLive.Index do
                   {gettext("Reads: %{n}", n: get_metadata(station, "reads_total", "-"))}
                 </div>
                 <div class="text-xs text-base-content/50 font-mono">
-                  {gettext("Up: %{t}", t: format_uptime(get_metadata(station, "uptime_seconds", nil)))}
+                  {gettext("Up: %{t}", t: format_uptime(station, @now))}
                 </div>
                 <div class="text-xs text-base-content/60 font-mono">
                   {station.firmware_version || "-"}
@@ -249,11 +252,22 @@ defmodule BibtimeWeb.Admin.StationLive.Index do
 
   defp get_metadata(_, _, default), do: default
 
+  defp split_card_class(nil, _now), do: "border-base-300 bg-base-100"
+
+  defp split_card_class(station, now) do
+    cond do
+      is_nil(station.last_seen_at) -> "border-base-300 bg-base-100"
+      station.status == :error -> "border-error/60 bg-error/10"
+      stale?(station.last_seen_at, now) -> "border-error/60 bg-error/10"
+      true -> "border-base-300 bg-base-100"
+    end
+  end
+
   defp status_color(station, now) do
     cond do
       is_nil(station.last_seen_at) -> "bg-base-300"
       station.status == :error -> "bg-error"
-      stale?(station.last_seen_at, now) -> "bg-warning"
+      stale?(station.last_seen_at, now) -> "bg-error"
       true -> "bg-success"
     end
   end
@@ -262,9 +276,17 @@ defmodule BibtimeWeb.Admin.StationLive.Index do
     DateTime.diff(now, last_seen_at, :second) > @stale_threshold_seconds
   end
 
-  defp format_uptime(nil), do: "-"
+  defp format_uptime(station, now) do
+    cond do
+      is_nil(station.last_seen_at) -> "-"
+      stale?(station.last_seen_at, now) -> "-"
+      true -> format_uptime_seconds(get_metadata(station, "uptime_seconds", nil))
+    end
+  end
 
-  defp format_uptime(seconds) when is_integer(seconds) do
+  defp format_uptime_seconds(nil), do: "-"
+
+  defp format_uptime_seconds(seconds) when is_integer(seconds) do
     cond do
       seconds < 60 -> gettext("%{n}s", n: seconds)
       seconds < 3600 -> gettext("%{n}m", n: div(seconds, 60))
@@ -273,7 +295,7 @@ defmodule BibtimeWeb.Admin.StationLive.Index do
     end
   end
 
-  defp format_uptime(_), do: "-"
+  defp format_uptime_seconds(_), do: "-"
 
   defp format_last_seen(nil, _now), do: gettext("never")
 
