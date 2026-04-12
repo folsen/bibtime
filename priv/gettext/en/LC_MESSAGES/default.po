@@ -11,7 +11,7 @@ msgstr ""
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/bibtime_web/live/public/race_live/show.ex:50
+#: lib/bibtime_web/live/public/race_live/show.ex:59
 #, elixir-autogen, elixir-format
 msgid "%{count} Registered"
 msgid_plural "%{count} Registered"
@@ -23,7 +23,7 @@ msgstr[1] ""
 msgid "%{count} finished"
 msgstr ""
 
-#: lib/bibtime_web/live/public/race_live/show.ex:165
+#: lib/bibtime_web/live/public/race_live/show.ex:193
 #: lib/bibtime_web/live/public/results_live/index.ex:444
 #, elixir-autogen, elixir-format
 msgid "%{count} participant"
@@ -48,8 +48,8 @@ msgstr ""
 
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:148
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:164
-#: lib/bibtime_web/live/public/registration_live/new.ex:210
-#: lib/bibtime_web/live/public/registration_live/new.ex:233
+#: lib/bibtime_web/live/public/registration_live/new.ex:219
+#: lib/bibtime_web/live/public/registration_live/new.ex:242
 #, elixir-autogen, elixir-format
 msgid "(optional)"
 msgstr ""
@@ -64,7 +64,7 @@ msgstr ""
 msgid "A link to confirm your email change has been sent to the new address."
 msgstr ""
 
-#: lib/bibtime_web/live/public/race_live/show.ex:108
+#: lib/bibtime_web/live/public/race_live/show.ex:125
 #, elixir-autogen, elixir-format
 msgid "About this race"
 msgstr ""
@@ -236,14 +236,14 @@ msgstr ""
 msgid "Back to participants"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/race_live/edit.ex:158
+#: lib/bibtime_web/live/admin/race_live/edit.ex:180
 #: lib/bibtime_web/live/public/registration_live/my_registration.ex:78
-#: lib/bibtime_web/live/public/registration_live/new.ex:114
+#: lib/bibtime_web/live/public/registration_live/new.ex:117
 #, elixir-autogen, elixir-format
 msgid "Back to race"
 msgstr ""
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:175
+#: lib/bibtime_web/live/public/registration_live/new.ex:184
 #, elixir-autogen, elixir-format
 msgid "Back to race page"
 msgstr ""
@@ -259,7 +259,7 @@ msgstr ""
 #: lib/bibtime_web/live/admin/participant_live/index.ex:233
 #: lib/bibtime_web/live/admin/timing_live/index.ex:258
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:215
-#: lib/bibtime_web/live/public/race_live/show.ex:174
+#: lib/bibtime_web/live/public/race_live/show.ex:202
 #: lib/bibtime_web/live/public/results_live/index.ex:247
 #, elixir-autogen, elixir-format
 msgid "Bib"
@@ -286,7 +286,7 @@ msgstr ""
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:75
 #: lib/bibtime_web/live/admin/participant_live/new.ex:76
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:155
-#: lib/bibtime_web/live/public/registration_live/new.ex:217
+#: lib/bibtime_web/live/public/registration_live/new.ex:226
 #, elixir-autogen, elixir-format
 msgid "Birth Date"
 msgstr ""
@@ -306,7 +306,7 @@ msgstr ""
 #: lib/bibtime_web/live/admin/payment_live/index.ex:153
 #: lib/bibtime_web/live/admin/photo_live/index.ex:95
 #: lib/bibtime_web/live/admin/photo_live/index.ex:202
-#: lib/bibtime_web/live/admin/race_live/edit.ex:146
+#: lib/bibtime_web/live/admin/race_live/edit.ex:168
 #: lib/bibtime_web/live/admin/race_live/new.ex:160
 #: lib/bibtime_web/live/admin/race_live/show.ex:485
 #, elixir-autogen, elixir-format
@@ -314,7 +314,7 @@ msgid "Cancel"
 msgstr ""
 
 #: lib/bibtime_web/live/admin/race_live/show.ex:193
-#: lib/bibtime_web/live/public/race_live/show.ex:144
+#: lib/bibtime_web/live/public/race_live/show.ex:172
 #, elixir-autogen, elixir-format
 msgid "Categories"
 msgstr ""
@@ -325,8 +325,8 @@ msgstr ""
 #: lib/bibtime_web/live/admin/participant_live/index.ex:254
 #: lib/bibtime_web/live/admin/participant_live/new.ex:89
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:136
-#: lib/bibtime_web/live/public/race_live/show.ex:183
-#: lib/bibtime_web/live/public/registration_live/new.ex:199
+#: lib/bibtime_web/live/public/race_live/show.ex:211
+#: lib/bibtime_web/live/public/registration_live/new.ex:208
 #: lib/bibtime_web/live/public/registration_live/show.ex:116
 #: lib/bibtime_web/live/public/results_live/index.ex:269
 #, elixir-autogen, elixir-format
@@ -354,7 +354,7 @@ msgstr ""
 msgid "Changing..."
 msgstr ""
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:169
+#: lib/bibtime_web/live/public/registration_live/new.ex:177
 #, elixir-autogen, elixir-format
 msgid "Check back later or view the results page for updates."
 msgstr ""
@@ -381,7 +381,7 @@ msgstr ""
 #: lib/bibtime_web/live/admin/participant_live/index.ex:265
 #: lib/bibtime_web/live/admin/participant_live/new.ex:84
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:227
-#: lib/bibtime_web/live/public/race_live/show.ex:180
+#: lib/bibtime_web/live/public/race_live/show.ex:208
 #: lib/bibtime_web/live/public/registration_live/my_registration.ex:116
 #: lib/bibtime_web/live/public/registration_live/show.ex:122
 #: lib/bibtime_web/live/public/results_live/index.ex:261
@@ -390,7 +390,7 @@ msgid "Club"
 msgstr ""
 
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:163
-#: lib/bibtime_web/live/public/registration_live/new.ex:232
+#: lib/bibtime_web/live/public/registration_live/new.ex:241
 #, elixir-autogen, elixir-format
 msgid "Club / Team"
 msgstr ""
@@ -400,7 +400,7 @@ msgstr ""
 msgid "Columns: bib_number, split_short_name, elapsed_time"
 msgstr ""
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:248
+#: lib/bibtime_web/live/public/registration_live/new.ex:257
 #, elixir-autogen, elixir-format
 msgid "Complete Registration"
 msgstr ""
@@ -477,7 +477,7 @@ msgstr ""
 #: lib/bibtime_web/live/admin/race_live/index.ex:39
 #: lib/bibtime_web/live/admin/race_live/new.ex:126
 #: lib/bibtime_web/live/admin/race_live/show.ex:58
-#: lib/bibtime_web/live/public/race_live/show.ex:68
+#: lib/bibtime_web/live/public/race_live/show.ex:85
 #: lib/bibtime_web/live/public/registration_live/show.ex:100
 #, elixir-autogen, elixir-format
 msgid "Date"
@@ -583,7 +583,7 @@ msgstr ""
 #: lib/bibtime_web/live/admin/user_live/index.ex:111
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:128
 #: lib/bibtime_web/live/public/registration_live/my_registration.ex:112
-#: lib/bibtime_web/live/public/registration_live/new.ex:193
+#: lib/bibtime_web/live/public/registration_live/new.ex:202
 #, elixir-autogen, elixir-format
 msgid "Email"
 msgstr ""
@@ -655,7 +655,7 @@ msgstr ""
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:72
 #: lib/bibtime_web/live/admin/participant_live/new.ex:73
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:112
-#: lib/bibtime_web/live/public/registration_live/new.ex:189
+#: lib/bibtime_web/live/public/registration_live/new.ex:198
 #, elixir-autogen, elixir-format
 msgid "First Name"
 msgstr ""
@@ -679,7 +679,7 @@ msgstr ""
 #: lib/bibtime_web/live/admin/race_live/show.ex:779
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:147
 #: lib/bibtime_web/live/public/registration_live/my_registration.ex:120
-#: lib/bibtime_web/live/public/registration_live/new.ex:209
+#: lib/bibtime_web/live/public/registration_live/new.ex:218
 #, elixir-autogen, elixir-format
 msgid "Gender"
 msgstr ""
@@ -766,7 +766,7 @@ msgstr ""
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:73
 #: lib/bibtime_web/live/admin/participant_live/new.ex:74
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:119
-#: lib/bibtime_web/live/public/registration_live/new.ex:190
+#: lib/bibtime_web/live/public/registration_live/new.ex:199
 #, elixir-autogen, elixir-format
 msgid "Last Name"
 msgstr ""
@@ -792,7 +792,7 @@ msgstr ""
 #: lib/bibtime_web/live/admin/race_live/index.ex:40
 #: lib/bibtime_web/live/admin/race_live/new.ex:127
 #: lib/bibtime_web/live/admin/race_live/show.ex:66
-#: lib/bibtime_web/live/public/race_live/show.ex:84
+#: lib/bibtime_web/live/public/race_live/show.ex:101
 #: lib/bibtime_web/live/public/registration_live/show.ex:106
 #, elixir-autogen, elixir-format
 msgid "Location"
@@ -922,7 +922,7 @@ msgstr ""
 #: lib/bibtime_web/live/admin/station_live/global_index.ex:153
 #: lib/bibtime_web/live/admin/timing_live/index.ex:259
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:221
-#: lib/bibtime_web/live/public/race_live/show.ex:177
+#: lib/bibtime_web/live/public/race_live/show.ex:205
 #: lib/bibtime_web/live/public/registration_live/show.ex:110
 #: lib/bibtime_web/live/public/results_live/index.ex:254
 #, elixir-autogen, elixir-format
@@ -1143,7 +1143,7 @@ msgstr ""
 msgid "Race timing,"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/race_live/edit.ex:184
+#: lib/bibtime_web/live/admin/race_live/edit.ex:206
 #, elixir-autogen, elixir-format
 msgid "Race updated successfully."
 msgstr ""
@@ -1171,17 +1171,17 @@ msgstr ""
 msgid "Record"
 msgstr ""
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:43
+#: lib/bibtime_web/live/public/registration_live/new.ex:45
 #, elixir-autogen, elixir-format
 msgid "Register"
 msgstr ""
 
-#: lib/bibtime_web/live/public/race_live/show.ex:120
+#: lib/bibtime_web/live/public/race_live/show.ex:148
 #, elixir-autogen, elixir-format
 msgid "Register Now"
 msgstr ""
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:120
+#: lib/bibtime_web/live/public/registration_live/new.ex:123
 #, elixir-autogen, elixir-format
 msgid "Register for %{name}"
 msgstr ""
@@ -1197,7 +1197,7 @@ msgstr ""
 msgid "Registered"
 msgstr ""
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:51
+#: lib/bibtime_web/live/public/registration_live/new.ex:54
 #, elixir-autogen, elixir-format
 msgid "Registration"
 msgstr ""
@@ -1219,12 +1219,12 @@ msgstr ""
 msgid "Registration Open"
 msgstr ""
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:165
+#: lib/bibtime_web/live/public/registration_live/new.ex:170
 #, elixir-autogen, elixir-format
 msgid "Registration is closed"
 msgstr ""
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:161
+#: lib/bibtime_web/live/public/registration_live/new.ex:166
 #, elixir-autogen, elixir-format
 msgid "Registration is not yet open"
 msgstr ""
@@ -1267,7 +1267,7 @@ msgstr ""
 msgid "Running"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/race_live/edit.ex:140
+#: lib/bibtime_web/live/admin/race_live/edit.ex:162
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:174
 #, elixir-autogen, elixir-format
 msgid "Save Changes"
@@ -1285,7 +1285,7 @@ msgid "Search by name or bib..."
 msgstr ""
 
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:137
-#: lib/bibtime_web/live/public/registration_live/new.ex:200
+#: lib/bibtime_web/live/public/registration_live/new.ex:209
 #, elixir-autogen, elixir-format
 msgid "Select a category"
 msgstr ""
@@ -1298,7 +1298,7 @@ msgstr ""
 
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:80
 #: lib/bibtime_web/live/admin/participant_live/new.ex:81
-#: lib/bibtime_web/live/public/registration_live/new.ex:210
+#: lib/bibtime_web/live/public/registration_live/new.ex:219
 #, elixir-autogen, elixir-format
 msgid "Select gender"
 msgstr ""
@@ -1369,7 +1369,7 @@ msgstr ""
 msgid "Splits and categories will be auto-created from the selected source."
 msgstr ""
 
-#: lib/bibtime_web/live/public/race_live/show.ex:162
+#: lib/bibtime_web/live/public/race_live/show.ex:190
 #, elixir-autogen, elixir-format
 msgid "Start List"
 msgstr ""
@@ -1416,7 +1416,7 @@ msgstr ""
 msgid "The link is invalid or it has expired."
 msgstr ""
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:163
+#: lib/bibtime_web/live/public/registration_live/new.ex:168
 #, elixir-autogen, elixir-format
 msgid "This race has already started"
 msgstr ""
@@ -1480,7 +1480,7 @@ msgstr ""
 #: lib/bibtime_web/live/admin/race_live/index.ex:41
 #: lib/bibtime_web/live/admin/race_live/show.ex:296
 #: lib/bibtime_web/live/admin/race_live/show.ex:373
-#: lib/bibtime_web/live/public/race_live/show.ex:95
+#: lib/bibtime_web/live/public/race_live/show.ex:112
 #, elixir-autogen, elixir-format
 msgid "Type"
 msgstr ""
@@ -1520,7 +1520,7 @@ msgstr ""
 msgid "View"
 msgstr ""
 
-#: lib/bibtime_web/live/public/race_live/show.ex:130
+#: lib/bibtime_web/live/public/race_live/show.ex:158
 #: lib/bibtime_web/live/public/registration_live/show.ex:155
 #, elixir-autogen, elixir-format
 msgid "View Results"
@@ -1589,7 +1589,7 @@ msgstr ""
 msgid "You need to reauthenticate to perform sensitive actions on your account."
 msgstr ""
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:226
+#: lib/bibtime_web/live/public/registration_live/new.ex:235
 #, elixir-autogen, elixir-format
 msgid "You'll be automatically placed in categories based on your info."
 msgstr ""
@@ -1599,7 +1599,7 @@ msgstr ""
 msgid "You're Registered!"
 msgstr ""
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:96
+#: lib/bibtime_web/live/public/registration_live/new.ex:99
 #, elixir-autogen, elixir-format
 msgid "You're registered!"
 msgstr ""
@@ -1973,7 +1973,7 @@ msgstr ""
 msgid "Uploaded Photos"
 msgstr ""
 
-#: lib/bibtime_web/live/public/race_live/show.ex:138
+#: lib/bibtime_web/live/public/race_live/show.ex:166
 #, elixir-autogen, elixir-format
 msgid "View Photos"
 msgstr ""
@@ -2034,12 +2034,12 @@ msgstr ""
 msgid "Confirm"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/race_live/edit.ex:109
+#: lib/bibtime_web/live/admin/race_live/edit.ex:131
 #, elixir-autogen, elixir-format
 msgid "Currency"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/race_live/edit.ex:103
+#: lib/bibtime_web/live/admin/race_live/edit.ex:125
 #, elixir-autogen, elixir-format
 msgid "E.g. 30000 = 300.00 SEK"
 msgstr ""
@@ -2049,17 +2049,17 @@ msgstr ""
 msgid "Early bird"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/race_live/edit.ex:130
+#: lib/bibtime_web/live/admin/race_live/edit.ex:152
 #, elixir-autogen, elixir-format
 msgid "Early bird deadline"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/race_live/edit.ex:119
+#: lib/bibtime_web/live/admin/race_live/edit.ex:141
 #, elixir-autogen, elixir-format
 msgid "Early bird fee (optional)"
 msgstr ""
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:145
+#: lib/bibtime_web/live/public/registration_live/new.ex:148
 #, elixir-autogen, elixir-format
 msgid "Early bird pricing until %{date}"
 msgstr ""
@@ -2069,12 +2069,12 @@ msgstr ""
 msgid "Entry Fee"
 msgstr ""
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:136
+#: lib/bibtime_web/live/public/registration_live/new.ex:139
 #, elixir-autogen, elixir-format
 msgid "Entry fee"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/race_live/edit.ex:97
+#: lib/bibtime_web/live/admin/race_live/edit.ex:119
 #, elixir-autogen, elixir-format
 msgid "Entry fee (in smallest currency unit)"
 msgstr ""
@@ -2090,7 +2090,7 @@ msgstr ""
 msgid "Hi %{name},"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/race_live/edit.ex:124
+#: lib/bibtime_web/live/admin/race_live/edit.ex:146
 #, elixir-autogen, elixir-format
 msgid "Leave empty for no early bird pricing"
 msgstr ""
@@ -2121,7 +2121,7 @@ msgstr ""
 msgid "Payment Receipt"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/race_live/edit.ex:78
+#: lib/bibtime_web/live/admin/race_live/edit.ex:100
 #, elixir-autogen, elixir-format
 msgid "Payment Settings"
 msgstr ""
@@ -2136,7 +2136,7 @@ msgstr ""
 msgid "Payment refunded successfully."
 msgstr ""
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:88
+#: lib/bibtime_web/live/public/registration_live/new.ex:91
 #, elixir-autogen, elixir-format
 msgid "Payment setup failed: %{reason}"
 msgstr ""
@@ -2182,12 +2182,12 @@ msgstr ""
 msgid "Refunded"
 msgstr ""
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:243
+#: lib/bibtime_web/live/public/registration_live/new.ex:252
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Register & Pay %{amount}"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/race_live/edit.ex:85
+#: lib/bibtime_web/live/admin/race_live/edit.ex:107
 #, elixir-autogen, elixir-format
 msgid "Require payment for registration"
 msgstr ""
@@ -2650,4 +2650,49 @@ msgstr ""
 #: lib/bibtime_web/live/admin/station_live/index.ex:98
 #, elixir-autogen, elixir-format
 msgid "Up: %{t}"
+msgstr ""
+
+#: lib/bibtime_web/live/public/race_live/show.ex:54
+#, elixir-autogen, elixir-format, fuzzy
+msgid "%{count} / %{limit} Registered"
+msgstr ""
+
+#: lib/bibtime_web/live/public/registration_live/new.ex:175
+#, elixir-autogen, elixir-format
+msgid "All available spots have been taken. Check back later in case spots open up."
+msgstr ""
+
+#: lib/bibtime_web/live/admin/race_live/edit.ex:91
+#, elixir-autogen, elixir-format
+msgid "Leave empty for unlimited registrations"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/race_live/edit.ex:86
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Participant limit"
+msgstr ""
+
+#: lib/bibtime_web/live/public/race_live/show.ex:67
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Registration Full"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/race_live/edit.ex:78
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Registration Settings"
+msgstr ""
+
+#: lib/bibtime_web/live/public/registration_live/new.ex:164
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Registration is full"
+msgstr ""
+
+#: lib/bibtime_web/live/public/race_live/show.ex:137
+#, elixir-autogen, elixir-format
+msgid "Registration is full. No more spots are available."
+msgstr ""
+
+#: lib/bibtime_web/live/admin/race_live/edit.ex:87
+#, elixir-autogen, elixir-format
+msgid "Unlimited"
 msgstr ""

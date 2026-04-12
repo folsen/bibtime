@@ -23,6 +23,9 @@ defmodule Bibtime.Races.Race do
     field :config, :map, default: %{}
     field :default_locale, :string
 
+    # Registration limit
+    field :participant_limit, :integer
+
     # Payment fields
     field :payment_required, :boolean, default: false
     field :entry_fee_cents, :integer
@@ -52,6 +55,7 @@ defmodule Bibtime.Races.Race do
       :status,
       :config,
       :default_locale,
+      :participant_limit,
       :payment_required,
       :entry_fee_cents,
       :currency,
@@ -64,6 +68,7 @@ defmodule Bibtime.Races.Race do
     )
     |> unique_constraint(:slug)
     |> validate_inclusion(:currency, ~w(SEK EUR NOK DKK))
+    |> validate_number(:participant_limit, greater_than: 0)
     |> validate_number(:entry_fee_cents, greater_than: 0)
     |> validate_number(:early_bird_fee_cents, greater_than: 0)
     |> validate_payment_fields()

@@ -72,6 +72,28 @@ defmodule BibtimeWeb.Admin.RaceLive.Edit do
             />
           </div>
 
+          <%!-- Registration Settings --%>
+          <div class="pt-4 border-t border-base-200">
+            <h3 class="text-sm font-semibold text-base-content/70 uppercase tracking-wider mb-4">
+              {gettext("Registration Settings")}
+            </h3>
+
+            <div class="space-y-4">
+              <div>
+                <.input
+                  field={@form[:participant_limit]}
+                  type="number"
+                  label={gettext("Participant limit")}
+                  placeholder={gettext("Unlimited")}
+                  min="1"
+                />
+                <p class="text-xs text-base-content/40 mt-1">
+                  {gettext("Leave empty for unlimited registrations")}
+                </p>
+              </div>
+            </div>
+          </div>
+
           <%!-- Payment Settings --%>
           <div class="pt-4 border-t border-base-200">
             <h3 class="text-sm font-semibold text-base-content/70 uppercase tracking-wider mb-4">

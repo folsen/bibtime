@@ -14,7 +14,9 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
       |> Races.get_race_by_slug!()
       |> Bibtime.Repo.preload([:categories, :auto_categories])
 
-    if Registration.registration_open?(race) do
+    registration_full = Registration.registration_full?(race)
+
+    if Registration.registration_open?(race) && !registration_full do
       has_manual_categories = race.categories != []
       auto_cat_types = race.auto_categories |> Enum.map(& &1.type) |> Enum.uniq()
       requires_gender = :gender in auto_cat_types
@@ -48,6 +50,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
          race: race,
          form: nil,
          fee_cents: 0,
+         registration_full: registration_full,
          page_title: gettext("Registration") <> " — " <> race.name
        )}
     end
@@ -157,6 +160,8 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
         </div>
         <h2 class="text-xl font-semibold text-base-content mb-2">
           <%= cond do %>
+            <% @registration_full -> %>
+              {gettext("Registration is full")}
             <% @race.status == :draft -> %>
               {gettext("Registration is not yet open")}
             <% @race.status in [:in_progress, :finished] -> %>
@@ -166,7 +171,11 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
           <% end %>
         </h2>
         <p class="text-base-content/50 mb-6">
-          {gettext("Check back later or view the results page for updates.")}
+          <%= if @registration_full do %>
+            {gettext("All available spots have been taken. Check back later in case spots open up.")}
+          <% else %>
+            {gettext("Check back later or view the results page for updates.")}
+          <% end %>
         </p>
         <.link
           navigate={~p"/races/#{@race.slug}"}

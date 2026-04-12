@@ -19,6 +19,15 @@ defmodule Bibtime.Registration do
   def registration_open?(_race), do: false
 
   @doc """
+  Returns true if the race has a participant limit and it has been reached.
+  """
+  def registration_full?(%{participant_limit: nil}), do: false
+
+  def registration_full?(%{participant_limit: limit, id: race_id}) do
+    Participants.count_participants(race_id) >= limit
+  end
+
+  @doc """
   Registers a participant for a race.
 
   Auto-assigns a bib number, generates a confirmation token, and creates
@@ -27,55 +36,63 @@ defmodule Bibtime.Registration do
   Returns {:ok, participant} or {:error, changeset}.
   """
   def register_participant(race, attrs) do
-    if registration_open?(race) do
-      bib_number = Participants.next_bib_number(race.id)
-      token = generate_token()
-      reg_opts = registration_opts(race)
+    cond do
+      not registration_open?(race) ->
+        {:error,
+         %Participant{}
+         |> Participant.registration_changeset(attrs)
+         |> Ecto.Changeset.add_error(:base, "Registration is not open for this race")}
 
-      initial_status = if race.payment_required, do: :pending_payment, else: :registered
+      registration_full?(race) ->
+        {:error,
+         %Participant{}
+         |> Participant.registration_changeset(attrs)
+         |> Ecto.Changeset.add_error(:base, "Registration is full")}
 
-      changeset =
-        %Participant{
-          race_id: race.id,
-          bib_number: bib_number,
-          confirmation_token: token,
-          status: initial_status
-        }
-        |> Participant.registration_changeset(attrs, reg_opts)
+      true ->
+        bib_number = Participants.next_bib_number(race.id)
+        token = generate_token()
+        reg_opts = registration_opts(race)
 
-      email =
-        Ecto.Changeset.get_change(changeset, :email) ||
-          Ecto.Changeset.get_field(changeset, :email)
+        initial_status = if race.payment_required, do: :pending_payment, else: :registered
 
-      case Repo.insert(changeset) do
-        {:ok, participant} ->
-          # Find or create a user account for this email
-          user = find_or_create_user(email)
+        changeset =
+          %Participant{
+            race_id: race.id,
+            bib_number: bib_number,
+            confirmation_token: token,
+            status: initial_status
+          }
+          |> Participant.registration_changeset(attrs, reg_opts)
 
-          if user do
-            participant
-            |> Ecto.Changeset.change(%{user_id: user.id})
-            |> Repo.update!()
-          end
+        email =
+          Ecto.Changeset.get_change(changeset, :email) ||
+            Ecto.Changeset.get_field(changeset, :email)
 
-          participant = Repo.preload(participant, :race_category)
+        case Repo.insert(changeset) do
+          {:ok, participant} ->
+            # Find or create a user account for this email
+            user = find_or_create_user(email)
 
-          # Only send confirmation email for free races.
-          # For paid races, the email is sent after payment confirmation.
-          unless race.payment_required do
-            RegistrationNotifier.deliver_confirmation(participant, race)
-          end
+            if user do
+              participant
+              |> Ecto.Changeset.change(%{user_id: user.id})
+              |> Repo.update!()
+            end
 
-          {:ok, participant}
+            participant = Repo.preload(participant, :race_category)
 
-        {:error, changeset} ->
-          {:error, changeset}
-      end
-    else
-      {:error,
-       %Participant{}
-       |> Participant.registration_changeset(attrs)
-       |> Ecto.Changeset.add_error(:base, "Registration is not open for this race")}
+            # Only send confirmation email for free races.
+            # For paid races, the email is sent after payment confirmation.
+            unless race.payment_required do
+              RegistrationNotifier.deliver_confirmation(participant, race)
+            end
+
+            {:ok, participant}
+
+          {:error, changeset} ->
+            {:error, changeset}
+        end
     end
   end
 

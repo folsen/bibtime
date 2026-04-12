@@ -9,12 +9,13 @@ defmodule Bibtime.RegistrationTest do
   # Helpers
   # ---------------------------------------------------------------------------
 
-  defp create_race!(status \\ :registration_open) do
+  defp create_race!(status \\ :registration_open, opts \\ []) do
     Repo.insert!(%Race{
       name: "Reg Race",
       slug: "reg-race-#{System.unique_integer([:positive])}",
       race_type: :running,
-      status: status
+      status: status,
+      participant_limit: Keyword.get(opts, :participant_limit)
     })
   end
 
@@ -75,6 +76,38 @@ defmodule Bibtime.RegistrationTest do
   end
 
   # ---------------------------------------------------------------------------
+  # registration_full?/1
+  # ---------------------------------------------------------------------------
+
+  describe "registration_full?/1" do
+    test "returns false when no participant_limit is set" do
+      race = create_race!()
+      insert_participant!(race, "1")
+      assert Registration.registration_full?(race) == false
+    end
+
+    test "returns false when participant count is below limit" do
+      race = create_race!(:registration_open, participant_limit: 3)
+      insert_participant!(race, "1")
+      assert Registration.registration_full?(race) == false
+    end
+
+    test "returns true when participant count equals limit" do
+      race = create_race!(:registration_open, participant_limit: 2)
+      insert_participant!(race, "1")
+      insert_participant!(race, "2")
+      assert Registration.registration_full?(race) == true
+    end
+
+    test "returns true when participant count exceeds limit" do
+      race = create_race!(:registration_open, participant_limit: 1)
+      insert_participant!(race, "1")
+      insert_participant!(race, "2")
+      assert Registration.registration_full?(race) == true
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # register_participant/2
   # ---------------------------------------------------------------------------
 
@@ -112,6 +145,26 @@ defmodule Bibtime.RegistrationTest do
                Registration.register_participant(race, valid_attrs(category))
 
       assert %{base: ["Registration is not open for this race"]} = errors_on(changeset)
+    end
+
+    test "fails when participant limit is reached" do
+      race = create_race!(:registration_open, participant_limit: 1)
+      category = create_category!(race)
+      insert_participant!(race, "1")
+
+      assert {:error, changeset} =
+               Registration.register_participant(race, valid_attrs(category))
+
+      assert %{base: ["Registration is full"]} = errors_on(changeset)
+    end
+
+    test "succeeds when participant limit is not yet reached" do
+      race = create_race!(:registration_open, participant_limit: 5)
+      category = create_category!(race)
+      insert_participant!(race, "1")
+
+      assert {:ok, %Participant{}} =
+               Registration.register_participant(race, valid_attrs(category))
     end
 
     # -------------------------------------------------------------------------

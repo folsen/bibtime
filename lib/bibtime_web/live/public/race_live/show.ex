@@ -4,6 +4,7 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
   alias Bibtime.Photos
   alias Bibtime.Races
   alias Bibtime.Participants
+  alias Bibtime.Registration
 
   @impl true
   def mount(%{"slug" => slug}, _session, socket) do
@@ -15,6 +16,7 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
     participants = Participants.list_participants(race.id)
     participant_count = Participants.count_participants(race.id)
     photo_count = Photos.count_photos(race.id)
+    registration_full = Registration.registration_full?(race)
 
     {:ok,
      assign(socket,
@@ -22,6 +24,7 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
        participants: participants,
        participant_count: participant_count,
        photo_count: photo_count,
+       registration_full: registration_full,
        page_title: race.name
      )}
   end
@@ -47,7 +50,21 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
                 class="inline-flex items-center gap-1.5 rounded-full bg-base-300/50 px-3 py-1 text-xs font-semibold text-base-content/70"
               >
                 <.icon name="hero-users" class="size-3.5" />
-                {ngettext("%{count} Registered", "%{count} Registered", @participant_count)}
+                <%= if @race.participant_limit do %>
+                  {gettext("%{count} / %{limit} Registered",
+                    count: @participant_count,
+                    limit: @race.participant_limit
+                  )}
+                <% else %>
+                  {ngettext("%{count} Registered", "%{count} Registered", @participant_count)}
+                <% end %>
+              </span>
+              <span
+                :if={@registration_full}
+                class="inline-flex items-center gap-1.5 rounded-full bg-error/10 text-error border border-error/20 px-3 py-1 text-xs font-semibold"
+              >
+                <.icon name="hero-no-symbol" class="size-3.5" />
+                {gettext("Registration Full")}
               </span>
             </div>
           </div>
@@ -110,10 +127,21 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
         <p class="text-base-content/80 leading-relaxed">{@race.description}</p>
       </div>
 
+      <%!-- Registration full banner --%>
+      <div
+        :if={@race.status == :registration_open && @registration_full}
+        class="rounded-lg bg-warning/10 border border-warning/20 px-5 py-4 mb-4 flex items-center gap-3"
+      >
+        <.icon name="hero-exclamation-triangle" class="size-5 text-warning shrink-0" />
+        <p class="text-sm font-medium text-base-content">
+          {gettext("Registration is full. No more spots are available.")}
+        </p>
+      </div>
+
       <%!-- CTA buttons --%>
       <div class="mb-10 flex flex-wrap gap-4">
         <.link
-          :if={@race.status == :registration_open}
+          :if={@race.status == :registration_open && !@registration_full}
           navigate={~p"/races/#{@race.slug}/register"}
           class="btn btn-primary btn-lg gap-2 shadow-md hover:shadow-lg transition-shadow"
         >
