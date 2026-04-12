@@ -39,7 +39,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 echo "==> Provisioning $1 (user: bibtime)"
 
 echo "--- Installing system packages (Erlang, Elixir, build-essential)..."
-ssh "$HOST" "sudo apt update -qq && sudo apt install -y -qq elixir build-essential"
+ssh "$HOST" "sudo apt update -qq && sudo apt install -y -qq elixir erlang-dev build-essential"
 
 echo "--- Setting up directories and permissions..."
 ssh "$HOST" bash <<'REMOTE'

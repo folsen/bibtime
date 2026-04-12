@@ -43,7 +43,7 @@ ssh "$HOST" bash <<'REMOTE'
 set -euo pipefail
 
 cd /opt/bibtime_source
-MIX_ENV=prod mix deps.get --only prod
+MIX_ENV=prod mix deps.get
 MIX_ENV=prod mix release --overwrite
 
 echo "--- Unpacking release..."
@@ -53,9 +53,8 @@ REMOTE
 echo "--- Restarting service..."
 ssh "$HOST" "sudo systemctl restart bibtime_station"
 
-echo "--- Checking status..."
-sleep 2
-ssh "$HOST" "sudo systemctl status bibtime_station --no-pager -l" || true
+echo "--- Waiting for service to start..."
+ssh "$HOST" "sleep 2 && sudo systemctl status bibtime_station --no-pager -l" || true
 
 echo ""
 echo "==> Deploy complete! Tail logs with:"
