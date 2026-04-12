@@ -82,6 +82,7 @@ msgstr ""
 #: lib/bibtime_web/live/admin/race_live/show.ex:208
 #: lib/bibtime_web/live/admin/race_live/show.ex:299
 #: lib/bibtime_web/live/admin/race_live/show.ex:421
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:80
 #: lib/bibtime_web/live/admin/timing_live/index.ex:262
 #: lib/bibtime_web/live/admin/user_live/index.ex:114
 #, elixir-autogen, elixir-format
@@ -465,7 +466,7 @@ msgstr ""
 msgid "DNS / DNF"
 msgstr ""
 
-#: lib/bibtime_web/components/layouts/admin.html.heex:73
+#: lib/bibtime_web/components/layouts/admin.html.heex:93
 #, elixir-autogen, elixir-format
 msgid "Dashboard"
 msgstr ""
@@ -486,6 +487,7 @@ msgstr ""
 #: lib/bibtime_web/live/admin/race_live/show.ex:231
 #: lib/bibtime_web/live/admin/race_live/show.ex:323
 #: lib/bibtime_web/live/admin/race_live/show.ex:519
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:115
 #, elixir-autogen, elixir-format
 msgid "Delete"
 msgstr ""
@@ -916,6 +918,8 @@ msgstr ""
 #: lib/bibtime_web/live/admin/race_live/show.ex:415
 #: lib/bibtime_web/live/admin/race_live/show.ex:438
 #: lib/bibtime_web/live/admin/race_live/show.ex:543
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:75
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:157
 #: lib/bibtime_web/live/admin/timing_live/index.ex:259
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:221
 #: lib/bibtime_web/live/public/race_live/show.ex:177
@@ -1055,7 +1059,7 @@ msgid "Participant updated successfully."
 msgstr ""
 
 #: lib/bibtime/results/pdf_template.ex:60
-#: lib/bibtime_web/components/layouts/admin.html.heex:79
+#: lib/bibtime_web/components/layouts/admin.html.heex:99
 #: lib/bibtime_web/live/admin/participant_live/index.ex:171
 #: lib/bibtime_web/live/admin/race_live/show.ex:100
 #, elixir-autogen, elixir-format
@@ -1384,6 +1388,7 @@ msgstr ""
 #: lib/bibtime_web/live/admin/race_live/edit.ex:69
 #: lib/bibtime_web/live/admin/race_live/index.ex:42
 #: lib/bibtime_web/live/admin/race_live/new.ex:145
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:78
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:246
 #: lib/bibtime_web/live/public/results_live/index.ex:303
 #, elixir-autogen, elixir-format
@@ -1421,7 +1426,7 @@ msgstr ""
 msgid "This race is already in progress. Your registration details can no longer be changed."
 msgstr ""
 
-#: lib/bibtime_web/components/layouts/admin.html.heex:85
+#: lib/bibtime_web/components/layouts/admin.html.heex:105
 #: lib/bibtime_web/live/admin/race_live/show.ex:119
 #, elixir-autogen, elixir-format
 msgid "Timing"
@@ -1891,7 +1896,7 @@ msgstr ""
 msgid "Photo tags saved."
 msgstr ""
 
-#: lib/bibtime_web/components/layouts/admin.html.heex:97
+#: lib/bibtime_web/components/layouts/admin.html.heex:117
 #: lib/bibtime_web/live/admin/photo_live/index.ex:20
 #: lib/bibtime_web/live/admin/photo_live/index.ex:36
 #: lib/bibtime_web/live/admin/race_live/show.ex:158
@@ -2319,7 +2324,7 @@ msgstr ""
 msgid "Split updated."
 msgstr ""
 
-#: lib/bibtime_web/components/layouts/admin.html.heex:91
+#: lib/bibtime_web/components/layouts/admin.html.heex:111
 #: lib/bibtime_web/live/admin/check_in_live/index.ex:68
 #, elixir-autogen, elixir-format
 msgid "Check-In"
@@ -2414,6 +2419,7 @@ msgid "Tag not assigned to any participant. Select one first."
 msgstr ""
 
 #: lib/bibtime_web/live/admin/check_in_live/index.ex:218
+#: lib/bibtime_web/live/admin/station_live/index.ex:96
 #, elixir-autogen, elixir-format
 msgid "Unassign"
 msgstr ""
@@ -2421,4 +2427,202 @@ msgstr ""
 #: lib/bibtime_web/live/admin/check_in_live/index.ex:79
 #, elixir-autogen, elixir-format
 msgid "checked in"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/index.ex:272
+#, elixir-autogen, elixir-format
+msgid "%{n}h ago"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/index.ex:271
+#, elixir-autogen, elixir-format
+msgid "%{n}m ago"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/index.ex:270
+#, elixir-autogen, elixir-format
+msgid "%{n}s ago"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:127
+#, elixir-autogen, elixir-format
+msgid "Add Station"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:175
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Create"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:63
+#, elixir-autogen, elixir-format
+msgid "Dismiss"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:79
+#, elixir-autogen, elixir-format
+msgid "Firmware"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:48
+#, elixir-autogen, elixir-format
+msgid "Station created — copy the token now"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:202
+#, elixir-autogen, elixir-format
+msgid "Station created."
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:230
+#, elixir-autogen, elixir-format
+msgid "Station deleted."
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:51
+#, elixir-autogen, elixir-format
+msgid "This token will not be shown again. Paste it into the station's firmware configuration."
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:30
+#: lib/bibtime_web/live/admin/station_live/index.ex:47
+#, elixir-autogen, elixir-format
+msgid "Timing Stations"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/index.ex:268
+#: lib/bibtime_web/live/admin/station_live/index.ex:269
+#, elixir-autogen, elixir-format
+msgid "just now"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/index.ex:262
+#, elixir-autogen, elixir-format
+msgid "never"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/index.ex:114
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Assign"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:77
+#, elixir-autogen, elixir-format
+msgid "Assignment"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/index.ex:139
+#, elixir-autogen, elixir-format
+msgid "Create a new station"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:112
+#, elixir-autogen, elixir-format
+msgid "Delete this station? Any race assignments will be removed."
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:149
+#, elixir-autogen, elixir-format
+msgid "Enter token manually"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/index.ex:171
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Failed to assign station."
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/index.ex:187
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Failed to unassign station."
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:139
+#, elixir-autogen, elixir-format
+msgid "Generate token"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/index.ex:55
+#, elixir-autogen, elixir-format
+msgid "Manage all stations"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:33
+#, elixir-autogen, elixir-format
+msgid "Manage physical timing stations. Assign them to race splits from each race's station page."
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/index.ex:137
+#, elixir-autogen, elixir-format
+msgid "No unassigned stations available."
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:173
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Optional"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:167
+#, elixir-autogen, elixir-format
+msgid "Paste the token from the station label"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/index.ex:153
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Please select a station."
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/index.ex:86
+#, elixir-autogen, elixir-format
+msgid "Reads: %{n}"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/index.ex:108
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Select a station..."
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:76
+#, elixir-autogen, elixir-format
+msgid "Serial"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:172
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Serial Number"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/index.ex:168
+#, elixir-autogen, elixir-format
+msgid "Station assigned to %{split}."
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/index.ex:184
+#, elixir-autogen, elixir-format
+msgid "Station unassigned."
+msgstr ""
+
+#: lib/bibtime_web/components/layouts/admin.html.heex:73
+#: lib/bibtime_web/components/layouts/admin.html.heex:123
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Stations"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/index.ex:128
+#, elixir-autogen, elixir-format, fuzzy
+msgid "This race has no splits yet. Add splits before assigning stations."
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:165
+#, elixir-autogen, elixir-format
+msgid "Token"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:241
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Unassigned"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:159
+#, elixir-autogen, elixir-format, fuzzy
+msgid "e.g. Finish Line Reader"
 msgstr ""

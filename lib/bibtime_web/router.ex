@@ -88,6 +88,7 @@ defmodule BibtimeWeb.Router do
       live "/admin/races/:id/photos", Admin.PhotoLive.Index, :index
       live "/admin/races/:id/payments", Admin.PaymentLive.Index, :index
       live "/admin/users", Admin.UserLive.Index, :index
+      live "/admin/stations", Admin.StationLive.GlobalIndex, :index
     end
   end
 
@@ -100,6 +101,7 @@ defmodule BibtimeWeb.Router do
       layout: {BibtimeWeb.Layouts, :admin} do
       live "/admin/races/:id/timing", Admin.TimingLive.Index, :index
       live "/admin/races/:id/check-in", Admin.CheckInLive.Index, :index
+      live "/admin/races/:id/stations", Admin.StationLive.Index, :index
     end
   end
 
@@ -108,6 +110,15 @@ defmodule BibtimeWeb.Router do
     pipe_through :api
 
     get "/healthz", HealthController, :index
+  end
+
+  # Station API (token auth handled in the controller plug)
+  scope "/api", BibtimeWeb.API do
+    pipe_through :api
+
+    post "/stations/:token/reads", StationController, :create_read
+    post "/stations/:token/reads/batch", StationController, :create_reads_batch
+    put "/stations/:token/heartbeat", StationController, :heartbeat
   end
 
   # Stripe webhook endpoint (no auth, no CSRF — signature verified in controller)

@@ -26,4 +26,11 @@ defmodule Bibtime.TimingFixtures do
 
     race_start
   end
+
+  def station_fixture(attrs \\ %{}) do
+    attrs = Map.put_new(attrs, "name", "Test Station")
+
+    {:ok, station} = Timing.create_timing_station(attrs)
+    station
+  end
 end

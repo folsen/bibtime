@@ -1,0 +1,50 @@
+[Unit]
+Description=BibTime RFID Timing Station
+Documentation=https://github.com/folsen/bibtime
+# Wait for the network to be ready before starting — the application
+# can survive a missing network (it buffers reads to disk and the
+# Heartbeat retries), but starting cleanly is nicer.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=bibtime
+Group=bibtime
+
+# Where the release is unpacked. The deploy script (or your manual
+# scp) puts the extracted release here.
+WorkingDirectory=/opt/bibtime_station
+ExecStart=/opt/bibtime_station/bin/bibtime_station start
+ExecStop=/opt/bibtime_station/bin/bibtime_station stop
+
+# Per-station configuration. The release reads these env vars at boot
+# via config/runtime.exs. Edit /etc/default/bibtime_station and run
+# `systemctl restart bibtime_station` to apply.
+EnvironmentFile=/etc/default/bibtime_station
+
+# Restart on failure with a small backoff so we don't hammer the CPU
+# if the application crashes immediately at startup.
+Restart=on-failure
+RestartSec=5
+
+# Standard output / errors → journald (view with `journalctl -u
+# bibtime_station -f`).
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=bibtime_station
+
+# Allow the application to write to its data directory but lock down
+# everything else for safety. /var/lib/bibtime_station holds the DETS
+# offline buffer.
+ReadWritePaths=/var/lib/bibtime_station
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+
+# The user needs to be in the `dialout` group to access /dev/ttyUSB0.
+# Add it once with: sudo usermod -aG dialout bibtime
+
+[Install]
+WantedBy=multi-user.target
