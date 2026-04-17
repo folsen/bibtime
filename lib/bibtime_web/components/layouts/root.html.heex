@@ -4,20 +4,33 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title default="BibTime" suffix=" · BibTime">
+    <.live_title default={@site_settings.site_name} suffix={" · #{@site_settings.site_name}"}>
       {assigns[:page_title]}
     </.live_title>
+    <meta property="og:title" content={@site_settings.site_name} />
+    <meta
+      :if={Bibtime.SiteSettings.localized(@site_settings, :hero_subtitle)}
+      property="og:description"
+      content={Bibtime.SiteSettings.localized(@site_settings, :hero_subtitle)}
+    />
+    <meta property="og:type" content="website" />
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
     </script>
     <script src={~p"/assets/js/theme.js"}>
     </script>
   </head>
-  <body class="bg-base-100 text-base-content min-h-screen">
+  <body class="bg-base-100 text-base-content min-h-screen flex flex-col">
     <header class="bibtime-header bg-base-100 border-b border-base-300">
       <div class="max-w-7xl mx-auto flex items-center gap-6 px-4 sm:px-6 lg:px-8 h-14">
         <a href="/" class="flex items-center gap-2 group">
-          <span class="text-xl font-bold tracking-tight text-primary">Bib</span><span class="text-xl font-bold tracking-tight text-base-content">Time</span>
+          <%= if @site_settings.site_name == "BibTime" do %>
+            <span class="text-xl font-bold tracking-tight text-primary">Bib</span><span class="text-xl font-bold tracking-tight text-base-content">Time</span>
+          <% else %>
+            <span class="text-xl font-bold tracking-tight text-primary">
+              {@site_settings.site_name}
+            </span>
+          <% end %>
         </a>
 
         <nav class="ml-auto flex items-center gap-5 text-sm">
@@ -82,6 +95,12 @@
         </nav>
       </div>
     </header>
-    {@inner_content}
+    <div class="flex-1">
+      {@inner_content}
+    </div>
+    <BibtimeWeb.Layouts.powered_by_footer
+      :if={!assigns[:hide_root_footer]}
+      site_settings={@site_settings}
+    />
   </body>
 </html>

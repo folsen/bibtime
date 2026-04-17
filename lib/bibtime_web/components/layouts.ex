@@ -35,18 +35,66 @@ defmodule BibtimeWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <main class="min-h-[calc(100vh-3.5rem)]">
+    <main>
       <.flash_group flash={@flash} />
       {render_slot(@inner_block)}
     </main>
+    """
+  end
 
+  @doc """
+  Subtle footer with "Powered by BibTime" link and optional organizer contact.
+
+  Rendered globally by root.html.heex (skipped by the kiosk root layout).
+  """
+  attr :site_settings, :map, required: true
+
+  def powered_by_footer(assigns) do
+    ~H"""
     <footer class="border-t border-base-300 bg-base-200/40">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between text-sm text-base-content/40">
-        <span>BibTime &mdash; Open-source race timing</span>
-        <span class="font-mono text-xs">v0.1</span>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-wrap items-center justify-between gap-4 text-xs text-base-content/40">
+        <span>
+          {gettext("Powered by")}
+          <a
+            href="https://bibtime.io"
+            target="_blank"
+            rel="noopener"
+            class="hover:text-primary transition-colors"
+          >
+            BibTime
+          </a>
+        </span>
+        <div
+          :if={@site_settings.organizer_email || @site_settings.organizer_website}
+          class="flex items-center gap-4"
+        >
+          <a
+            :if={@site_settings.organizer_email}
+            href={"mailto:#{@site_settings.organizer_email}"}
+            class="hover:text-primary transition-colors"
+          >
+            {@site_settings.organizer_email}
+          </a>
+          <a
+            :if={@site_settings.organizer_website}
+            href={@site_settings.organizer_website}
+            target="_blank"
+            rel="noopener"
+            class="hover:text-primary transition-colors"
+          >
+            {display_website(@site_settings.organizer_website)}
+          </a>
+        </div>
       </div>
     </footer>
     """
+  end
+
+  defp display_website(url) do
+    url
+    |> String.replace_prefix("https://", "")
+    |> String.replace_prefix("http://", "")
+    |> String.trim_trailing("/")
   end
 
   @doc """

@@ -10,7 +10,7 @@ defmodule Bibtime.Accounts.UserNotifier do
     email =
       new()
       |> to(recipient)
-      |> from({"Bibtime", "contact@example.com"})
+      |> from({Bibtime.SiteSettings.get().site_name, "contact@example.com"})
       |> subject(subject)
       |> text_body(body)
 

@@ -25,6 +25,7 @@ defmodule BibtimeWeb.Router do
 
     plug :fetch_current_scope_for_user
     plug BibtimeWeb.Plugs.SetLocale
+    plug BibtimeWeb.Plugs.AssignSiteSettings
   end
 
   pipeline :api do
@@ -76,7 +77,10 @@ defmodule BibtimeWeb.Router do
     pipe_through [:browser, :require_authenticated_user, :require_admin_user]
 
     live_session :admin,
-      on_mount: [{BibtimeWeb.UserAuth, :require_authenticated_user}],
+      on_mount: [
+        {BibtimeWeb.UserAuth, :require_authenticated_user},
+        {BibtimeWeb.UserAuth, :hide_root_footer}
+      ],
       layout: {BibtimeWeb.Layouts, :admin} do
       live "/admin/races", Admin.RaceLive.Index, :index
       live "/admin/races/new", Admin.RaceLive.New, :new
@@ -89,6 +93,7 @@ defmodule BibtimeWeb.Router do
       live "/admin/races/:id/payments", Admin.PaymentLive.Index, :index
       live "/admin/users", Admin.UserLive.Index, :index
       live "/admin/stations", Admin.StationLive.GlobalIndex, :index
+      live "/admin/settings", Admin.SettingsLive.Edit, :edit
     end
   end
 
@@ -97,7 +102,10 @@ defmodule BibtimeWeb.Router do
     pipe_through [:browser, :require_authenticated_user, :require_timer_or_admin_user]
 
     live_session :timer,
-      on_mount: [{BibtimeWeb.UserAuth, :require_authenticated_user}],
+      on_mount: [
+        {BibtimeWeb.UserAuth, :require_authenticated_user},
+        {BibtimeWeb.UserAuth, :hide_root_footer}
+      ],
       layout: {BibtimeWeb.Layouts, :admin} do
       live "/admin/races/:id/timing", Admin.TimingLive.Index, :index
       live "/admin/races/:id/check-in", Admin.CheckInLive.Index, :index

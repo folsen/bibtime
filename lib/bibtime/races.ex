@@ -20,6 +20,8 @@ defmodule Bibtime.Races do
     |> Repo.all()
   end
 
+  def get_race(id), do: Repo.get(Race, id)
+
   def get_race!(id, opts \\ []) do
     race = Repo.get!(Race, id)
 

@@ -1,58 +1,77 @@
-<%!-- Hero Section --%>
-<div class="bg-gradient-to-b from-base-200/60 to-base-100">
-  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-    <div class="text-center">
-      <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-base-content">
-        {gettext("Race timing,")} <span class="text-primary">{gettext("simplified.")}</span>
-      </h1>
-      <p class="mt-4 text-lg text-base-content/60 max-w-2xl mx-auto">
-        {gettext(
-          "Self-hosted, open-source timing for triathlons, running races, and more. Live results, multi-split tracking, no vendor lock-in."
-        )}
-      </p>
-      <div :if={!@current_scope} class="mt-8 flex items-center justify-center gap-4">
-        <.link href={~p"/users/log-in"} class="btn btn-primary btn-lg">
-          {gettext("Log in")}
-        </.link>
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <%!-- Hero Section --%>
+  <div class="bg-gradient-to-b from-base-200/60 to-base-100">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+      <div class="text-center">
+        <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-base-content">
+          <%= case Bibtime.SiteSettings.localized(@site_settings, :hero_title) do %>
+            <% nil -> %>
+              {gettext("Race timing,")} <span class="text-primary">{gettext("simplified.")}</span>
+            <% title -> %>
+              {title}
+          <% end %>
+        </h1>
+        <p class="mt-4 text-lg text-base-content/60 max-w-2xl mx-auto">
+          <%= case Bibtime.SiteSettings.localized(@site_settings, :hero_subtitle) do %>
+            <% nil -> %>
+              {gettext(
+                "Self-hosted, open-source timing for triathlons, running races, and more. Live results, multi-split tracking, no vendor lock-in."
+              )}
+            <% subtitle -> %>
+              {subtitle}
+          <% end %>
+        </p>
+        <div class="mt-8 flex items-center justify-center gap-4">
+          <%= case @cta do %>
+            <% {:link, label, url} -> %>
+              <.link href={url} class="btn btn-primary btn-lg">
+                {label}
+              </.link>
+            <% :default -> %>
+              <.link :if={!@current_scope} href={~p"/users/log-in"} class="btn btn-primary btn-lg">
+                {gettext("Log in")}
+              </.link>
+          <% end %>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<%!-- Active Races --%>
-<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-  <h2 class="text-sm font-semibold uppercase tracking-wider text-base-content/40 mb-6">
-    {gettext("Active Races")}
-  </h2>
+  <%!-- Active Races --%>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h2 class="text-sm font-semibold uppercase tracking-wider text-base-content/40 mb-6">
+      {gettext("Active Races")}
+    </h2>
 
-  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    <%= for race <- Bibtime.Races.list_races() do %>
-      <.link
-        navigate={"/races/#{race.slug}"}
-        class="group block rounded-xl border border-base-300 bg-base-100 p-5 card-hover"
-      >
-        <div class="flex items-start justify-between mb-3">
-          <h3 class="font-semibold text-base-content group-hover:text-primary transition-colors">
-            {race.name}
-          </h3>
-          <span class={[
-            "text-xs font-medium rounded-full px-2 py-0.5 shrink-0 ml-2",
-            race_status_style(race.status)
-          ]}>
-            {format_race_status(race.status)}
-          </span>
-        </div>
-        <div class="flex flex-col gap-1 text-sm text-base-content/50">
-          <span :if={race.date}>
-            {format_date_short(race.date)}
-          </span>
-          <span :if={race.location}>{race.location}</span>
-        </div>
-      </.link>
-    <% end %>
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <%= for race <- @races do %>
+        <.link
+          navigate={"/races/#{race.slug}"}
+          class="group block rounded-xl border border-base-300 bg-base-100 p-5 card-hover"
+        >
+          <div class="flex items-start justify-between mb-3">
+            <h3 class="font-semibold text-base-content group-hover:text-primary transition-colors">
+              {race.name}
+            </h3>
+            <span class={[
+              "text-xs font-medium rounded-full px-2 py-0.5 shrink-0 ml-2",
+              race_status_style(race.status)
+            ]}>
+              {format_race_status(race.status)}
+            </span>
+          </div>
+          <div class="flex flex-col gap-1 text-sm text-base-content/50">
+            <span :if={race.date}>
+              {format_date_short(race.date)}
+            </span>
+            <span :if={race.location}>{race.location}</span>
+          </div>
+        </.link>
+      <% end %>
+    </div>
+
+    <p :if={@races == []} class="text-center text-base-content/40 py-12">
+      {gettext("No races yet. Log in to create your first event.")}
+    </p>
   </div>
-
-  <p :if={Bibtime.Races.list_races() == []} class="text-center text-base-content/40 py-12">
-    {gettext("No races yet. Log in to create your first event.")}
-  </p>
-</div>
+</Layouts.app>

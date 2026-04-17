@@ -9,7 +9,7 @@ defmodule Bibtime.Payments.PaymentNotifier do
     email =
       new()
       |> to(recipient)
-      |> from({"BibTime", "contact@example.com"})
+      |> from({Bibtime.SiteSettings.get().site_name, "contact@example.com"})
       |> subject(subject)
       |> text_body(body)
 

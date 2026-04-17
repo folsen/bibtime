@@ -256,12 +256,14 @@ defmodule BibtimeWeb.UserAuth do
   def on_mount(:assign_current_scope, _params, session, socket) do
     socket = mount_current_scope(socket, session)
     set_locale_from_session(session)
+    socket = assign_site_settings(socket)
     {:cont, socket}
   end
 
   def on_mount(:require_authenticated_user, _params, session, socket) do
     socket = mount_current_scope(socket, session)
     set_locale_from_session(session)
+    socket = assign_site_settings(socket)
 
     if socket.assigns.current_scope && socket.assigns.current_scope.user do
       {:cont, socket}
@@ -273,6 +275,16 @@ defmodule BibtimeWeb.UserAuth do
 
       {:halt, socket}
     end
+  end
+
+  def on_mount(:hide_root_footer, _params, _session, socket) do
+    {:cont, Phoenix.Component.assign(socket, :hide_root_footer, true)}
+  end
+
+  defp assign_site_settings(socket) do
+    Phoenix.Component.assign_new(socket, :site_settings, fn ->
+      Bibtime.SiteSettings.get()
+    end)
   end
 
   defp mount_current_scope(socket, session) do
