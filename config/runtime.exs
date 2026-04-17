@@ -115,9 +115,31 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
-  host = System.get_env("PHX_HOST") || "example.com"
+  host =
+    System.get_env("PHX_HOST") ||
+      raise """
+      environment variable PHX_HOST is missing.
+      This is the public hostname used for URLs in emails and meta tags.
+      Example: bibtime.example.com
+      On Fly.io: fly secrets set PHX_HOST=your.domain.com
+      """
 
   config :bibtime, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
+
+  # Outbound email sender. Must be on a domain verified with your mail
+  # provider (e.g. Resend). Defaults point at a placeholder so misconfigured
+  # deploys fail loudly in the provider's UI rather than silently.
+  config :bibtime,
+    mailer_from_address: System.get_env("MAILER_FROM_ADDRESS", "no-reply@example.com")
+
+  # Resend mailer (opt-in via env var). When unset, the app falls back to
+  # the Swoosh.Adapters.Local adapter configured in config.exs — useful for
+  # staging where you inspect mail at /dev/mailbox.
+  if resend_api_key = System.get_env("RESEND_API_KEY") do
+    config :bibtime, Bibtime.Mailer,
+      adapter: Swoosh.Adapters.Resend,
+      api_key: resend_api_key
+  end
 
   config :bibtime, BibtimeWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],

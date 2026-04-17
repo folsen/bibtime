@@ -48,8 +48,18 @@ RUN mix release
 FROM ${RUNNER_IMAGE}
 
 RUN apt-get update -y && \
-    apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates sqlite3 \
+    apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates sqlite3 curl \
     && apt-get clean && rm -f /var/lib/apt/lists/*_*
+
+# Install Litestream for continuous SQLite backups to object storage.
+ARG LITESTREAM_VERSION=0.3.13
+RUN set -eux; \
+    arch="$(dpkg --print-architecture)"; \
+    curl -fsSL -o /tmp/litestream.tar.gz \
+      "https://github.com/benbjohnson/litestream/releases/download/v${LITESTREAM_VERSION}/litestream-v${LITESTREAM_VERSION}-linux-${arch}.tar.gz"; \
+    tar -C /usr/local/bin -xzf /tmp/litestream.tar.gz; \
+    rm /tmp/litestream.tar.gz; \
+    litestream version
 
 # Set the locale
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
@@ -65,6 +75,9 @@ ENV MIX_ENV="prod"
 # Only copy the release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/bibtime ./
 
+# Litestream reads /etc/litestream.yml by default; env vars are interpolated at runtime.
+COPY litestream.yml /etc/litestream.yml
+
 # Create data directory for SQLite database
 RUN mkdir -p /data && chown nobody:root /data
 
@@ -72,10 +85,11 @@ USER nobody
 
 ENV DATABASE_PATH=/data/bibtime.db
 ENV PHX_SERVER=true
+ENV PORT=8080
 
-EXPOSE 4000
+EXPOSE 8080
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:4000/healthz || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:8080/healthz || exit 1
 
-CMD ["bin/server"]
+CMD ["bin/docker-entrypoint"]

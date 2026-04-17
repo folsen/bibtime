@@ -5,12 +5,16 @@ defmodule Bibtime.Accounts.UserNotifier do
   alias Bibtime.Mailer
   alias Bibtime.Accounts.User
 
+  defp from_address do
+    Application.get_env(:bibtime, :mailer_from_address, "contact@example.com")
+  end
+
   # Delivers the email using the application mailer.
   defp deliver(recipient, subject, body) do
     email =
       new()
       |> to(recipient)
-      |> from({Bibtime.SiteSettings.get().site_name, "contact@example.com"})
+      |> from({Bibtime.SiteSettings.get().site_name, from_address()})
       |> subject(subject)
       |> text_body(body)
 

@@ -1,0 +1,26 @@
+#!/bin/sh
+# Container entrypoint: restores DB from Litestream replica if missing,
+# runs migrations, then hands off to Litestream which supervises the server.
+set -eu
+
+cd -P -- "$(dirname -- "$0")/.."
+
+if [ ! -f "${DATABASE_PATH}" ]; then
+  if [ -n "${LITESTREAM_BUCKET:-}" ]; then
+    echo "[entrypoint] no database at ${DATABASE_PATH}; attempting restore from replica"
+    litestream restore -if-replica-exists -v "${DATABASE_PATH}" || true
+  else
+    echo "[entrypoint] no database at ${DATABASE_PATH} and LITESTREAM_BUCKET unset; starting fresh"
+  fi
+fi
+
+echo "[entrypoint] running migrations"
+bin/migrate
+
+if [ -n "${LITESTREAM_BUCKET:-}" ]; then
+  echo "[entrypoint] starting server under litestream replicate"
+  exec litestream replicate -exec "bin/server"
+else
+  echo "[entrypoint] LITESTREAM_BUCKET unset; starting server without replication"
+  exec bin/server
+fi

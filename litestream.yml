@@ -1,0 +1,15 @@
+# Litestream replication config.
+# Secrets are injected via environment variables at runtime (see DEPLOY.md).
+# The image ships this file to /etc/litestream.yml (Litestream's default path).
+dbs:
+  - path: ${DATABASE_PATH}
+    replicas:
+      - type: s3
+        endpoint: ${LITESTREAM_ENDPOINT}
+        bucket: ${LITESTREAM_BUCKET}
+        path: bibtime
+        region: ${LITESTREAM_REGION}
+        access-key-id: ${LITESTREAM_ACCESS_KEY_ID}
+        secret-access-key: ${LITESTREAM_SECRET_ACCESS_KEY}
+        retention: 72h
+        snapshot-interval: 6h

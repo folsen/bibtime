@@ -3,11 +3,15 @@ defmodule Bibtime.Registration.RegistrationNotifier do
 
   alias Bibtime.Mailer
 
+  defp from_address do
+    Application.get_env(:bibtime, :mailer_from_address, "contact@example.com")
+  end
+
   defp deliver(recipient, subject, body) do
     email =
       new()
       |> to(recipient)
-      |> from({Bibtime.SiteSettings.get().site_name, "contact@example.com"})
+      |> from({Bibtime.SiteSettings.get().site_name, from_address()})
       |> subject(subject)
       |> text_body(body)
 
