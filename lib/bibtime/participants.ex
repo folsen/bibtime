@@ -209,6 +209,17 @@ defmodule Bibtime.Participants do
   end
 
   @doc """
+  Returns true if the user is registered as a participant in the given race.
+  """
+  def user_participant_in_race?(nil, _race_id), do: false
+
+  def user_participant_in_race?(user_id, race_id) do
+    Participant
+    |> where([p], p.user_id == ^user_id and p.race_id == ^race_id)
+    |> Repo.exists?()
+  end
+
+  @doc """
   Returns the most recent participant record for a user, or nil.
 
   Used to pre-fill registration forms with data from past races.

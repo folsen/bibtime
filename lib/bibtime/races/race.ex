@@ -26,6 +26,9 @@ defmodule Bibtime.Races.Race do
     # Registration limit
     field :participant_limit, :integer
 
+    # Photo visibility: true = public, false = participants-only
+    field :photos_public, :boolean, default: true
+
     # Payment fields
     field :payment_required, :boolean, default: false
     field :entry_fee_cents, :integer
@@ -56,6 +59,7 @@ defmodule Bibtime.Races.Race do
       :config,
       :default_locale,
       :participant_limit,
+      :photos_public,
       :payment_required,
       :entry_fee_cents,
       :currency,

@@ -94,6 +94,26 @@ defmodule BibtimeWeb.Admin.RaceLive.Edit do
             </div>
           </div>
 
+          <%!-- Photo Settings --%>
+          <div class="pt-4 border-t border-base-200">
+            <h3 class="text-sm font-semibold text-base-content/70 uppercase tracking-wider mb-4">
+              {gettext("Photo Settings")}
+            </h3>
+
+            <div class="space-y-2">
+              <.input
+                field={@form[:photos_public]}
+                type="checkbox"
+                label={gettext("Photos visible to everyone")}
+              />
+              <p class="text-xs text-base-content/40">
+                {gettext(
+                  "When unchecked, only logged-in race participants can view photos for this race."
+                )}
+              </p>
+            </div>
+          </div>
+
           <%!-- Payment Settings --%>
           <div class="pt-4 border-t border-base-200">
             <h3 class="text-sm font-semibold text-base-content/70 uppercase tracking-wider mb-4">

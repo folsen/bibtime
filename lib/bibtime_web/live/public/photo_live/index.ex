@@ -1,6 +1,7 @@
 defmodule BibtimeWeb.Public.PhotoLive.Index do
   use BibtimeWeb, :live_view
 
+  alias Bibtime.Accounts.User
   alias Bibtime.Races
   alias Bibtime.Photos
   alias Bibtime.Participants
@@ -8,12 +9,20 @@ defmodule BibtimeWeb.Public.PhotoLive.Index do
   @impl true
   def mount(%{"slug" => slug}, _session, socket) do
     race = Races.get_race_by_slug!(slug)
-    photos = Photos.list_photos(race.id)
-    participants = Participants.list_participants(race.id)
+    user = socket.assigns[:current_scope] && socket.assigns.current_scope.user
+    can_view? = can_view_photos?(race, user)
+
+    {photos, participants} =
+      if can_view? do
+        {Photos.list_photos(race.id), Participants.list_participants(race.id)}
+      else
+        {[], []}
+      end
 
     {:ok,
      assign(socket,
        race: race,
+       can_view_photos: can_view?,
        photos: photos,
        participants: participants,
        filtered_photos: photos,
@@ -21,6 +30,13 @@ defmodule BibtimeWeb.Public.PhotoLive.Index do
        lightbox_src: nil,
        page_title: gettext("Photos") <> " — " <> race.name
      )}
+  end
+
+  defp can_view_photos?(%{photos_public: true}, _user), do: true
+  defp can_view_photos?(_race, nil), do: false
+
+  defp can_view_photos?(race, %User{} = user) do
+    User.admin?(user) or Participants.user_participant_in_race?(user.id, race.id)
   end
 
   @impl true
@@ -71,8 +87,42 @@ defmodule BibtimeWeb.Public.PhotoLive.Index do
         </div>
       </div>
 
+      <%!-- Restricted access notice --%>
+      <div :if={!@can_view_photos} class="text-center py-16">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-base-200 mb-4">
+          <.icon name="hero-lock-closed" class="size-8 text-base-content/40" />
+        </div>
+        <p class="text-lg font-medium text-base-content mb-2">
+          {gettext("Photos are only available to race participants")}
+        </p>
+        <p
+          :if={!@current_scope || !@current_scope.user}
+          class="text-sm text-base-content/60 max-w-md mx-auto mb-6"
+        >
+          {gettext(
+            "If you are registered for this race, please log in with the email address you used to sign up to view the photos."
+          )}
+        </p>
+        <p
+          :if={@current_scope && @current_scope.user}
+          class="text-sm text-base-content/60 max-w-md mx-auto mb-6"
+        >
+          {gettext(
+            "You need to be registered for this race to view its photos. If you registered with a different email address, please log in with that one instead."
+          )}
+        </p>
+        <.link
+          :if={!@current_scope || !@current_scope.user}
+          navigate={~p"/users/log-in"}
+          class="btn btn-primary"
+        >
+          <.icon name="hero-arrow-right-on-rectangle" class="size-4 mr-1" />
+          {gettext("Log in")}
+        </.link>
+      </div>
+
       <%!-- Search --%>
-      <div class="mb-6">
+      <div :if={@can_view_photos} class="mb-6">
         <form phx-change="search" phx-submit="search" class="relative">
           <.icon
             name="hero-magnifying-glass"
@@ -91,7 +141,7 @@ defmodule BibtimeWeb.Public.PhotoLive.Index do
 
       <%!-- Photo grid --%>
       <div
-        :if={@filtered_photos != []}
+        :if={@can_view_photos && @filtered_photos != []}
         class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"
       >
         <div
@@ -127,7 +177,7 @@ defmodule BibtimeWeb.Public.PhotoLive.Index do
       </div>
 
       <%!-- Empty state --%>
-      <div :if={@filtered_photos == [] && @search != ""} class="text-center py-16">
+      <div :if={@can_view_photos && @filtered_photos == [] && @search != ""} class="text-center py-16">
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-base-200 mb-4">
           <.icon name="hero-magnifying-glass" class="size-8 text-base-content/30" />
         </div>
@@ -139,7 +189,7 @@ defmodule BibtimeWeb.Public.PhotoLive.Index do
         </p>
       </div>
 
-      <div :if={@photos == []} class="text-center py-16">
+      <div :if={@can_view_photos && @photos == [] && @search == ""} class="text-center py-16">
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-base-200 mb-4">
           <.icon name="hero-photo" class="size-8 text-base-content/30" />
         </div>
@@ -152,7 +202,10 @@ defmodule BibtimeWeb.Public.PhotoLive.Index do
       </div>
 
       <%!-- Stats footer --%>
-      <div :if={@filtered_photos != []} class="mt-6 flex flex-wrap items-center gap-3">
+      <div
+        :if={@can_view_photos && @filtered_photos != []}
+        class="mt-6 flex flex-wrap items-center gap-3"
+      >
         <div class="inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2">
           <.icon name="hero-photo" class="size-4 text-primary/60" />
           <span class="text-sm font-medium text-base-content/70">
