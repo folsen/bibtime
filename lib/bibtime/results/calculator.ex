@@ -53,10 +53,10 @@ defmodule Bibtime.Results.Calculator do
 
       splits_completed = map_size(leg_times)
 
-      # Total time is the elapsed_ms of the last split, but only when every
-      # split has been recorded.
+      # Total time is the elapsed_ms of the final split (by sort order) if
+      # recorded. Middle splits may be missing (e.g. untimed transitions).
       total_ms =
-        if splits_completed == total_splits and total_splits > 0 do
+        if total_splits > 0 do
           last_split_id = List.last(split_ids_ordered)
           Map.get(elapsed_by_split, last_split_id)
         else

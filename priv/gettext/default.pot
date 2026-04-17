@@ -76,14 +76,14 @@ msgstr ""
 
 #: lib/bibtime_web/components/core_components.ex:368
 #: lib/bibtime_web/live/admin/check_in_live/index.ex:163
-#: lib/bibtime_web/live/admin/participant_live/index.ex:278
+#: lib/bibtime_web/live/admin/participant_live/index.ex:447
 #: lib/bibtime_web/live/admin/payment_live/index.ex:113
 #: lib/bibtime_web/live/admin/race_live/index.ex:43
 #: lib/bibtime_web/live/admin/race_live/show.ex:208
 #: lib/bibtime_web/live/admin/race_live/show.ex:299
 #: lib/bibtime_web/live/admin/race_live/show.ex:421
 #: lib/bibtime_web/live/admin/station_live/global_index.ex:79
-#: lib/bibtime_web/live/admin/timing_live/index.ex:262
+#: lib/bibtime_web/live/admin/timing_live/index.ex:266
 #: lib/bibtime_web/live/admin/user_live/index.ex:114
 #, elixir-autogen, elixir-format
 msgid "Actions"
@@ -94,7 +94,7 @@ msgstr ""
 msgid "Active Races"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:128
+#: lib/bibtime_web/live/admin/timing_live/index.ex:132
 #, elixir-autogen, elixir-format
 msgid "Active Split"
 msgstr ""
@@ -121,7 +121,7 @@ msgstr ""
 msgid "Add Gender Categories"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/participant_live/index.ex:176
+#: lib/bibtime_web/live/admin/participant_live/index.ex:248
 #: lib/bibtime_web/live/admin/participant_live/new.ex:60
 #: lib/bibtime_web/live/admin/payment_live/index.ex:183
 #, elixir-autogen, elixir-format
@@ -138,7 +138,7 @@ msgstr ""
 msgid "Add Standard Age Groups"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/participant_live/index.ex:364
+#: lib/bibtime_web/live/admin/participant_live/index.ex:533
 #, elixir-autogen, elixir-format
 msgid "Add your first participant to get started."
 msgstr ""
@@ -154,7 +154,7 @@ msgstr ""
 msgid "Admin Panel"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:50
+#: lib/bibtime/results/export.ex:58
 #: lib/bibtime/results/pdf_template.ex:87
 #: lib/bibtime_web/live/admin/race_live/show.ex:374
 #: lib/bibtime_web/live/admin/race_live/show.ex:780
@@ -172,7 +172,7 @@ msgstr ""
 msgid "Age group categories added."
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:510
+#: lib/bibtime_web/live/admin/timing_live/index.ex:566
 #, elixir-autogen, elixir-format
 msgid "An unexpected error occurred"
 msgstr ""
@@ -253,11 +253,11 @@ msgstr ""
 msgid "Back to races"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:41
+#: lib/bibtime/results/export.ex:49
 #: lib/bibtime/results/pdf_template.ex:101
 #: lib/bibtime_web/live/admin/check_in_live/index.ex:159
-#: lib/bibtime_web/live/admin/participant_live/index.ex:233
-#: lib/bibtime_web/live/admin/timing_live/index.ex:258
+#: lib/bibtime_web/live/admin/participant_live/index.ex:402
+#: lib/bibtime_web/live/admin/timing_live/index.ex:262
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:215
 #: lib/bibtime_web/live/public/race_live/show.ex:202
 #: lib/bibtime_web/live/public/results_live/index.ex:247
@@ -267,7 +267,7 @@ msgstr ""
 
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:71
 #: lib/bibtime_web/live/admin/participant_live/new.ex:72
-#: lib/bibtime_web/live/admin/timing_live/index.ex:152
+#: lib/bibtime_web/live/admin/timing_live/index.ex:156
 #, elixir-autogen, elixir-format
 msgid "Bib Number"
 msgstr ""
@@ -291,17 +291,18 @@ msgstr ""
 msgid "Birth Date"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:321
+#: lib/bibtime_web/live/admin/timing_live/index.ex:325
 #, elixir-autogen, elixir-format
 msgid "Bulk import timing data from CSV"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:319
+#: lib/bibtime_web/live/admin/timing_live/index.ex:323
 #, elixir-autogen, elixir-format
 msgid "CSV Import"
 msgstr ""
 
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:107
+#: lib/bibtime_web/live/admin/participant_live/index.ex:332
 #: lib/bibtime_web/live/admin/participant_live/new.ex:96
 #: lib/bibtime_web/live/admin/payment_live/index.ex:153
 #: lib/bibtime_web/live/admin/photo_live/index.ex:95
@@ -319,10 +320,10 @@ msgstr ""
 msgid "Categories"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:45
+#: lib/bibtime/results/export.ex:53
 #: lib/bibtime/results/pdf_template.ex:104
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:88
-#: lib/bibtime_web/live/admin/participant_live/index.ex:254
+#: lib/bibtime_web/live/admin/participant_live/index.ex:423
 #: lib/bibtime_web/live/admin/participant_live/new.ex:89
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:136
 #: lib/bibtime_web/live/public/race_live/show.ex:211
@@ -375,10 +376,10 @@ msgstr ""
 msgid "Clone from Race"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:44
+#: lib/bibtime/results/export.ex:52
 #: lib/bibtime/results/pdf_template.ex:103
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:83
-#: lib/bibtime_web/live/admin/participant_live/index.ex:265
+#: lib/bibtime_web/live/admin/participant_live/index.ex:434
 #: lib/bibtime_web/live/admin/participant_live/new.ex:84
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:227
 #: lib/bibtime_web/live/public/race_live/show.ex:208
@@ -395,7 +396,7 @@ msgstr ""
 msgid "Club / Team"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:333
+#: lib/bibtime_web/live/admin/timing_live/index.ex:337
 #, elixir-autogen, elixir-format
 msgid "Columns: bib_number, split_short_name, elapsed_time"
 msgstr ""
@@ -492,7 +493,7 @@ msgstr ""
 msgid "Delete"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:289
+#: lib/bibtime_web/live/admin/timing_live/index.ex:293
 #, elixir-autogen, elixir-format
 msgid "Delete this timing entry?"
 msgstr ""
@@ -534,7 +535,7 @@ msgstr ""
 msgid "Draft"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/participant_live/index.ex:312
+#: lib/bibtime_web/live/admin/participant_live/index.ex:481
 #: lib/bibtime_web/live/admin/race_live/index.ex:84
 #: lib/bibtime_web/live/admin/race_live/show.ex:511
 #: lib/bibtime_web/live/public/my_races_live/index.ex:82
@@ -564,12 +565,12 @@ msgstr ""
 msgid "Edit Registration"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:261
+#: lib/bibtime_web/live/admin/timing_live/index.ex:265
 #, elixir-autogen, elixir-format
 msgid "Elapsed"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:121
+#: lib/bibtime_web/live/admin/timing_live/index.ex:125
 #, elixir-autogen, elixir-format
 msgid "Elapsed since gun start"
 msgstr ""
@@ -578,7 +579,7 @@ msgstr ""
 #: lib/bibtime_web/controllers/user_session_html/new.html.heex:51
 #: lib/bibtime_web/controllers/user_settings_html/edit.html.heex:15
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:74
-#: lib/bibtime_web/live/admin/participant_live/index.ex:247
+#: lib/bibtime_web/live/admin/participant_live/index.ex:416
 #: lib/bibtime_web/live/admin/participant_live/new.ex:75
 #: lib/bibtime_web/live/admin/user_live/index.ex:111
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:128
@@ -598,7 +599,7 @@ msgstr ""
 msgid "Email changed successfully."
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:159
+#: lib/bibtime_web/live/admin/timing_live/index.ex:163
 #, elixir-autogen, elixir-format
 msgid "Enter bib number..."
 msgstr ""
@@ -613,12 +614,12 @@ msgstr ""
 msgid "Export CSV"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:481
+#: lib/bibtime_web/live/admin/timing_live/index.ex:525
 #, elixir-autogen, elixir-format
 msgid "Failed to delete entry."
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:410
+#: lib/bibtime_web/live/admin/timing_live/index.ex:454
 #, elixir-autogen, elixir-format
 msgid "Failed to start race."
 msgstr ""
@@ -651,7 +652,7 @@ msgstr ""
 msgid "Finished"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:42
+#: lib/bibtime/results/export.ex:50
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:72
 #: lib/bibtime_web/live/admin/participant_live/new.ex:73
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:112
@@ -726,12 +727,13 @@ msgstr ""
 msgid "If your email is in our system, you will receive instructions for logging in shortly."
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:345
+#: lib/bibtime_web/live/admin/participant_live/index.ex:329
+#: lib/bibtime_web/live/admin/timing_live/index.ex:389
 #, elixir-autogen, elixir-format
 msgid "Import"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:365
+#: lib/bibtime_web/live/admin/timing_live/index.ex:409
 #, elixir-autogen, elixir-format
 msgid "Import errors"
 msgstr ""
@@ -762,7 +764,7 @@ msgstr ""
 msgid "Kiosk Display"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:43
+#: lib/bibtime/results/export.ex:51
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:73
 #: lib/bibtime_web/live/admin/participant_live/new.ex:74
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:119
@@ -771,7 +773,7 @@ msgstr ""
 msgid "Last Name"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:194
+#: lib/bibtime_web/live/admin/timing_live/index.ex:198
 #, elixir-autogen, elixir-format
 msgid "Last recorded"
 msgstr ""
@@ -907,7 +909,7 @@ msgstr ""
 
 #: lib/bibtime/results/pdf_template.ex:102
 #: lib/bibtime_web/live/admin/check_in_live/index.ex:160
-#: lib/bibtime_web/live/admin/participant_live/index.ex:240
+#: lib/bibtime_web/live/admin/participant_live/index.ex:409
 #: lib/bibtime_web/live/admin/race_live/edit.ex:35
 #: lib/bibtime_web/live/admin/race_live/index.ex:38
 #: lib/bibtime_web/live/admin/race_live/new.ex:111
@@ -920,7 +922,7 @@ msgstr ""
 #: lib/bibtime_web/live/admin/race_live/show.ex:543
 #: lib/bibtime_web/live/admin/station_live/global_index.ex:75
 #: lib/bibtime_web/live/admin/station_live/global_index.ex:153
-#: lib/bibtime_web/live/admin/timing_live/index.ex:259
+#: lib/bibtime_web/live/admin/timing_live/index.ex:263
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:221
 #: lib/bibtime_web/live/public/race_live/show.ex:205
 #: lib/bibtime_web/live/public/registration_live/show.ex:110
@@ -941,8 +943,8 @@ msgstr ""
 msgid "New password"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:213
-#: lib/bibtime_web/live/admin/timing_live/index.ex:223
+#: lib/bibtime_web/live/admin/timing_live/index.ex:217
+#: lib/bibtime_web/live/admin/timing_live/index.ex:227
 #, elixir-autogen, elixir-format
 msgid "Next Up"
 msgstr ""
@@ -962,7 +964,7 @@ msgstr ""
 msgid "No description provided."
 msgstr ""
 
-#: lib/bibtime_web/live/admin/participant_live/index.ex:359
+#: lib/bibtime_web/live/admin/participant_live/index.ex:528
 #, elixir-autogen, elixir-format
 msgid "No participants found"
 msgstr ""
@@ -978,7 +980,7 @@ msgstr ""
 msgid "No races yet. Log in to create your first event."
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:305
+#: lib/bibtime_web/live/admin/timing_live/index.ex:309
 #, elixir-autogen, elixir-format
 msgid "No recordings yet. Enter a bib number above to start recording times."
 msgstr ""
@@ -1009,7 +1011,7 @@ msgstr ""
 msgid "Not set"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:104
+#: lib/bibtime_web/live/admin/timing_live/index.ex:108
 #, elixir-autogen, elixir-format
 msgid "Once started, the clock will begin and you can record split times for participants."
 msgstr ""
@@ -1060,7 +1062,7 @@ msgstr ""
 
 #: lib/bibtime/results/pdf_template.ex:60
 #: lib/bibtime_web/components/layouts/admin.html.heex:99
-#: lib/bibtime_web/live/admin/participant_live/index.ex:171
+#: lib/bibtime_web/live/admin/participant_live/index.ex:239
 #: lib/bibtime_web/live/admin/race_live/show.ex:100
 #, elixir-autogen, elixir-format
 msgid "Participants"
@@ -1076,12 +1078,12 @@ msgstr ""
 msgid "Password updated successfully."
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:436
+#: lib/bibtime_web/live/admin/timing_live/index.ex:480
 #, elixir-autogen, elixir-format
 msgid "Please enter a bib number."
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:439
+#: lib/bibtime_web/live/admin/timing_live/index.ex:483
 #, elixir-autogen, elixir-format
 msgid "Please select a split point."
 msgstr ""
@@ -1133,7 +1135,7 @@ msgstr ""
 msgid "Race day console"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:101
+#: lib/bibtime_web/live/admin/timing_live/index.ex:105
 #, elixir-autogen, elixir-format
 msgid "Race has not been started"
 msgstr ""
@@ -1161,12 +1163,12 @@ msgstr ""
 msgid "Racing"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:244
+#: lib/bibtime_web/live/admin/timing_live/index.ex:248
 #, elixir-autogen, elixir-format
 msgid "Recent Entries"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:170
+#: lib/bibtime_web/live/admin/timing_live/index.ex:174
 #, elixir-autogen, elixir-format
 msgid "Record"
 msgstr ""
@@ -1251,7 +1253,7 @@ msgstr ""
 msgid "Results will appear here once timing begins."
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:370
+#: lib/bibtime_web/live/admin/timing_live/index.ex:414
 #, elixir-autogen, elixir-format
 msgid "Row %{row}"
 msgstr ""
@@ -1279,7 +1281,7 @@ msgid "Save Password"
 msgstr ""
 
 #: lib/bibtime_web/live/admin/check_in_live/index.ex:132
-#: lib/bibtime_web/live/admin/participant_live/index.ex:191
+#: lib/bibtime_web/live/admin/participant_live/index.ex:360
 #, elixir-autogen, elixir-format
 msgid "Search by name or bib..."
 msgstr ""
@@ -1333,7 +1335,7 @@ msgid "Something went wrong!"
 msgstr ""
 
 #: lib/bibtime_web/live/admin/photo_live/index.ex:180
-#: lib/bibtime_web/live/admin/timing_live/index.ex:260
+#: lib/bibtime_web/live/admin/timing_live/index.ex:264
 #: lib/bibtime_web/live/public/profile_live/show.ex:113
 #, elixir-autogen, elixir-format
 msgid "Split"
@@ -1374,16 +1376,16 @@ msgstr ""
 msgid "Start List"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:109
+#: lib/bibtime_web/live/admin/timing_live/index.ex:113
 #, elixir-autogen, elixir-format
 msgid "Start Race"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:62
+#: lib/bibtime/results/export.ex:70
 #: lib/bibtime/results/pdf_template.ex:108
 #: lib/bibtime_web/live/admin/check_in_live/index.ex:162
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:95
-#: lib/bibtime_web/live/admin/participant_live/index.ex:272
+#: lib/bibtime_web/live/admin/participant_live/index.ex:441
 #: lib/bibtime_web/live/admin/payment_live/index.ex:111
 #: lib/bibtime_web/live/admin/race_live/edit.ex:69
 #: lib/bibtime_web/live/admin/race_live/index.ex:42
@@ -1395,7 +1397,7 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:355
+#: lib/bibtime_web/live/admin/timing_live/index.ex:399
 #, elixir-autogen, elixir-format
 msgid "Successfully imported %{count} entries."
 msgstr ""
@@ -1432,7 +1434,7 @@ msgstr ""
 msgid "Timing"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:84
+#: lib/bibtime_web/live/admin/timing_live/index.ex:88
 #, elixir-autogen, elixir-format
 msgid "Timing Console"
 msgstr ""
@@ -1447,7 +1449,7 @@ msgstr ""
 msgid "To see sent emails, visit"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:62
+#: lib/bibtime/results/export.ex:70
 #: lib/bibtime/results/pdf_template.ex:107
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:240
 #: lib/bibtime_web/live/public/profile_live/show.ex:125
@@ -1472,7 +1474,7 @@ msgstr ""
 msgid "Triathlon"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/participant_live/index.ex:363
+#: lib/bibtime_web/live/admin/participant_live/index.ex:532
 #, elixir-autogen, elixir-format
 msgid "Try adjusting your search terms."
 msgstr ""
@@ -1485,12 +1487,12 @@ msgstr ""
 msgid "Type"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:292
+#: lib/bibtime_web/live/admin/timing_live/index.ex:296
 #, elixir-autogen, elixir-format
 msgid "Undo"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/timing_live/index.ex:444
+#: lib/bibtime_web/live/admin/timing_live/index.ex:488
 #, elixir-autogen, elixir-format
 msgid "Unknown bib number: %{bib}"
 msgstr ""
@@ -1664,12 +1666,12 @@ msgstr ""
 msgid "the mailbox page"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:50
+#: lib/bibtime/results/export.ex:58
 #, elixir-autogen, elixir-format
 msgid "Gender Category"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:40
+#: lib/bibtime/results/export.ex:48
 #, elixir-autogen, elixir-format
 msgid "Rank"
 msgstr ""
@@ -1958,7 +1960,9 @@ msgstr ""
 msgid "Upload All"
 msgstr ""
 
+#: lib/bibtime_web/live/admin/participant_live/index.ex:599
 #: lib/bibtime_web/live/admin/photo_live/index.ex:360
+#: lib/bibtime_web/live/admin/timing_live/index.ex:630
 #, elixir-autogen, elixir-format
 msgid "Upload error"
 msgstr ""
@@ -2242,7 +2246,7 @@ msgstr ""
 msgid "None"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:56
+#: lib/bibtime/results/export.ex:64
 #, elixir-autogen, elixir-format
 msgid "Pace"
 msgstr ""
@@ -2695,4 +2699,77 @@ msgstr ""
 #: lib/bibtime_web/live/admin/race_live/edit.ex:87
 #, elixir-autogen, elixir-format
 msgid "Unlimited"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/participant_live/index.ex:295
+#: lib/bibtime_web/live/admin/timing_live/index.ex:355
+#, elixir-autogen, elixir-format
+msgid "Choose File"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/participant_live/index.ex:273
+#, elixir-autogen, elixir-format
+msgid "Close"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/participant_live/index.ex:264
+#, elixir-autogen, elixir-format
+msgid "Columns: bib number, name, email (optional), category (optional), club (optional). A header row is optional."
+msgstr ""
+
+#: lib/bibtime_web/live/admin/participant_live/index.ex:292
+#: lib/bibtime_web/live/admin/timing_live/index.ex:352
+#, elixir-autogen, elixir-format
+msgid "Drag a CSV file here or click to browse"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/participant_live/index.ex:596
+#: lib/bibtime_web/live/admin/timing_live/index.ex:627
+#, elixir-autogen, elixir-format
+msgid "File is too large (max 5MB)"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/participant_live/index.ex:245
+#, elixir-autogen, elixir-format
+msgid "Import CSV"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/participant_live/index.ex:339
+#, elixir-autogen, elixir-format
+msgid "Import failed. Fix the errors and try again:"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/participant_live/index.ex:261
+#, elixir-autogen, elixir-format
+msgid "Import participants from CSV"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/participant_live/index.ex:151
+#, elixir-autogen, elixir-format
+msgid "Imported %{count} participant."
+msgid_plural "Imported %{count} participants."
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/bibtime_web/live/admin/participant_live/index.ex:598
+#: lib/bibtime_web/live/admin/timing_live/index.ex:629
+#, elixir-autogen, elixir-format
+msgid "Must be a .csv file"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/participant_live/index.ex:164
+#: lib/bibtime_web/live/admin/timing_live/index.ex:577
+#, elixir-autogen, elixir-format
+msgid "No file selected. Please choose a CSV file."
+msgstr ""
+
+#: lib/bibtime_web/live/admin/participant_live/index.ex:597
+#: lib/bibtime_web/live/admin/timing_live/index.ex:628
+#, elixir-autogen, elixir-format
+msgid "Only one file allowed"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/participant_live/index.ex:343
+#, elixir-autogen, elixir-format
+msgid "Row"
 msgstr ""

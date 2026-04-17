@@ -151,21 +151,36 @@ defmodule Bibtime.Timing do
   # participant record when the status should change. Only transitions
   # between the timing-driven statuses (:registered, :racing, :finished).
   # Manual overrides (dns/dnf/dsq) are never touched.
+  #
+  # A participant is :finished once they have a recorded time for the final
+  # split (by sort_order) — middle splits like transitions may be missing.
   defp update_participant_status(participant_id, race_id) do
     participant = Repo.get!(Participant, participant_id)
 
-    # Don't override manual statuses
     if participant.status in [:dns, :dnf, :dsq] do
       :ok
     else
-      total_splits = Split |> where([s], s.race_id == ^race_id) |> Repo.aggregate(:count)
+      final_split_id =
+        Split
+        |> where([s], s.race_id == ^race_id)
+        |> order_by([s], desc: s.sort_order)
+        |> limit(1)
+        |> select([s], s.id)
+        |> Repo.one()
 
       recorded =
         SplitTime |> where([st], st.participant_id == ^participant_id) |> Repo.aggregate(:count)
 
+      has_final_time? =
+        final_split_id != nil and
+          Repo.exists?(
+            from st in SplitTime,
+              where: st.participant_id == ^participant_id and st.split_id == ^final_split_id
+          )
+
       new_status =
         cond do
-          total_splits > 0 and recorded >= total_splits -> :finished
+          has_final_time? -> :finished
           recorded > 0 -> :racing
           participant.status == :checked_in -> :checked_in
           true -> :registered

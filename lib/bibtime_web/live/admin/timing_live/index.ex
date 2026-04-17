@@ -29,9 +29,13 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
       |> assign(:timing_loading, true)
       |> assign(:error, nil)
       |> assign(:elapsed_seconds, compute_elapsed_seconds(race_start))
-      |> assign(:csv_text, "")
       |> assign(:import_result, nil)
       |> assign(:import_errors, [])
+      |> allow_upload(:timing_csv,
+        accept: ~w(.csv text/csv),
+        max_entries: 1,
+        max_file_size: 5_000_000
+      )
 
     socket =
       if connected?(socket) do
@@ -332,16 +336,56 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
           <p class="text-xs text-base-content/50 mb-3 font-mono bg-base-200/50 rounded-lg px-3 py-2">
             {gettext("Columns: bib_number, split_short_name, elapsed_time")}
           </p>
-          <form phx-submit="import_csv">
-            <div class="fieldset mb-3">
-              <textarea
-                name="csv_text"
-                rows="5"
-                class="w-full textarea font-mono text-sm rounded-lg border-base-300 bg-base-200/30 focus:border-primary/50 focus:ring-primary/20"
-                placeholder="bib_number,split_short_name,elapsed_time\n101,swim,00:15:30\n102,swim,00:16:45"
-              >{@csv_text}</textarea>
+          <form id="timing-csv-form" phx-submit="import_csv" phx-change="validate_import">
+            <div
+              phx-drop-target={@uploads.timing_csv.ref}
+              class={[
+                "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
+                if(@uploads.timing_csv.entries != [],
+                  do: "border-primary/50 bg-primary/5",
+                  else: "border-base-300 hover:border-primary/40"
+                )
+              ]}
+            >
+              <.icon name="hero-document-text" class="size-8 mx-auto text-base-content/25 mb-2" />
+              <p class="text-sm text-base-content/60 mb-2">
+                {gettext("Drag a CSV file here or click to browse")}
+              </p>
+              <label for={@uploads.timing_csv.ref} class="btn btn-sm cursor-pointer">
+                {gettext("Choose File")}
+              </label>
+              <.live_file_input upload={@uploads.timing_csv} class="sr-only" />
             </div>
-            <.button type="submit" variant="primary">
+
+            <div :if={@uploads.timing_csv.entries != []} class="mt-3 space-y-2">
+              <div
+                :for={entry <- @uploads.timing_csv.entries}
+                class="flex items-center justify-between rounded border border-base-300 px-3 py-2"
+              >
+                <div class="flex items-center gap-2 text-sm">
+                  <.icon name="hero-document-text" class="size-4 text-base-content/50" />
+                  <span>{entry.client_name}</span>
+                </div>
+                <button
+                  type="button"
+                  phx-click="cancel_import_upload"
+                  phx-value-ref={entry.ref}
+                  class="btn btn-ghost btn-xs"
+                >
+                  <.icon name="hero-x-mark" class="size-4" />
+                </button>
+                <p :for={err <- upload_errors(@uploads.timing_csv, entry)} class="text-xs text-error">
+                  {upload_error_message(err)}
+                </p>
+              </div>
+            </div>
+
+            <.button
+              type="submit"
+              variant="primary"
+              class="mt-4"
+              disabled={@uploads.timing_csv.entries == []}
+            >
               <.icon name="hero-arrow-up-tray" class="size-4 mr-1" /> {gettext("Import")}
             </.button>
           </form>
@@ -482,34 +526,57 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
     end
   end
 
-  def handle_event("import_csv", %{"csv_text" => csv_text}, socket) do
+  def handle_event("validate_import", _params, socket), do: {:noreply, socket}
+
+  def handle_event("cancel_import_upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :timing_csv, ref)}
+  end
+
+  def handle_event("import_csv", _params, socket) do
     race = socket.assigns.race
 
-    case CSVImport.import(csv_text, race.id) do
-      {:ok, result} ->
+    result =
+      consume_uploaded_entries(socket, :timing_csv, fn %{path: path}, _entry ->
+        case File.read(path) do
+          {:ok, contents} -> {:ok, CSVImport.import(contents, race.id)}
+          {:error, reason} -> {:postpone, reason}
+        end
+      end)
+
+    case result do
+      [{:ok, import_result}] ->
         {:noreply,
          socket
-         |> assign(:import_result, result)
+         |> assign(:import_result, import_result)
          |> assign(:import_errors, [])
-         |> assign(:csv_text, "")
          |> assign(:recent_entries, load_recent_entries(race.id))
          |> assign(:next_up, load_next_up(race.id))}
 
-      {:error, errors} when is_list(errors) ->
+      [{:error, errors}] when is_list(errors) ->
         {:noreply,
          socket
          |> assign(:import_result, nil)
-         |> assign(:import_errors, errors)
-         |> assign(:csv_text, csv_text)}
+         |> assign(:import_errors, errors)}
 
-      {:error, _other} ->
+      [{:error, _other}] ->
         {:noreply,
          socket
          |> assign(:import_result, nil)
          |> assign(:import_errors, [
            %{row: 0, field: "csv", message: gettext("An unexpected error occurred")}
-         ])
-         |> assign(:csv_text, csv_text)}
+         ])}
+
+      [] ->
+        {:noreply,
+         socket
+         |> assign(:import_result, nil)
+         |> assign(:import_errors, [
+           %{
+             row: 0,
+             field: "csv",
+             message: gettext("No file selected. Please choose a CSV file.")
+           }
+         ])}
     end
   end
 
@@ -556,6 +623,11 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
     DateTime.diff(DateTime.utc_now(), started_at, :second)
     |> max(0)
   end
+
+  defp upload_error_message(:too_large), do: gettext("File is too large (max 5MB)")
+  defp upload_error_message(:too_many_files), do: gettext("Only one file allowed")
+  defp upload_error_message(:not_accepted), do: gettext("Must be a .csv file")
+  defp upload_error_message(_), do: gettext("Upload error")
 
   defp format_elapsed(total_seconds) do
     hours = div(total_seconds, 3600)

@@ -3,6 +3,8 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
 
   alias Bibtime.Races
   alias Bibtime.Participants
+  alias Bibtime.Participants.CSVImport
+  alias Bibtime.AuditLog
 
   @page_size 25
 
@@ -24,6 +26,13 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
       |> assign(:total_count, 0)
       |> assign(:total_pages, 1)
       |> assign(:filtered_participants, [])
+      |> assign(:show_import, false)
+      |> assign(:import_errors, [])
+      |> allow_upload(:csv,
+        accept: ~w(.csv text/csv),
+        max_entries: 1,
+        max_file_size: 5_000_000
+      )
 
     socket =
       if connected?(socket) do
@@ -95,6 +104,65 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
   def handle_event("paginate", %{"page" => page}, socket) do
     page = String.to_integer(page)
     {:noreply, socket |> assign(:page, page) |> paginate(socket.assigns.all_filtered)}
+  end
+
+  @impl true
+  def handle_event("toggle_import", _params, socket) do
+    {:noreply, assign(socket, show_import: !socket.assigns.show_import, import_errors: [])}
+  end
+
+  @impl true
+  def handle_event("validate_import", _params, socket) do
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("cancel_import_upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :csv, ref)}
+  end
+
+  @impl true
+  def handle_event("run_import", _params, socket) do
+    race_id = socket.assigns.race.id
+
+    result =
+      consume_uploaded_entries(socket, :csv, fn %{path: path}, _entry ->
+        case File.read(path) do
+          {:ok, contents} -> {:ok, CSVImport.import(contents, race_id)}
+          {:error, reason} -> {:postpone, reason}
+        end
+      end)
+
+    case result do
+      [{:ok, %{imported: count}}] ->
+        AuditLog.log(
+          socket.assigns.current_scope.user,
+          "participants.imported",
+          "race",
+          race_id,
+          %{"count" => count}
+        )
+
+        {:noreply,
+         socket
+         |> assign(show_import: false, import_errors: [])
+         |> put_flash(
+           :info,
+           ngettext(
+             "Imported %{count} participant.",
+             "Imported %{count} participants.",
+             count
+           )
+         )
+         |> reload_participants()}
+
+      [{:error, errors}] ->
+        {:noreply, assign(socket, import_errors: errors)}
+
+      [] ->
+        {:noreply,
+         put_flash(socket, :error, gettext("No file selected. Please choose a CSV file."))}
+    end
   end
 
   @impl true
@@ -172,9 +240,110 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
         </h1>
         <p class="mt-1 text-sm text-base-content/60">{@race.name}</p>
       </div>
-      <.button navigate={~p"/admin/races/#{@race.id}/participants/new"} variant="primary">
-        <.icon name="hero-plus" class="size-4 mr-1" /> {gettext("Add Participant")}
-      </.button>
+      <div class="flex gap-2">
+        <.button phx-click="toggle_import">
+          <.icon name="hero-arrow-up-tray" class="size-4 mr-1" /> {gettext("Import CSV")}
+        </.button>
+        <.button navigate={~p"/admin/races/#{@race.id}/participants/new"} variant="primary">
+          <.icon name="hero-plus" class="size-4 mr-1" /> {gettext("Add Participant")}
+        </.button>
+      </div>
+    </div>
+
+    <%!-- Import panel --%>
+    <div
+      :if={@show_import}
+      class="mb-5 rounded-xl border border-base-300 bg-base-100 shadow-sm p-5"
+    >
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <h2 class="text-lg font-semibold text-base-content">
+            {gettext("Import participants from CSV")}
+          </h2>
+          <p class="text-sm text-base-content/60 mt-1">
+            {gettext(
+              "Columns: bib number, name, email (optional), category (optional), club (optional). A header row is optional."
+            )}
+          </p>
+        </div>
+        <button
+          type="button"
+          phx-click="toggle_import"
+          class="btn btn-ghost btn-sm btn-circle"
+          aria-label={gettext("Close")}
+        >
+          <.icon name="hero-x-mark" class="size-5" />
+        </button>
+      </div>
+
+      <form id="csv-import-form" phx-submit="run_import" phx-change="validate_import">
+        <div
+          phx-drop-target={@uploads.csv.ref}
+          class={[
+            "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
+            if(@uploads.csv.entries != [],
+              do: "border-primary/50 bg-primary/5",
+              else: "border-base-300 hover:border-primary/40"
+            )
+          ]}
+        >
+          <.icon name="hero-document-text" class="size-10 mx-auto text-base-content/25 mb-2" />
+          <p class="text-sm text-base-content/60 mb-2">
+            {gettext("Drag a CSV file here or click to browse")}
+          </p>
+          <label for={@uploads.csv.ref} class="btn btn-sm cursor-pointer">
+            {gettext("Choose File")}
+          </label>
+          <.live_file_input upload={@uploads.csv} class="sr-only" />
+        </div>
+
+        <div :if={@uploads.csv.entries != []} class="mt-3 space-y-2">
+          <div
+            :for={entry <- @uploads.csv.entries}
+            class="flex items-center justify-between rounded border border-base-300 px-3 py-2"
+          >
+            <div class="flex items-center gap-2 text-sm">
+              <.icon name="hero-document-text" class="size-4 text-base-content/50" />
+              <span>{entry.client_name}</span>
+            </div>
+            <button
+              type="button"
+              phx-click="cancel_import_upload"
+              phx-value-ref={entry.ref}
+              class="btn btn-ghost btn-xs"
+            >
+              <.icon name="hero-x-mark" class="size-4" />
+            </button>
+            <p :for={err <- upload_errors(@uploads.csv, entry)} class="text-xs text-error">
+              {upload_error_message(err)}
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-4 flex gap-2">
+          <.button
+            type="submit"
+            variant="primary"
+            disabled={@uploads.csv.entries == []}
+          >
+            {gettext("Import")}
+          </.button>
+          <.button type="button" phx-click="toggle_import">
+            {gettext("Cancel")}
+          </.button>
+        </div>
+      </form>
+
+      <div :if={@import_errors != []} class="mt-4 rounded-lg border border-error/30 bg-error/5 p-3">
+        <p class="text-sm font-semibold text-error mb-2">
+          {gettext("Import failed. Fix the errors and try again:")}
+        </p>
+        <ul class="text-sm text-error/90 space-y-1 list-disc list-inside">
+          <li :for={err <- @import_errors}>
+            {gettext("Row")} {err.row}, {err.field}: {err.message}
+          </li>
+        </ul>
+      </div>
     </div>
 
     <%!-- Search --%>
@@ -423,6 +592,11 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
 
     if sort_dir == :desc, do: Enum.reverse(sorted), else: sorted
   end
+
+  defp upload_error_message(:too_large), do: gettext("File is too large (max 5MB)")
+  defp upload_error_message(:too_many_files), do: gettext("Only one file allowed")
+  defp upload_error_message(:not_accepted), do: gettext("Must be a .csv file")
+  defp upload_error_message(_), do: gettext("Upload error")
 
   defp sort_indicator(assigns) do
     ~H"""
