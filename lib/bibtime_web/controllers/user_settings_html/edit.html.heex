@@ -1,51 +1,121 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
-  <div class="text-center">
-    <.header>
-      {gettext("Account Settings")}
-      <:subtitle>{gettext("Manage your account email address and password settings")}</:subtitle>
-    </.header>
+  <div class="max-w-2xl mx-auto px-4 py-10">
+    <%!-- Back link --%>
+    <.link
+      navigate={~p"/profile"}
+      class="inline-flex items-center gap-1 text-sm text-primary hover:underline mb-6"
+    >
+      <.icon name="hero-arrow-left" class="size-4" />
+      {gettext("Back to profile")}
+    </.link>
+
+    <%!-- Page header --%>
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-base-content">{gettext("Account Settings")}</h1>
+      <p class="text-sm text-base-content/50 mt-1.5">
+        {gettext("Manage your account email address and password settings")}
+      </p>
+    </div>
+
+    <%!-- Current account summary --%>
+    <div class="rounded-xl bg-base-100 border border-base-300/50 shadow-sm px-6 py-5 mb-6 flex items-center gap-4">
+      <div class="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary shrink-0 font-semibold text-lg">
+        {String.first(@current_scope.user.email) |> String.upcase()}
+      </div>
+      <div class="min-w-0">
+        <div class="text-xs uppercase tracking-wider text-base-content/40 font-medium">
+          {gettext("Signed in as")}
+        </div>
+        <div class="font-mono text-sm text-base-content truncate">
+          {@current_scope.user.email}
+        </div>
+      </div>
+    </div>
+
+    <%!-- Email section --%>
+    <section class="rounded-xl bg-base-100 border border-base-300/50 shadow-sm overflow-hidden mb-6">
+      <div class="px-6 py-5 border-b border-base-300/40 flex items-start gap-3">
+        <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary shrink-0">
+          <.icon name="hero-envelope" class="size-5" />
+        </div>
+        <div class="min-w-0">
+          <h2 class="text-base font-semibold text-base-content">
+            {gettext("Email Address")}
+          </h2>
+          <p class="text-sm text-base-content/50 mt-0.5">
+            {gettext(
+              "Change your login email. We'll send a confirmation link to the new address."
+            )}
+          </p>
+        </div>
+      </div>
+
+      <.form :let={f} for={@email_changeset} action={~p"/users/settings"} id="update_email">
+        <input type="hidden" name="action" value="update_email" />
+
+        <div class="px-6 py-5">
+          <.input
+            field={f[:email]}
+            type="email"
+            label={gettext("Email")}
+            autocomplete="username"
+            spellcheck="false"
+            required
+          />
+        </div>
+
+        <div class="px-6 py-3 bg-base-200/40 border-t border-base-300/40 flex justify-end">
+          <.button variant="primary" phx-disable-with={gettext("Changing...")}>
+            {gettext("Change Email")}
+          </.button>
+        </div>
+      </.form>
+    </section>
+
+    <%!-- Password section --%>
+    <section class="rounded-xl bg-base-100 border border-base-300/50 shadow-sm overflow-hidden">
+      <div class="px-6 py-5 border-b border-base-300/40 flex items-start gap-3">
+        <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-secondary/10 text-secondary shrink-0">
+          <.icon name="hero-lock-closed" class="size-5" />
+        </div>
+        <div class="min-w-0">
+          <h2 class="text-base font-semibold text-base-content">
+            {gettext("Password")}
+          </h2>
+          <p class="text-sm text-base-content/50 mt-0.5">
+            {gettext("Pick a strong password you don't use anywhere else.")}
+          </p>
+        </div>
+      </div>
+
+      <.form :let={f} for={@password_changeset} action={~p"/users/settings"} id="update_password">
+        <input type="hidden" name="action" value="update_password" />
+
+        <div class="px-6 py-5 grid gap-4 sm:grid-cols-2">
+          <.input
+            field={f[:password]}
+            type="password"
+            label={gettext("New password")}
+            autocomplete="new-password"
+            spellcheck="false"
+            required
+          />
+          <.input
+            field={f[:password_confirmation]}
+            type="password"
+            label={gettext("Confirm new password")}
+            autocomplete="new-password"
+            spellcheck="false"
+            required
+          />
+        </div>
+
+        <div class="px-6 py-3 bg-base-200/40 border-t border-base-300/40 flex justify-end">
+          <.button variant="primary" phx-disable-with={gettext("Changing...")}>
+            {gettext("Save Password")}
+          </.button>
+        </div>
+      </.form>
+    </section>
   </div>
-
-  <.form :let={f} for={@email_changeset} action={~p"/users/settings"} id="update_email">
-    <input type="hidden" name="action" value="update_email" />
-
-    <.input
-      field={f[:email]}
-      type="email"
-      label={gettext("Email")}
-      autocomplete="username"
-      spellcheck="false"
-      required
-    />
-
-    <.button variant="primary" phx-disable-with={gettext("Changing...")}>
-      {gettext("Change Email")}
-    </.button>
-  </.form>
-
-  <div class="divider" />
-
-  <.form :let={f} for={@password_changeset} action={~p"/users/settings"} id="update_password">
-    <input type="hidden" name="action" value="update_password" />
-
-    <.input
-      field={f[:password]}
-      type="password"
-      label={gettext("New password")}
-      autocomplete="new-password"
-      spellcheck="false"
-      required
-    />
-    <.input
-      field={f[:password_confirmation]}
-      type="password"
-      label={gettext("Confirm new password")}
-      autocomplete="new-password"
-      spellcheck="false"
-      required
-    />
-    <.button variant="primary" phx-disable-with={gettext("Changing...")}>
-      {gettext("Save Password")}
-    </.button>
-  </.form>
 </Layouts.app>
