@@ -43,12 +43,21 @@ ssh "$HOST" bash <<'REMOTE'
 set -euo pipefail
 
 cd /opt/bibtime_source
+
+# Force recompilation of app code and release rebuild — rsync preserves
+# source timestamps which can leave stale .beam files or cached tarballs.
+rm -rf _build/prod/lib/bibtime_station _build/prod/rel _build/prod/bibtime_station-*
+
 MIX_ENV=prod mix deps.get
 MIX_ENV=prod mix release --overwrite
 
 echo "--- Unpacking release..."
 tar -xzf _build/prod/bibtime_station-*.tar.gz -C /opt/bibtime_station
 REMOTE
+
+echo "--- Updating USB fix script..."
+scp "$PROJECT_DIR/deploy/fix-ch340-usb.sh" "$HOST:/tmp/fix-ch340-usb.sh"
+ssh "$HOST" "sudo cp /tmp/fix-ch340-usb.sh /opt/bibtime_station/fix-ch340-usb.sh && sudo chmod +x /opt/bibtime_station/fix-ch340-usb.sh && rm -f /tmp/fix-ch340-usb.sh"
 
 echo "--- Restarting service..."
 ssh "$HOST" "sudo systemctl restart bibtime_station"

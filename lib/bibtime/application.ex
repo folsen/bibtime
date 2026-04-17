@@ -15,7 +15,6 @@ defmodule Bibtime.Application do
       {DNSCluster, query: Application.get_env(:bibtime, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Bibtime.PubSub},
       Bibtime.RateLimiter,
-      ChromicPDF,
       # Start to serve requests, typically the last entry
       BibtimeWeb.Endpoint
     ]

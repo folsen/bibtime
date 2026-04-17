@@ -24,6 +24,13 @@ defmodule BibtimeStation.Reader do
 
   @name __MODULE__
 
+  # If no UART data arrives within this window, assume inventory has
+  # stopped and restart it. The R200 sends ~70 frames/sec even with no
+  # tags in range (0x15 "no tag found"), so 5s of complete silence is a
+  # reliable signal that something is wrong.
+  @watchdog_timeout_ms 5_000
+  @watchdog_check_ms 2_000
+
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: Keyword.get(opts, :name, @name))
   end
@@ -47,10 +54,10 @@ defmodule BibtimeStation.Reader do
     test_env? = Application.get_env(:bibtime_station, :reader_skip_open, false)
 
     if test_env? do
-      {:ok, %{uart: nil, opts: opts, opened?: false}}
+      {:ok, %{uart: nil, opts: opts, opened?: false, last_data_at: nil}}
     else
       {:ok, pid} = UART.start_link()
-      state = %{uart: pid, opts: opts, opened?: false}
+      state = %{uart: pid, opts: opts, opened?: false, last_data_at: nil}
       {:ok, state, {:continue, :open_port}}
     end
   end
@@ -99,7 +106,9 @@ defmodule BibtimeStation.Reader do
         Process.sleep(50)
         :ok = UART.write(pid, Protocol.multi_inventory(0xFFFF))
 
-        {:noreply, %{state | opened?: true}}
+        schedule_watchdog()
+        now = System.monotonic_time(:millisecond)
+        {:noreply, %{state | opened?: true, last_data_at: now}}
 
       {:error, reason} ->
         # Don't crash — the rest of the supervision tree (Uplink,
@@ -134,7 +143,29 @@ defmodule BibtimeStation.Reader do
 
   def handle_info({:circuits_uart, _port, data}, state) when is_binary(data) do
     handle_frame(data)
+    {:noreply, %{state | last_data_at: System.monotonic_time(:millisecond)}}
+  end
+
+  def handle_info(:inventory_watchdog, %{opened?: false} = state) do
     {:noreply, state}
+  end
+
+  def handle_info(:inventory_watchdog, %{uart: pid, last_data_at: last} = state) do
+    now = System.monotonic_time(:millisecond)
+    silent_ms = now - (last || 0)
+
+    if silent_ms >= @watchdog_timeout_ms do
+      Logger.warning(
+        "[Reader] no data for #{div(silent_ms, 1000)}s — restarting inventory"
+      )
+
+      _ = UART.write(pid, Protocol.stop_inventory())
+      Process.sleep(50)
+      :ok = UART.write(pid, Protocol.multi_inventory(0xFFFF))
+    end
+
+    schedule_watchdog()
+    {:noreply, %{state | last_data_at: if(silent_ms >= @watchdog_timeout_ms, do: now, else: last)}}
   end
 
   def handle_info(:retry_open, state) do
@@ -189,17 +220,29 @@ defmodule BibtimeStation.Reader do
             :ok
         end
 
-      {:ok, %{type: 0x01, cmd: 0xFF, params: <<code>>}, _rest} ->
-        if code not in [0x15, 0x17] do
-          Logger.debug("[Reader] error frame: 0x#{Integer.to_string(code, 16)}")
-        end
-
-      {:ok, _frame, _rest} ->
+      {:ok, %{type: 0x01, cmd: 0xFF, params: <<code>>}, _rest} when code in [0x15, 0x17] ->
         :ok
 
-      _ ->
+      {:ok, %{type: 0x01, cmd: 0xFF, params: <<code>>}, _rest} ->
+        Logger.info("[Reader] error frame: code=0x#{Integer.to_string(code, 16)}")
+
+      {:ok, %{type: type, cmd: cmd, params: params}, _rest} ->
+        Logger.info(
+          "[Reader] frame: type=0x#{Integer.to_string(type, 16)}" <>
+            " cmd=0x#{Integer.to_string(cmd, 16)}" <>
+            " params=#{Base.encode16(params)}"
+        )
+
+      {:error, reason} ->
+        Logger.warning("[Reader] parse error: #{inspect(reason)}")
+
+      {:more, _} ->
         :ok
     end
+  end
+
+  defp schedule_watchdog do
+    Process.send_after(self(), :inventory_watchdog, @watchdog_check_ms)
   end
 
   defp maybe_wake(pid, device) do

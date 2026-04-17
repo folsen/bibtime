@@ -51,14 +51,19 @@ sudo mkdir -p /opt/bibtime_station /opt/bibtime_source /var/lib/bibtime_station
 sudo chown bibtime:bibtime /opt/bibtime_station /opt/bibtime_source /var/lib/bibtime_station
 REMOTE
 
-echo "--- Installing systemd service and env template..."
+echo "--- Installing systemd service, env template, and USB fix script..."
 scp "$SCRIPT_DIR/bibtime_station.service" "$HOST:/tmp/bibtime_station.service"
 scp "$SCRIPT_DIR/bibtime_station.env.example" "$HOST:/tmp/bibtime_station.env"
+scp "$SCRIPT_DIR/fix-ch340-usb.sh" "$HOST:/tmp/fix-ch340-usb.sh"
 
 ssh "$HOST" bash <<'REMOTE'
 set -euo pipefail
 
 sudo cp /tmp/bibtime_station.service /etc/systemd/system/bibtime_station.service
+
+# USB fix script — runs as ExecStartPre to rebind CH340 if probe failed on boot
+sudo cp /tmp/fix-ch340-usb.sh /opt/bibtime_station/fix-ch340-usb.sh
+sudo chmod +x /opt/bibtime_station/fix-ch340-usb.sh
 
 # Only copy env template if the real config doesn't exist yet
 if [ ! -f /etc/default/bibtime_station ]; then
@@ -68,7 +73,7 @@ else
   echo "/etc/default/bibtime_station already exists, skipping"
 fi
 
-rm -f /tmp/bibtime_station.service /tmp/bibtime_station.env
+rm -f /tmp/bibtime_station.service /tmp/bibtime_station.env /tmp/fix-ch340-usb.sh
 
 sudo systemctl daemon-reload
 sudo systemctl enable bibtime_station

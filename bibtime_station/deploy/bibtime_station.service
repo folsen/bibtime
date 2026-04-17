@@ -15,6 +15,13 @@ Group=bibtime
 # Where the release is unpacked. The deploy script (or your manual
 # scp) puts the extracted release here.
 WorkingDirectory=/opt/bibtime_station
+
+# On cold boot the CH340 USB-serial adapter sometimes fails to probe
+# (EPROTO -71) due to a USB bus power race. This script detects the
+# failure and rebinds the driver so /dev/ttyUSB0 appears before the
+# app starts. Runs as root (the "+" prefix) since sysfs writes need it.
+ExecStartPre=+/opt/bibtime_station/fix-ch340-usb.sh
+
 ExecStart=/opt/bibtime_station/bin/bibtime_station start
 ExecStop=/opt/bibtime_station/bin/bibtime_station stop
 

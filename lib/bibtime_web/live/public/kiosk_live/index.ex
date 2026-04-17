@@ -36,7 +36,7 @@ defmodule BibtimeWeb.Public.KioskLive.Index do
         rotation_enabled: false,
         rotation_timer: nil,
         scroll_speed: "normal",
-        show_columns: MapSet.new(["rank", "bib", "name", "total", "status"]),
+        show_columns: MapSet.new(["rank", "bib", "name", "splits", "total", "status"]),
         page_title: "#{race.name} — Live Results"
       )
 
