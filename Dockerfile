@@ -2,8 +2,8 @@
 # Multi-stage build: deps → compile → assets → release → runtime
 
 ARG ELIXIR_VERSION=1.19.5
-ARG OTP_VERSION=28.3
-ARG DEBIAN_VERSION=bookworm-20250317-slim
+ARG OTP_VERSION=26.2.5.19
+ARG DEBIAN_VERSION=bookworm-20260406-slim
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
@@ -33,12 +33,13 @@ COPY priv priv
 COPY lib lib
 COPY assets assets
 
-# Compile assets
-RUN mix assets.deploy
-
-# Compile application
+# Compile application first — Phoenix colocated hooks emit JS into
+# _build/prod/phoenix-colocated/bibtime/ which the esbuild bundle imports.
 COPY config/runtime.exs config/
 RUN mix compile
+
+# Then bundle assets (esbuild + tailwind) and digest.
+RUN mix assets.deploy
 
 # ── Stage 3: release ──────────────────────────────────────────────
 COPY rel rel
