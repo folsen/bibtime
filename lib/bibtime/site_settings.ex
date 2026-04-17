@@ -56,6 +56,15 @@ defmodule Bibtime.SiteSettings do
   end
 
   @doc """
+  Resolves the locale to use for a given user (or nil). Falls back to the
+  site-wide default when the user has no explicit preference.
+  """
+  def locale_for(%{preferred_locale: locale}) when is_binary(locale) and locale != "",
+    do: locale
+
+  def locale_for(_), do: get().default_locale
+
+  @doc """
   Clears the cache. Use in tests after direct DB manipulation.
   """
   def clear_cache do

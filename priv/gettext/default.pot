@@ -320,6 +320,7 @@ msgstr ""
 msgid "Categories"
 msgstr ""
 
+#: lib/bibtime/registration/registration_notifier.ex:60
 #: lib/bibtime/results/export.ex:53
 #: lib/bibtime/results/pdf_template.ex:104
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:88
@@ -421,7 +422,7 @@ msgstr ""
 msgid "Confirm new password"
 msgstr ""
 
-#: lib/bibtime/accounts/user_notifier.ex:70
+#: lib/bibtime/accounts/user_notifier.ex:84
 #, elixir-autogen, elixir-format
 msgid "Confirmation instructions"
 msgstr ""
@@ -472,7 +473,7 @@ msgstr ""
 msgid "Dashboard"
 msgstr ""
 
-#: lib/bibtime/payments/payment_notifier.ex:46
+#: lib/bibtime/payments/payment_notifier.ex:59
 #: lib/bibtime_web/live/admin/payment_live/index.ex:112
 #: lib/bibtime_web/live/admin/race_live/edit.ex:50
 #: lib/bibtime_web/live/admin/race_live/index.ex:39
@@ -581,7 +582,7 @@ msgstr ""
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:74
 #: lib/bibtime_web/live/admin/participant_live/index.ex:416
 #: lib/bibtime_web/live/admin/participant_live/new.ex:75
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:181
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:193
 #: lib/bibtime_web/live/admin/user_live/index.ex:111
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:128
 #: lib/bibtime_web/live/public/registration_live/my_registration.ex:112
@@ -701,24 +702,24 @@ msgstr ""
 msgid "Gender categories added."
 msgstr ""
 
-#: lib/bibtime/accounts/user_notifier.ex:30
-#: lib/bibtime/accounts/user_notifier.ex:57
-#: lib/bibtime/accounts/user_notifier.ex:74
+#: lib/bibtime/accounts/user_notifier.ex:40
+#: lib/bibtime/accounts/user_notifier.ex:69
+#: lib/bibtime/accounts/user_notifier.ex:88
 #, elixir-autogen, elixir-format
 msgid "Hi %{email},"
 msgstr ""
 
-#: lib/bibtime/accounts/user_notifier.ex:80
+#: lib/bibtime/accounts/user_notifier.ex:94
 #, elixir-autogen, elixir-format
 msgid "If you didn't create an account with us, please ignore this."
 msgstr ""
 
-#: lib/bibtime/accounts/user_notifier.ex:36
+#: lib/bibtime/accounts/user_notifier.ex:46
 #, elixir-autogen, elixir-format
 msgid "If you didn't request this change, please ignore this."
 msgstr ""
 
-#: lib/bibtime/accounts/user_notifier.ex:63
+#: lib/bibtime/accounts/user_notifier.ex:75
 #, elixir-autogen, elixir-format
 msgid "If you didn't request this email, please ignore this."
 msgstr ""
@@ -791,6 +792,7 @@ msgstr ""
 msgid "Leg Type"
 msgstr ""
 
+#: lib/bibtime/registration/registration_notifier.ex:59
 #: lib/bibtime_web/live/admin/race_live/edit.ex:51
 #: lib/bibtime_web/live/admin/race_live/index.ex:40
 #: lib/bibtime_web/live/admin/race_live/new.ex:127
@@ -815,7 +817,7 @@ msgstr ""
 msgid "Log in and stay logged in"
 msgstr ""
 
-#: lib/bibtime/accounts/user_notifier.ex:53
+#: lib/bibtime/accounts/user_notifier.ex:65
 #, elixir-autogen, elixir-format
 msgid "Log in instructions"
 msgstr ""
@@ -1106,7 +1108,7 @@ msgstr ""
 msgid "Quick Start"
 msgstr ""
 
-#: lib/bibtime/payments/payment_notifier.ex:44
+#: lib/bibtime/payments/payment_notifier.ex:57
 #: lib/bibtime_web/live/public/registration_live/show.ex:96
 #, elixir-autogen, elixir-format
 msgid "Race"
@@ -1213,6 +1215,7 @@ msgstr ""
 msgid "Registration Closed"
 msgstr ""
 
+#: lib/bibtime/registration/registration_notifier.ex:49
 #: lib/bibtime_web/live/public/registration_live/show.ex:43
 #, elixir-autogen, elixir-format
 msgid "Registration Confirmed"
@@ -1511,7 +1514,7 @@ msgstr ""
 msgid "Update Participant"
 msgstr ""
 
-#: lib/bibtime/accounts/user_notifier.ex:26
+#: lib/bibtime/accounts/user_notifier.ex:36
 #, elixir-autogen, elixir-format
 msgid "Update email instructions"
 msgstr ""
@@ -1558,17 +1561,17 @@ msgstr ""
 msgid "You are running the local mail adapter."
 msgstr ""
 
-#: lib/bibtime/accounts/user_notifier.ex:32
+#: lib/bibtime/accounts/user_notifier.ex:42
 #, elixir-autogen, elixir-format
 msgid "You can change your email by visiting the URL below:"
 msgstr ""
 
-#: lib/bibtime/accounts/user_notifier.ex:76
+#: lib/bibtime/accounts/user_notifier.ex:90
 #, elixir-autogen, elixir-format
 msgid "You can confirm your account by visiting the URL below:"
 msgstr ""
 
-#: lib/bibtime/accounts/user_notifier.ex:59
+#: lib/bibtime/accounts/user_notifier.ex:71
 #, elixir-autogen, elixir-format
 msgid "You can log into your account by visiting the URL below:"
 msgstr ""
@@ -2017,7 +2020,7 @@ msgstr[1] ""
 msgid "All Payments"
 msgstr ""
 
-#: lib/bibtime/payments/payment_notifier.ex:45
+#: lib/bibtime/payments/payment_notifier.ex:58
 #: lib/bibtime_web/live/admin/payment_live/index.ex:110
 #, elixir-autogen, elixir-format
 msgid "Amount"
@@ -2028,7 +2031,8 @@ msgstr ""
 msgid "Awaiting Payment"
 msgstr ""
 
-#: lib/bibtime/payments/payment_notifier.ex:49
+#: lib/bibtime/payments/payment_notifier.ex:62
+#: lib/bibtime/registration/registration_notifier.ex:61
 #, elixir-autogen, elixir-format
 msgid "Bib number"
 msgstr ""
@@ -2094,7 +2098,8 @@ msgstr ""
 msgid "Failed"
 msgstr ""
 
-#: lib/bibtime/payments/payment_notifier.ex:40
+#: lib/bibtime/payments/payment_notifier.ex:53
+#: lib/bibtime/registration/registration_notifier.ex:54
 #, elixir-autogen, elixir-format
 msgid "Hi %{name},"
 msgstr ""
@@ -2125,7 +2130,7 @@ msgstr ""
 msgid "Payment"
 msgstr ""
 
-#: lib/bibtime/payments/payment_notifier.ex:35
+#: lib/bibtime/payments/payment_notifier.ex:48
 #, elixir-autogen, elixir-format
 msgid "Payment Receipt"
 msgstr ""
@@ -2169,7 +2174,7 @@ msgstr ""
 msgid "Pending Payment"
 msgstr ""
 
-#: lib/bibtime/payments/payment_notifier.ex:47
+#: lib/bibtime/payments/payment_notifier.ex:60
 #, elixir-autogen, elixir-format
 msgid "Reference"
 msgstr ""
@@ -2201,7 +2206,8 @@ msgstr ""
 msgid "Require payment for registration"
 msgstr ""
 
-#: lib/bibtime/payments/payment_notifier.ex:51
+#: lib/bibtime/payments/payment_notifier.ex:64
+#: lib/bibtime/registration/registration_notifier.ex:70
 #, elixir-autogen, elixir-format
 msgid "See you at the start line!"
 msgstr ""
@@ -2216,7 +2222,7 @@ msgstr ""
 msgid "Total Collected"
 msgstr ""
 
-#: lib/bibtime/payments/payment_notifier.ex:42
+#: lib/bibtime/payments/payment_notifier.ex:55
 #, elixir-autogen, elixir-format
 msgid "Your payment has been received."
 msgstr ""
@@ -2611,6 +2617,7 @@ msgstr ""
 msgid "Token"
 msgstr ""
 
+#: lib/bibtime/registration/registration_notifier.ex:45
 #: lib/bibtime_web/live/admin/station_live/global_index.ex:231
 #, elixir-autogen, elixir-format
 msgid "Unassigned"
@@ -2814,27 +2821,27 @@ msgstr ""
 msgid "Branding"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:145
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:157
 #, elixir-autogen, elixir-format
 msgid "Button label"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:118
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:130
 #, elixir-autogen, elixir-format
 msgid "Button label override (optional)"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:98
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:110
 #, elixir-autogen, elixir-format
 msgid "CTA mode"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:92
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:104
 #, elixir-autogen, elixir-format
 msgid "Call to action"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:270
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:282
 #, elixir-autogen, elixir-format
 msgid "Custom URL"
 msgstr ""
@@ -2844,59 +2851,59 @@ msgstr ""
 msgid "Customize the site name, landing page, and call-to-action."
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:268
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:280
 #, elixir-autogen, elixir-format
 msgid "Default (Log in button)"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:163
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:175
 #, elixir-autogen, elixir-format
 msgid "Default: shows a Log in button to visitors who are not logged in."
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:131
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:143
 #, elixir-autogen, elixir-format
 msgid "Defaults to the race name"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:107
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:269
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:119
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:281
 #, elixir-autogen, elixir-format
 msgid "Featured race"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:79
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:91
 #, elixir-autogen, elixir-format
 msgid "Hero subtitle (%{locale})"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:72
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:84
 #, elixir-autogen, elixir-format
 msgid "Hero title (%{locale})"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:130
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:157
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:142
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:169
 #, elixir-autogen, elixir-format
 msgid "Label (%{locale})"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:59
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:71
 #, elixir-autogen, elixir-format
 msgid "Landing page hero"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:85
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:97
 #, elixir-autogen, elixir-format
 msgid "Leave both languages empty to use the built-in defaults."
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:112
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:124
 #, elixir-autogen, elixir-format
 msgid "Link goes to the race registration page when registration is open, otherwise to the race detail page."
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:171
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:183
 #, elixir-autogen, elixir-format
 msgid "Organizer contact (optional)"
 msgstr ""
@@ -2907,12 +2914,12 @@ msgstr ""
 msgid "Powered by"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:197
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:209
 #, elixir-autogen, elixir-format
 msgid "Save Settings"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:109
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:121
 #, elixir-autogen, elixir-format
 msgid "Select a race"
 msgstr ""
@@ -2922,7 +2929,7 @@ msgstr ""
 msgid "Shown in the top-left header and as the page title suffix."
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:174
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:186
 #, elixir-autogen, elixir-format
 msgid "Shown subtly in the site footer."
 msgstr ""
@@ -2938,17 +2945,17 @@ msgstr ""
 msgid "Site name"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:228
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:240
 #, elixir-autogen, elixir-format
 msgid "Site settings updated."
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:139
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:151
 #, elixir-autogen, elixir-format
 msgid "URL"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/settings_live/edit.ex:188
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:200
 #, elixir-autogen, elixir-format
 msgid "Website"
 msgstr ""
@@ -2971,4 +2978,45 @@ msgstr ""
 #: lib/bibtime_web/controllers/user_settings_html/edit.html.heex:27
 #, elixir-autogen, elixir-format
 msgid "Signed in as"
+msgstr ""
+
+#: lib/bibtime/registration/registration_notifier.ex:63
+#, elixir-autogen, elixir-format
+msgid "An account has been created for you. To log in and manage your registration details, visit the login page and enter your email to receive a login link:"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:57
+#, elixir-autogen, elixir-format
+msgid "Default language"
+msgstr ""
+
+#: lib/bibtime/payments/payment_notifier.ex:43
+#, elixir-autogen, elixir-format
+msgid "N/A"
+msgstr ""
+
+#: lib/bibtime/registration/registration_notifier.ex:67
+#, elixir-autogen, elixir-format
+msgid "Or view your registration directly:"
+msgstr ""
+
+#: lib/bibtime/registration/registration_notifier.ex:58
+#, elixir-autogen, elixir-format
+msgid "Race date"
+msgstr ""
+
+#: lib/bibtime/registration/registration_notifier.ex:38
+#: lib/bibtime/registration/registration_notifier.ex:40
+#, elixir-autogen, elixir-format
+msgid "TBD"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/settings_live/edit.ex:61
+#, elixir-autogen, elixir-format
+msgid "Used for first-time visitors and email notifications to users who have not chosen a language."
+msgstr ""
+
+#: lib/bibtime/registration/registration_notifier.ex:56
+#, elixir-autogen, elixir-format
+msgid "You are registered for %{race}!"
 msgstr ""

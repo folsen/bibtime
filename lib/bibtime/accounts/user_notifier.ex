@@ -3,6 +3,7 @@ defmodule Bibtime.Accounts.UserNotifier do
   use Gettext, backend: BibtimeWeb.Gettext
 
   alias Bibtime.Mailer
+  alias Bibtime.SiteSettings
   alias Bibtime.Accounts.User
 
   defp from_address do
@@ -14,7 +15,7 @@ defmodule Bibtime.Accounts.UserNotifier do
     email =
       new()
       |> to(recipient)
-      |> from({Bibtime.SiteSettings.get().site_name, from_address()})
+      |> from({SiteSettings.get().site_name, from_address()})
       |> subject(subject)
       |> text_body(body)
 
@@ -23,24 +24,30 @@ defmodule Bibtime.Accounts.UserNotifier do
     end
   end
 
+  defp with_recipient_locale(user, fun) do
+    Gettext.with_locale(BibtimeWeb.Gettext, SiteSettings.locale_for(user), fun)
+  end
+
   @doc """
   Deliver instructions to update a user email.
   """
   def deliver_update_email_instructions(user, url) do
-    deliver(user.email, gettext("Update email instructions"), """
+    with_recipient_locale(user, fn ->
+      deliver(user.email, gettext("Update email instructions"), """
 
-    ==============================
+      ==============================
 
-    #{gettext("Hi %{email},", email: user.email)}
+      #{gettext("Hi %{email},", email: user.email)}
 
-    #{gettext("You can change your email by visiting the URL below:")}
+      #{gettext("You can change your email by visiting the URL below:")}
 
-    #{url}
+      #{url}
 
-    #{gettext("If you didn't request this change, please ignore this.")}
+      #{gettext("If you didn't request this change, please ignore this.")}
 
-    ==============================
-    """)
+      ==============================
+      """)
+    end)
   end
 
   @doc """
@@ -54,36 +61,40 @@ defmodule Bibtime.Accounts.UserNotifier do
   end
 
   defp deliver_magic_link_instructions(user, url) do
-    deliver(user.email, gettext("Log in instructions"), """
+    with_recipient_locale(user, fn ->
+      deliver(user.email, gettext("Log in instructions"), """
 
-    ==============================
+      ==============================
 
-    #{gettext("Hi %{email},", email: user.email)}
+      #{gettext("Hi %{email},", email: user.email)}
 
-    #{gettext("You can log into your account by visiting the URL below:")}
+      #{gettext("You can log into your account by visiting the URL below:")}
 
-    #{url}
+      #{url}
 
-    #{gettext("If you didn't request this email, please ignore this.")}
+      #{gettext("If you didn't request this email, please ignore this.")}
 
-    ==============================
-    """)
+      ==============================
+      """)
+    end)
   end
 
   defp deliver_confirmation_instructions(user, url) do
-    deliver(user.email, gettext("Confirmation instructions"), """
+    with_recipient_locale(user, fn ->
+      deliver(user.email, gettext("Confirmation instructions"), """
 
-    ==============================
+      ==============================
 
-    #{gettext("Hi %{email},", email: user.email)}
+      #{gettext("Hi %{email},", email: user.email)}
 
-    #{gettext("You can confirm your account by visiting the URL below:")}
+      #{gettext("You can confirm your account by visiting the URL below:")}
 
-    #{url}
+      #{url}
 
-    #{gettext("If you didn't create an account with us, please ignore this.")}
+      #{gettext("If you didn't create an account with us, please ignore this.")}
 
-    ==============================
-    """)
+      ==============================
+      """)
+    end)
   end
 end

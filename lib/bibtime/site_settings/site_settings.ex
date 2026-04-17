@@ -15,6 +15,8 @@ defmodule Bibtime.SiteSettings.SiteSettings do
     field :cta_mode, :string, default: "default"
     field :cta_url, :string
 
+    field :default_locale, :string, default: "en"
+
     field :organizer_email, :string
     field :organizer_website, :string
 
@@ -33,13 +35,15 @@ defmodule Bibtime.SiteSettings.SiteSettings do
       :cta_label,
       :cta_mode,
       :cta_url,
+      :default_locale,
       :featured_race_id,
       :organizer_email,
       :organizer_website
     ])
-    |> validate_required([:site_name, :cta_mode])
+    |> validate_required([:site_name, :cta_mode, :default_locale])
     |> validate_length(:site_name, min: 1, max: 60)
     |> validate_inclusion(:cta_mode, @cta_modes)
+    |> validate_inclusion(:default_locale, @supported_locales)
     |> normalize_translations(:hero_title)
     |> normalize_translations(:hero_subtitle)
     |> normalize_translations(:cta_label)

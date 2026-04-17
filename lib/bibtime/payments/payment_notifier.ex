@@ -4,6 +4,8 @@ defmodule Bibtime.Payments.PaymentNotifier do
 
   alias Bibtime.Mailer
   alias Bibtime.Payments
+  alias Bibtime.SiteSettings
+  alias BibtimeWeb.LocaleHelpers
 
   defp from_address do
     Application.get_env(:bibtime, :mailer_from_address, "contact@example.com")
@@ -13,7 +15,7 @@ defmodule Bibtime.Payments.PaymentNotifier do
     email =
       new()
       |> to(recipient)
-      |> from({Bibtime.SiteSettings.get().site_name, from_address()})
+      |> from({SiteSettings.get().site_name, from_address()})
       |> subject(subject)
       |> text_body(body)
 
@@ -27,36 +29,44 @@ defmodule Bibtime.Payments.PaymentNotifier do
   """
   def deliver_receipt(payment, participant, race) do
     if participant.email do
-      amount_str = Payments.format_amount(payment.amount_cents, payment.currency)
+      locale = SiteSettings.locale_for(Map.get(participant, :user))
 
-      paid_at_str =
-        if payment.paid_at,
-          do: Calendar.strftime(payment.paid_at, "%B %d, %Y at %H:%M UTC"),
-          else: "N/A"
+      Gettext.with_locale(BibtimeWeb.Gettext, locale, fn ->
+        amount_str = Payments.format_amount(payment.amount_cents, payment.currency)
 
-      deliver(
-        participant.email,
-        gettext("Payment Receipt") <> " — #{race.name}",
-        """
+        paid_at_str =
+          if payment.paid_at do
+            date = LocaleHelpers.format_date(DateTime.to_date(payment.paid_at))
+            time = Calendar.strftime(payment.paid_at, "%H:%M UTC")
+            "#{date}, #{time}"
+          else
+            gettext("N/A")
+          end
 
-        ==============================
+        deliver(
+          participant.email,
+          gettext("Payment Receipt") <> " — #{race.name}",
+          """
 
-        #{gettext("Hi %{name},", name: participant.first_name)}
+          ==============================
 
-        #{gettext("Your payment has been received.")}
+          #{gettext("Hi %{name},", name: participant.first_name)}
 
-        #{gettext("Race")}: #{race.name}
-        #{gettext("Amount")}: #{amount_str}
-        #{gettext("Date")}: #{paid_at_str}
-        #{gettext("Reference")}: #{payment.stripe_payment_intent_id || payment.stripe_checkout_session_id}
+          #{gettext("Your payment has been received.")}
 
-        #{gettext("Bib number")}: #{participant.bib_number}
+          #{gettext("Race")}: #{race.name}
+          #{gettext("Amount")}: #{amount_str}
+          #{gettext("Date")}: #{paid_at_str}
+          #{gettext("Reference")}: #{payment.stripe_payment_intent_id || payment.stripe_checkout_session_id}
 
-        #{gettext("See you at the start line!")}
+          #{gettext("Bib number")}: #{participant.bib_number}
 
-        ==============================
-        """
-      )
+          #{gettext("See you at the start line!")}
+
+          ==============================
+          """
+        )
+      end)
     end
   end
 end

@@ -50,6 +50,18 @@ defmodule BibtimeWeb.Admin.SettingsLive.Edit do
           <p class="text-xs text-base-content/40">
             {gettext("Shown in the top-left header and as the page title suffix.")}
           </p>
+
+          <.input
+            field={@form[:default_locale]}
+            type="select"
+            label={gettext("Default language")}
+            options={default_locale_options()}
+          />
+          <p class="text-xs text-base-content/40">
+            {gettext(
+              "Used for first-time visitors and email notifications to users who have not chosen a language."
+            )}
+          </p>
         </section>
 
         <%!-- Hero Section (translatable) --%>
@@ -269,6 +281,11 @@ defmodule BibtimeWeb.Admin.SettingsLive.Edit do
       {gettext("Featured race"), "featured_race"},
       {gettext("Custom URL"), "custom"}
     ]
+  end
+
+  defp default_locale_options do
+    BibtimeWeb.Plugs.SetLocale.supported_locales()
+    |> Enum.map(fn locale -> {BibtimeWeb.LocaleHelpers.locale_name(locale), locale} end)
   end
 
   defp race_options(races) do
