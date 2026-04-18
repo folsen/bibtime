@@ -4,6 +4,9 @@
 ARG ELIXIR_VERSION=1.19.5
 ARG OTP_VERSION=26.2.5.19
 ARG DEBIAN_VERSION=bookworm-20260406-slim
+# Build env — `prod` by default, overridden to `staging` by fly.staging.toml so
+# staging releases mount /dev/mailbox and keep Swoosh local storage running.
+ARG MIX_ENV=prod
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
@@ -18,14 +21,17 @@ WORKDIR /app
 
 RUN mix local.hex --force && mix local.rebar --force
 
-ENV MIX_ENV="prod"
+ARG MIX_ENV
+ENV MIX_ENV="${MIX_ENV}"
 
-# Install dependencies first (cached layer)
+# Install dependencies first (cached layer). Staging builds reuse prod deps
+# (same compile-time adapters) so fetch with --only prod regardless of MIX_ENV.
 COPY mix.exs mix.lock ./
-RUN mix deps.get --only $MIX_ENV
+RUN mix deps.get --only prod
 RUN mkdir config
 
-COPY config/config.exs config/${MIX_ENV}.exs config/
+# Copy all non-dev/test config so staging.exs can `import_config "prod.exs"`.
+COPY config/config.exs config/prod.exs config/staging.exs config/
 RUN mix deps.compile
 
 # ── Stage 2: compile & assets ──────────────────────────────────────
@@ -71,7 +77,8 @@ ENV LC_ALL=en_US.UTF-8
 WORKDIR /app
 RUN chown nobody /app
 
-ENV MIX_ENV="prod"
+ARG MIX_ENV
+ENV MIX_ENV="${MIX_ENV}"
 
 # Only copy the release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/bibtime ./

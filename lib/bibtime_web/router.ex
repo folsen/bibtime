@@ -36,6 +36,18 @@ defmodule BibtimeWeb.Router do
     plug BibtimeWeb.Plugs.RateLimiter
   end
 
+  # Basic auth for /dev/* tools (mailbox preview, LiveDashboard, email preview).
+  # Credentials are read at runtime — dev sets defaults in config/dev.exs,
+  # staging/prod pull them from env vars in config/runtime.exs.
+  pipeline :dev_tools_basic_auth do
+    plug :require_dev_tools_basic_auth
+  end
+
+  defp require_dev_tools_basic_auth(conn, _opts) do
+    creds = Application.fetch_env!(:bibtime, :dev_tools_basic_auth)
+    Plug.BasicAuth.basic_auth(conn, creds)
+  end
+
   # Public routes (no auth required)
   scope "/", BibtimeWeb do
     pipe_through :browser
@@ -148,7 +160,7 @@ defmodule BibtimeWeb.Router do
     import Phoenix.LiveDashboard.Router
 
     scope "/dev", BibtimeWeb do
-      pipe_through :browser
+      pipe_through [:browser, :dev_tools_basic_auth]
 
       live_session :dev_email_preview,
         on_mount: [{BibtimeWeb.UserAuth, :assign_current_scope}] do
@@ -157,7 +169,7 @@ defmodule BibtimeWeb.Router do
     end
 
     scope "/dev" do
-      pipe_through :browser
+      pipe_through [:browser, :dev_tools_basic_auth]
 
       live_dashboard "/dashboard", metrics: BibtimeWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview

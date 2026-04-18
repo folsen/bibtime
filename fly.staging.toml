@@ -7,6 +7,10 @@ kill_signal = "SIGTERM"
 kill_timeout = "30s"
 
 [build]
+  [build.args]
+    # Build staging as a distinct release env so config/staging.exs is loaded:
+    # enables /dev/mailbox and keeps the Swoosh local storage GenServer alive.
+    MIX_ENV = "staging"
 
 [env]
   PHX_SERVER = "true"

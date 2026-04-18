@@ -83,9 +83,14 @@ fly secrets set -a bibtime \
 fly secrets set -a bibtime-staging \
   PHX_HOST=staging.yourdomain.com \
   SECRET_KEY_BASE=$(mix phx.gen.secret) \
-  MAILER_FROM_ADDRESS=no-reply@yourdomain.com
-# Staging intentionally omits RESEND_API_KEY so mail falls back to
-# Swoosh.Adapters.Local (viewable under /dev/mailbox in a later iteration).
+  MAILER_FROM_ADDRESS=no-reply@yourdomain.com \
+  DEV_TOOLS_BASIC_AUTH_USERNAME=admin \
+  DEV_TOOLS_BASIC_AUTH_PASSWORD=$(openssl rand -base64 24)
+# Staging omits RESEND_API_KEY so mail is captured by Swoosh.Adapters.Local
+# and viewable at /dev/mailbox (staging is built with MIX_ENV=staging, which
+# enables the mailbox preview route — see config/staging.exs).
+# DEV_TOOLS_BASIC_AUTH_* guards /dev/mailbox, /dev/dashboard, /dev/emails —
+# staging fails to boot without them.
 ```
 
 Optional, if you use them:

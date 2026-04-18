@@ -110,7 +110,7 @@ if stripe_webhook_secret = System.get_env("STRIPE_WEBHOOK_SECRET") do
   config :stripity_stripe, signing_secret: stripe_webhook_secret
 end
 
-if config_env() == :prod do
+if config_env() in [:prod, :staging] do
   database_path =
     System.get_env("DATABASE_PATH") ||
       raise """
@@ -156,8 +156,23 @@ if config_env() == :prod do
     mailer_from_address: System.get_env("MAILER_FROM_ADDRESS", "no-reply@example.com")
 
   # Resend mailer (opt-in via env var). When unset, the app falls back to
-  # the Swoosh.Adapters.Local adapter configured in config.exs — useful for
-  # staging where you inspect mail at /dev/mailbox.
+  # the Swoosh.Adapters.Local adapter configured in config.exs. Staging builds
+  # (MIX_ENV=staging) keep the local adapter so mail is viewable at
+  # /dev/mailbox instead of being delivered to real inboxes.
+  if config_env() == :staging do
+    config :bibtime, :dev_tools_basic_auth,
+      username:
+        System.get_env("DEV_TOOLS_BASIC_AUTH_USERNAME") ||
+          raise("""
+          environment variable DEV_TOOLS_BASIC_AUTH_USERNAME is missing.
+          Staging exposes /dev/mailbox and /dev/dashboard behind basic auth.
+          Set a username/password via `fly secrets set`.
+          """),
+      password:
+        System.get_env("DEV_TOOLS_BASIC_AUTH_PASSWORD") ||
+          raise("environment variable DEV_TOOLS_BASIC_AUTH_PASSWORD is missing.")
+  end
+
   if resend_api_key = System.get_env("RESEND_API_KEY") do
     config :bibtime, Bibtime.Mailer,
       adapter: Swoosh.Adapters.Resend,

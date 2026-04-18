@@ -68,6 +68,10 @@ config :bibtime, BibtimeWeb.Endpoint,
 # Enable dev routes for dashboard and mailbox
 config :bibtime, dev_routes: true
 
+# Basic auth for /dev/* tools. Override locally if you want a real password;
+# these defaults exist so the pipeline doesn't crash during local development.
+config :bibtime, :dev_tools_basic_auth, username: "admin", password: "admin"
+
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"
 
