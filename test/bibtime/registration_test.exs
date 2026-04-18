@@ -223,13 +223,14 @@ defmodule Bibtime.RegistrationTest do
       assert %{first_name: ["can't be blank"]} = errors_on(changeset)
     end
 
-    test "requires last_name" do
+    test "allows registration without last_name" do
       race = create_race!()
       category = create_category!(race)
       attrs = valid_attrs(category) |> Map.delete(:last_name)
 
-      assert {:error, changeset} = Registration.register_participant(race, attrs)
-      assert %{last_name: ["can't be blank"]} = errors_on(changeset)
+      assert {:ok, participant} = Registration.register_participant(race, attrs)
+      assert participant.first_name == "Alice"
+      assert participant.last_name == nil
     end
 
     test "requires email" do

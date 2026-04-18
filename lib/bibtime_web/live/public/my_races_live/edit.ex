@@ -117,7 +117,6 @@ defmodule BibtimeWeb.Public.MyRacesLive.Edit do
               field={@form[:last_name]}
               type="text"
               label={gettext("Last Name")}
-              required
               disabled={!@editable?}
             />
           </div>

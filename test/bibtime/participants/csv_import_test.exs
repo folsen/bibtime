@@ -165,7 +165,7 @@ defmodule Bibtime.Participants.CSVImportTest do
       assert err.field == "bib_number"
     end
 
-    test "rejects single-word names" do
+    test "accepts single-word names with no last name" do
       race = create_race!()
 
       csv = """
@@ -173,8 +173,9 @@ defmodule Bibtime.Participants.CSVImportTest do
       """
 
       {:ok, rows} = CSVImport.parse(csv)
-      assert {:error, [err]} = CSVImport.validate(rows, race.id)
-      assert err.field == "name"
+      assert {:ok, [attrs]} = CSVImport.validate(rows, race.id)
+      assert attrs["first_name"] == "Alice"
+      assert attrs["last_name"] == nil
     end
 
     test "rejects unknown category names" do

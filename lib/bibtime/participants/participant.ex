@@ -48,12 +48,12 @@ defmodule Bibtime.Participants.Participant do
       :race_id,
       :race_category_id
     ])
-    |> validate_required([:bib_number, :first_name, :last_name, :race_id])
+    |> validate_required([:bib_number, :first_name, :race_id])
     |> unique_constraint([:race_id, :bib_number])
   end
 
   def registration_changeset(participant, attrs, opts \\ []) do
-    required = [:first_name, :last_name, :email]
+    required = [:first_name, :email]
 
     required =
       if Keyword.get(opts, :require_category, true),

@@ -196,7 +196,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
         >
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <.input field={@form[:first_name]} type="text" label={gettext("First Name")} required />
-            <.input field={@form[:last_name]} type="text" label={gettext("Last Name")} required />
+            <.input field={@form[:last_name]} type="text" label={gettext("Last Name")} />
           </div>
 
           <.input field={@form[:email]} type="email" label={gettext("Email")} required />

@@ -66,7 +66,7 @@ defmodule Bibtime.Participants.CSVImport do
 
   Checks that:
     * bib_number is present and non-empty
-    * name (first + last) resolves to non-empty first_name and last_name
+    * first_name is present (last_name is optional)
     * email, if present, is well-formed
     * category, if present, matches one of the race's categories
     * no duplicate bibs within the import
@@ -125,7 +125,7 @@ defmodule Bibtime.Participants.CSVImport do
             attrs = %{
               "bib_number" => row.bib_number,
               "first_name" => row.first_name,
-              "last_name" => row.last_name,
+              "last_name" => nil_if_blank(row.last_name),
               "email" => nil_if_blank(row.email),
               "club" => nil_if_blank(row.club),
               "race_id" => race_id,
@@ -346,23 +346,11 @@ defmodule Bibtime.Participants.CSVImport do
     end
   end
 
-  defp validate_name(%{first_name: f, last_name: l, row_num: n}, errors) do
-    cond do
-      f in [nil, ""] ->
-        [%{row: n, field: "name", message: "name is required"} | errors]
-
-      l in [nil, ""] ->
-        [
-          %{
-            row: n,
-            field: "name",
-            message: "name must include both first and last (got '#{f}')"
-          }
-          | errors
-        ]
-
-      true ->
-        errors
+  defp validate_name(%{first_name: f, row_num: n}, errors) do
+    if f in [nil, ""] do
+      [%{row: n, field: "name", message: "name is required"} | errors]
+    else
+      errors
     end
   end
 
