@@ -50,7 +50,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
             }
           end)
 
-        if race_start do
+        if race_start && race.status != :finished do
           {:ok, timer_ref} = :timer.send_interval(1_000, self(), :tick)
           assign(socket, :timer_ref, timer_ref)
         else
@@ -212,7 +212,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
     <div>
       <%!-- Start Race Section --%>
       <div
-        :if={is_nil(@race_start)}
+        :if={is_nil(@race_start) and @race.status != :finished}
         class="flex flex-col items-center justify-center py-16 text-center"
       >
         <div class="rounded-full bg-primary/10 p-5 mb-5">
@@ -231,8 +231,21 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
         </.button>
       </div>
 
-      <%!-- Race Started Section --%>
-      <div :if={@race_start}>
+      <%!-- Finished Race Banner --%>
+      <div
+        :if={@race.status == :finished}
+        class="rounded-2xl border border-base-300 bg-base-200/40 p-4 sm:p-6 text-center mb-4 sm:mb-6"
+      >
+        <p class="text-sm font-semibold uppercase tracking-wider text-base-content/70">
+          {gettext("Race is finished")}
+        </p>
+        <p class="mt-1 text-xs text-base-content/50">
+          {gettext("Change the status back to In Progress to record live times.")}
+        </p>
+      </div>
+
+      <%!-- Live Timing Section --%>
+      <div :if={not is_nil(@race_start) and @race.status != :finished}>
         <%!-- Running Clock Card --%>
         <div class="rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:p-8 text-center mb-4 sm:mb-6 shadow-sm">
           <div class="text-4xl sm:text-7xl font-mono font-bold tracking-widest text-primary">
@@ -358,74 +371,74 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
             </button>
           </div>
         </div>
+      </div>
 
-        <%!-- Recent Entries Table --%>
-        <div class="mb-8">
-          <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3">
-            {gettext("Recent Entries")}
-          </h3>
-          <div :if={@timing_loading} class="animate-pulse space-y-3">
-            <div class="h-6 bg-base-200 rounded w-full"></div>
-            <div class="h-6 bg-base-200/60 rounded w-11/12"></div>
-            <div class="h-6 bg-base-200/60 rounded w-full"></div>
-          </div>
-          <div
-            :if={!@timing_loading and @recent_entries != []}
-            class="overflow-x-auto rounded-xl border border-base-300 bg-base-100 shadow-sm"
-          >
-            <table class="table w-full">
-              <thead>
-                <tr class="border-b border-base-300 bg-base-200/40 text-xs uppercase tracking-wider text-base-content/50">
-                  <th class="font-semibold">{gettext("Bib")}</th>
-                  <th class="font-semibold hidden sm:table-cell">{gettext("Name")}</th>
-                  <th class="font-semibold">{gettext("Split")}</th>
-                  <th class="font-semibold">{gettext("Elapsed")}</th>
-                  <th class="font-semibold"><span class="sr-only">{gettext("Actions")}</span></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  :for={entry <- @recent_entries}
-                  id={"entry-#{entry.id}"}
-                  class="border-b border-base-200 odd:bg-base-100 even:bg-base-200/30"
-                >
-                  <td class="py-3">
-                    <span class="font-mono font-bold text-primary">
-                      {entry.participant.bib_number}
-                    </span>
-                  </td>
-                  <td class="py-3 text-sm hidden sm:table-cell">
-                    {entry.participant.first_name} {entry.participant.last_name}
-                  </td>
-                  <td class="py-3 text-sm text-base-content/70">
-                    {entry.split.name}
-                  </td>
-                  <td class="py-3">
-                    <span class="font-mono text-sm">{format_elapsed_ms(entry.elapsed_ms)}</span>
-                  </td>
-                  <td class="py-3">
-                    <button
-                      phx-click="delete_entry"
-                      phx-value-id={entry.id}
-                      data-confirm={gettext("Delete this timing entry?")}
-                      class="text-sm font-medium text-error/70 hover:text-error transition-colors"
-                    >
-                      {gettext("Undo")}
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div
-            :if={!@timing_loading and @recent_entries == []}
-            class="flex flex-col items-center py-8 text-center"
-          >
-            <.icon name="hero-clock" class="size-8 text-base-content/20 mb-2" />
-            <p class="text-sm text-base-content/50">
-              {gettext("No recordings yet. Enter a bib number above to start recording times.")}
-            </p>
-          </div>
+      <%!-- Recent Entries Table (shown for live timing or finished races) --%>
+      <div :if={not is_nil(@race_start) or @race.status == :finished} class="mb-8">
+        <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3">
+          {gettext("Recent Entries")}
+        </h3>
+        <div :if={@timing_loading} class="animate-pulse space-y-3">
+          <div class="h-6 bg-base-200 rounded w-full"></div>
+          <div class="h-6 bg-base-200/60 rounded w-11/12"></div>
+          <div class="h-6 bg-base-200/60 rounded w-full"></div>
+        </div>
+        <div
+          :if={!@timing_loading and @recent_entries != []}
+          class="overflow-x-auto rounded-xl border border-base-300 bg-base-100 shadow-sm"
+        >
+          <table class="table w-full">
+            <thead>
+              <tr class="border-b border-base-300 bg-base-200/40 text-xs uppercase tracking-wider text-base-content/50">
+                <th class="font-semibold">{gettext("Bib")}</th>
+                <th class="font-semibold hidden sm:table-cell">{gettext("Name")}</th>
+                <th class="font-semibold">{gettext("Split")}</th>
+                <th class="font-semibold">{gettext("Elapsed")}</th>
+                <th class="font-semibold"><span class="sr-only">{gettext("Actions")}</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                :for={entry <- @recent_entries}
+                id={"entry-#{entry.id}"}
+                class="border-b border-base-200 odd:bg-base-100 even:bg-base-200/30"
+              >
+                <td class="py-3">
+                  <span class="font-mono font-bold text-primary">
+                    {entry.participant.bib_number}
+                  </span>
+                </td>
+                <td class="py-3 text-sm hidden sm:table-cell">
+                  {entry.participant.first_name} {entry.participant.last_name}
+                </td>
+                <td class="py-3 text-sm text-base-content/70">
+                  {entry.split.name}
+                </td>
+                <td class="py-3">
+                  <span class="font-mono text-sm">{format_elapsed_ms(entry.elapsed_ms)}</span>
+                </td>
+                <td class="py-3">
+                  <button
+                    phx-click="delete_entry"
+                    phx-value-id={entry.id}
+                    data-confirm={gettext("Delete this timing entry?")}
+                    class="text-sm font-medium text-error/70 hover:text-error transition-colors"
+                  >
+                    {gettext("Undo")}
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div
+          :if={!@timing_loading and @recent_entries == []}
+          class="flex flex-col items-center py-8 text-center"
+        >
+          <.icon name="hero-clock" class="size-8 text-base-content/20 mb-2" />
+          <p class="text-sm text-base-content/50">
+            {gettext("No recordings yet.")}
+          </p>
         </div>
       </div>
     </div>

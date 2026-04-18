@@ -48,6 +48,27 @@ defmodule BibtimeWeb.Admin.TimingLiveTest do
       assert html =~ "Elapsed since gun start"
       assert html =~ "Bib Number"
     end
+
+    test "finished race hides gun timer and start button", %{conn: conn} do
+      race = race_fixture(%{status: :finished})
+      split_fixture(race, %{name: "Swim", short_name: "swim", leg_type: :swim, sort_order: 1})
+
+      {:ok, _view, html} = live(conn, ~p"/admin/races/#{race.id}/timing")
+      assert html =~ "Race is finished"
+      refute html =~ "Start Race"
+      refute html =~ "Elapsed since gun start"
+      refute html =~ "Enter bib number"
+    end
+
+    test "finished race with a prior race_start still hides the clock", %{conn: conn} do
+      race = race_fixture(%{status: :finished})
+      split_fixture(race, %{name: "Swim", short_name: "swim", leg_type: :swim, sort_order: 1})
+      start_race_fixture(race, ~U[2026-06-01 08:00:00Z])
+
+      {:ok, _view, html} = live(conn, ~p"/admin/races/#{race.id}/timing")
+      refute html =~ "Elapsed since gun start"
+      assert html =~ "Race is finished"
+    end
   end
 
   describe "start_race event" do
