@@ -16,7 +16,7 @@ defmodule BibtimeWeb.Router do
           "script-src 'self'; " <>
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " <>
           "font-src 'self' https://fonts.gstatic.com; " <>
-          "img-src 'self' data: blob:; " <>
+          "img-src 'self' data: blob: https://fly.storage.tigris.dev; " <>
           "connect-src 'self' ws: wss:; " <>
           "frame-ancestors 'none'; " <>
           "base-uri 'self'; " <>
