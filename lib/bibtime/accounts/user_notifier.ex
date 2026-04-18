@@ -2,6 +2,11 @@ defmodule Bibtime.Accounts.UserNotifier do
   import Swoosh.Email
   use Gettext, backend: BibtimeWeb.Gettext
 
+  use Phoenix.VerifiedRoutes,
+    endpoint: BibtimeWeb.Endpoint,
+    router: BibtimeWeb.Router,
+    statics: BibtimeWeb.static_paths()
+
   alias Bibtime.Mailer
   alias Bibtime.SiteSettings
   alias Bibtime.Accounts.User
@@ -31,14 +36,14 @@ defmodule Bibtime.Accounts.UserNotifier do
   @doc """
   Builds the email struct for `deliver_update_email_instructions/2` (for previews).
   """
-  def email_update_email_instructions(user, url) do
+  def email_update_email_instructions(user, encoded_token) do
     with_recipient_locale(user, fn ->
       build_email(user.email, gettext("Update email instructions"), """
       #{gettext("Hi %{email},", email: user.email)}
 
       #{gettext("You can change your email by visiting the URL below:")}
 
-      #{url}
+      #{url(~p"/users/settings/confirm-email/#{encoded_token}")}
 
       #{gettext("If you didn't request this change, please ignore this.")}
       """)
@@ -48,21 +53,21 @@ defmodule Bibtime.Accounts.UserNotifier do
   @doc """
   Deliver instructions to update a user email.
   """
-  def deliver_update_email_instructions(user, url) do
-    user |> email_update_email_instructions(url) |> deliver()
+  def deliver_update_email_instructions(user, encoded_token) do
+    user |> email_update_email_instructions(encoded_token) |> deliver()
   end
 
   @doc """
   Builds the email struct for a magic-link login (for previews).
   """
-  def email_magic_link_instructions(user, url) do
+  def email_magic_link_instructions(user, encoded_token) do
     with_recipient_locale(user, fn ->
       build_email(user.email, gettext("Log in instructions"), """
       #{gettext("Hi %{email},", email: user.email)}
 
       #{gettext("You can log into your account by visiting the URL below:")}
 
-      #{url}
+      #{url(~p"/users/log-in/#{encoded_token}")}
 
       #{gettext("If you didn't request this email, please ignore this.")}
       """)
@@ -72,14 +77,14 @@ defmodule Bibtime.Accounts.UserNotifier do
   @doc """
   Builds the email struct for an account confirmation link (for previews).
   """
-  def email_confirmation_instructions(user, url) do
+  def email_confirmation_instructions(user, encoded_token) do
     with_recipient_locale(user, fn ->
       build_email(user.email, gettext("Confirmation instructions"), """
       #{gettext("Hi %{email},", email: user.email)}
 
       #{gettext("You can confirm your account by visiting the URL below:")}
 
-      #{url}
+      #{url(~p"/users/log-in/#{encoded_token}")}
 
       #{gettext("If you didn't create an account with us, please ignore this.")}
       """)
@@ -89,11 +94,11 @@ defmodule Bibtime.Accounts.UserNotifier do
   @doc """
   Deliver instructions to log in with a magic link.
   """
-  def deliver_login_instructions(%User{confirmed_at: nil} = user, url) do
-    user |> email_confirmation_instructions(url) |> deliver()
+  def deliver_login_instructions(%User{confirmed_at: nil} = user, encoded_token) do
+    user |> email_confirmation_instructions(encoded_token) |> deliver()
   end
 
-  def deliver_login_instructions(user, url) do
-    user |> email_magic_link_instructions(url) |> deliver()
+  def deliver_login_instructions(user, encoded_token) do
+    user |> email_magic_link_instructions(encoded_token) |> deliver()
   end
 end

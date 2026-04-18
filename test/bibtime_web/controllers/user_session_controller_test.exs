@@ -42,8 +42,8 @@ defmodule BibtimeWeb.UserSessionControllerTest do
   describe "GET /users/log-in/:token" do
     test "renders confirmation page for unconfirmed user", %{conn: conn, unconfirmed_user: user} do
       token =
-        extract_user_token(fn url ->
-          Accounts.deliver_login_instructions(user, url)
+        extract_user_token(fn ->
+          Accounts.deliver_login_instructions(user)
         end)
 
       conn = get(conn, ~p"/users/log-in/#{token}")
@@ -52,8 +52,8 @@ defmodule BibtimeWeb.UserSessionControllerTest do
 
     test "renders login page for confirmed user", %{conn: conn, user: user} do
       token =
-        extract_user_token(fn url ->
-          Accounts.deliver_login_instructions(user, url)
+        extract_user_token(fn ->
+          Accounts.deliver_login_instructions(user)
         end)
 
       conn = get(conn, ~p"/users/log-in/#{token}")

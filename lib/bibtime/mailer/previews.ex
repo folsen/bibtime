@@ -19,10 +19,7 @@ defmodule Bibtime.Mailer.Previews do
         title: "Magic-link login",
         description: "Sent when a confirmed user requests a login link.",
         build: fn locale ->
-          UserNotifier.email_magic_link_instructions(
-            sample_user(locale),
-            "https://example.com/users/log-in/TOKEN"
-          )
+          UserNotifier.email_magic_link_instructions(sample_user(locale), "SAMPLE_TOKEN")
         end
       },
       %{
@@ -30,10 +27,7 @@ defmodule Bibtime.Mailer.Previews do
         title: "Account confirmation",
         description: "Sent when an unconfirmed user requests a login link.",
         build: fn locale ->
-          UserNotifier.email_confirmation_instructions(
-            sample_user(locale),
-            "https://example.com/users/log-in/TOKEN"
-          )
+          UserNotifier.email_confirmation_instructions(sample_user(locale), "SAMPLE_TOKEN")
         end
       },
       %{
@@ -41,10 +35,7 @@ defmodule Bibtime.Mailer.Previews do
         title: "Change email address",
         description: "Sent to the new address when a user updates their email.",
         build: fn locale ->
-          UserNotifier.email_update_email_instructions(
-            sample_user(locale),
-            "https://example.com/users/settings/confirm-email/TOKEN"
-          )
+          UserNotifier.email_update_email_instructions(sample_user(locale), "SAMPLE_TOKEN")
         end
       },
       %{

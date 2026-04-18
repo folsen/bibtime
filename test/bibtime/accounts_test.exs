@@ -120,8 +120,8 @@ defmodule Bibtime.AccountsTest do
 
     test "sends token through notification", %{user: user} do
       token =
-        extract_user_token(fn url ->
-          Accounts.deliver_user_update_email_instructions(user, "current@example.com", url)
+        extract_user_token(fn ->
+          Accounts.deliver_user_update_email_instructions(user, "current@example.com")
         end)
 
       {:ok, token} = Base.url_decode64(token, padding: false)
@@ -138,8 +138,8 @@ defmodule Bibtime.AccountsTest do
       email = unique_user_email()
 
       token =
-        extract_user_token(fn url ->
-          Accounts.deliver_user_update_email_instructions(%{user | email: email}, user.email, url)
+        extract_user_token(fn ->
+          Accounts.deliver_user_update_email_instructions(%{user | email: email}, user.email)
         end)
 
       %{user: user, token: token, email: email}
@@ -382,8 +382,8 @@ defmodule Bibtime.AccountsTest do
 
     test "sends token through notification", %{user: user} do
       token =
-        extract_user_token(fn url ->
-          Accounts.deliver_login_instructions(user, url)
+        extract_user_token(fn ->
+          Accounts.deliver_login_instructions(user)
         end)
 
       {:ok, token} = Base.url_decode64(token, padding: false)

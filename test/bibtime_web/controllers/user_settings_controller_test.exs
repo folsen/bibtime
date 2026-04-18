@@ -104,8 +104,8 @@ defmodule BibtimeWeb.UserSettingsControllerTest do
       email = unique_user_email()
 
       token =
-        extract_user_token(fn url ->
-          Accounts.deliver_user_update_email_instructions(%{user | email: email}, user.email, url)
+        extract_user_token(fn ->
+          Accounts.deliver_user_update_email_instructions(%{user | email: email}, user.email)
         end)
 
       %{token: token, email: email}

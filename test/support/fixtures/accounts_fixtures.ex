@@ -31,8 +31,8 @@ defmodule Bibtime.AccountsFixtures do
     user = unconfirmed_user_fixture(attrs)
 
     token =
-      extract_user_token(fn url ->
-        Accounts.deliver_login_instructions(user, url)
+      extract_user_token(fn ->
+        Accounts.deliver_login_instructions(user)
       end)
 
     {:ok, {user, _expired_tokens}} =
@@ -70,8 +70,14 @@ defmodule Bibtime.AccountsFixtures do
   end
 
   def extract_user_token(fun) do
-    {:ok, captured_email} = fun.(&"[TOKEN]#{&1}[TOKEN]")
-    [_, token | _] = String.split(captured_email.text_body, "[TOKEN]")
+    {:ok, captured_email} = fun.()
+
+    [_, token] =
+      Regex.run(
+        ~r"/users/(?:log-in|settings/confirm-email)/([A-Za-z0-9_-]+)",
+        captured_email.text_body
+      )
+
     token
   end
 
