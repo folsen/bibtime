@@ -59,22 +59,45 @@ end
 config :bibtime, BibtimeWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
-# Photo storage: S3-compatible (optional, defaults to local disk)
+# Photo storage: S3-compatible (optional, defaults to local disk).
+# Supports AWS S3 and Tigris (via Fly). When `fly storage create` provisions
+# a Tigris bucket it injects BUCKET_NAME and AWS_ENDPOINT_URL_S3; both are
+# read here automatically.
 if System.get_env("PHOTO_STORAGE") == "s3" do
+  bucket =
+    System.get_env("S3_BUCKET") ||
+      System.get_env("BUCKET_NAME") ||
+      raise("S3_BUCKET or BUCKET_NAME required when PHOTO_STORAGE=s3")
+
   config :bibtime, Bibtime.Photos.Storage,
     backend: :s3,
-    bucket: System.get_env("S3_BUCKET") || raise("S3_BUCKET required when PHOTO_STORAGE=s3")
+    bucket: bucket
 
   config :ex_aws,
     access_key_id: System.get_env("AWS_ACCESS_KEY_ID"),
     secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY"),
     region: System.get_env("AWS_REGION", "us-east-1")
 
-  if s3_host = System.get_env("S3_HOST") do
-    config :ex_aws, :s3,
-      scheme: System.get_env("S3_SCHEME", "https://"),
-      host: s3_host,
-      port: String.to_integer(System.get_env("S3_PORT", "443"))
+  endpoint_url = System.get_env("AWS_ENDPOINT_URL_S3") || System.get_env("S3_ENDPOINT_URL")
+  s3_host = System.get_env("S3_HOST")
+
+  cond do
+    endpoint_url ->
+      uri = URI.parse(endpoint_url)
+
+      config :ex_aws, :s3,
+        scheme: "#{uri.scheme}://",
+        host: uri.host,
+        port: uri.port || if(uri.scheme == "https", do: 443, else: 80)
+
+    s3_host ->
+      config :ex_aws, :s3,
+        scheme: System.get_env("S3_SCHEME", "https://"),
+        host: s3_host,
+        port: String.to_integer(System.get_env("S3_PORT", "443"))
+
+    true ->
+      :ok
   end
 end
 

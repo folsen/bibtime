@@ -6,8 +6,35 @@ defmodule Bibtime.Photos do
 
   import Ecto.Query, warn: false
   alias Bibtime.Repo
+  alias Bibtime.Accounts.User
+  alias Bibtime.Participants
   alias Bibtime.Photos.RacePhoto
   alias Bibtime.Photos.Storage
+
+  ## Access control
+
+  @doc """
+  Whether the given user can view photos for the given race.
+
+  * Public races (`race.photos_public: true`) are viewable by anyone.
+  * Otherwise: admins, and participants of the race.
+  """
+  def can_view?(%{photos_public: true}, _user), do: true
+  def can_view?(_race, nil), do: false
+
+  def can_view?(race, %User{} = user) do
+    User.admin?(user) or Participants.user_participant_in_race?(user.id, race.id)
+  end
+
+  ## URLs
+
+  @doc """
+  Returns the URL to use in `<img src>` for a photo. For local storage this
+  is the static path under `/uploads/...`; for S3/Tigris it's the app's
+  auth-gated `/photos/:id` proxy route, which 302s to a signed URL.
+  """
+  def display_url(%RacePhoto{file_path: "/" <> _ = path}), do: path
+  def display_url(%RacePhoto{id: id}), do: "/photos/#{id}"
 
   ## Listing
 

@@ -182,7 +182,7 @@ defmodule BibtimeWeb.Public.ProfileLive.Show do
               class="rounded-lg overflow-hidden aspect-square bg-base-200 cursor-pointer hover:opacity-90 transition-opacity"
             >
               <img
-                src={photo.file_path}
+                src={Bibtime.Photos.display_url(photo)}
                 alt={photo.caption || gettext("Race photo")}
                 class="w-full h-full object-cover"
                 loading="lazy"
@@ -224,7 +224,7 @@ defmodule BibtimeWeb.Public.ProfileLive.Show do
           <.icon name="hero-x-mark" class="size-8" />
         </button>
         <img
-          src={@lightbox_photo.file_path}
+          src={Bibtime.Photos.display_url(@lightbox_photo)}
           alt={@lightbox_photo.caption || gettext("Race photo")}
           class="max-w-full max-h-[85vh] rounded-lg object-contain"
         />

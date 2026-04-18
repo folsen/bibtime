@@ -1,7 +1,6 @@
 defmodule BibtimeWeb.Public.PhotoLive.Index do
   use BibtimeWeb, :live_view
 
-  alias Bibtime.Accounts.User
   alias Bibtime.Races
   alias Bibtime.Photos
   alias Bibtime.Participants
@@ -10,7 +9,7 @@ defmodule BibtimeWeb.Public.PhotoLive.Index do
   def mount(%{"slug" => slug}, _session, socket) do
     race = Races.get_race_by_slug!(slug)
     user = socket.assigns[:current_scope] && socket.assigns.current_scope.user
-    can_view? = can_view_photos?(race, user)
+    can_view? = Photos.can_view?(race, user)
 
     {photos, participants} =
       if can_view? do
@@ -30,13 +29,6 @@ defmodule BibtimeWeb.Public.PhotoLive.Index do
        lightbox_src: nil,
        page_title: gettext("Photos") <> " — " <> race.name
      )}
-  end
-
-  defp can_view_photos?(%{photos_public: true}, _user), do: true
-  defp can_view_photos?(_race, nil), do: false
-
-  defp can_view_photos?(race, %User{} = user) do
-    User.admin?(user) or Participants.user_participant_in_race?(user.id, race.id)
   end
 
   @impl true
@@ -148,10 +140,10 @@ defmodule BibtimeWeb.Public.PhotoLive.Index do
           :for={photo <- @filtered_photos}
           class="relative group cursor-pointer rounded-lg overflow-hidden aspect-square bg-base-200"
           phx-click="open_lightbox"
-          phx-value-src={photo.file_path}
+          phx-value-src={Photos.display_url(photo)}
         >
           <img
-            src={photo.file_path}
+            src={Photos.display_url(photo)}
             alt={photo.caption || photo.original_filename}
             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
             loading="lazy"

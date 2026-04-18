@@ -58,6 +58,8 @@ defmodule BibtimeWeb.Router do
 
     get "/races/:slug/results/export/csv", ExportController, :results_csv
     get "/races/:slug/results/export/pdf", ExportController, :results_pdf
+
+    get "/photos/:id", PhotoController, :show
   end
 
   # Kiosk mode (fullscreen, no nav — for projectors/TVs at race venues)

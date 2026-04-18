@@ -125,7 +125,7 @@ defmodule BibtimeWeb.Admin.PhotoLive.Index do
           <%!-- Thumbnail --%>
           <div class="relative aspect-[4/3] bg-base-200">
             <img
-              src={photo.file_path}
+              src={Bibtime.Photos.display_url(photo)}
               alt={photo.original_filename}
               class="w-full h-full object-cover"
               loading="lazy"
