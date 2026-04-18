@@ -149,11 +149,9 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
           <.icon name="hero-arrow-right" class="size-5" />
         </.link>
         <.link
+          :if={@race.status in [:in_progress, :finished, :archived]}
           navigate={~p"/races/#{@race.slug}/results"}
-          class={[
-            "btn btn-lg gap-2 shadow-md hover:shadow-lg transition-shadow",
-            if(@race.status == :registration_open, do: "btn-outline btn-primary", else: "btn-primary")
-          ]}
+          class="btn btn-lg btn-primary gap-2 shadow-md hover:shadow-lg transition-shadow"
         >
           <.icon name="hero-trophy" class="size-5" /> {gettext("View Results")}
           <.icon name="hero-arrow-right" class="size-5" />
@@ -183,9 +181,7 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
         </div>
       </div>
       <%!-- Start List --%>
-      <div :if={
-        @race.status in [:registration_closed, :in_progress, :finished] and @participants != []
-      }>
+      <div :if={@participants != []}>
         <div class="flex items-center gap-3 mb-4">
           <h2 class="text-lg font-semibold text-base-content">{gettext("Start List")}</h2>
           <span class="inline-flex items-center gap-1.5 rounded-full bg-base-300/50 px-3 py-1 text-xs font-semibold text-base-content/70">
