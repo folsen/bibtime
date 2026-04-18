@@ -11,17 +11,62 @@ defmodule Bibtime.Payments.PaymentNotifier do
     Application.get_env(:bibtime, :mailer_from_address, "contact@example.com")
   end
 
-  defp deliver(recipient, subject, body) do
-    email =
-      new()
-      |> to(recipient)
-      |> from({SiteSettings.get().site_name, from_address()})
-      |> subject(subject)
-      |> text_body(body)
+  defp build_email(recipient, subject, body) do
+    new()
+    |> to(recipient)
+    |> from({SiteSettings.get().site_name, from_address()})
+    |> subject(subject)
+    |> text_body(body)
+  end
 
+  defp deliver(email) do
     with {:ok, _metadata} <- Mailer.deliver(email) do
       {:ok, email}
     end
+  end
+
+  @doc """
+  Builds the payment receipt email (for previews).
+  """
+  def email_receipt(payment, participant, race) do
+    locale = SiteSettings.locale_for(Map.get(participant, :user))
+
+    Gettext.with_locale(BibtimeWeb.Gettext, locale, fn ->
+      amount_str = Payments.format_amount(payment.amount_cents, payment.currency)
+
+      paid_at_str =
+        if payment.paid_at do
+          date = LocaleHelpers.format_date(DateTime.to_date(payment.paid_at))
+          time = Calendar.strftime(payment.paid_at, "%H:%M UTC")
+          "#{date}, #{time}"
+        else
+          gettext("N/A")
+        end
+
+      build_email(
+        participant.email,
+        gettext("Payment Receipt") <> " — #{race.name}",
+        """
+
+        ==============================
+
+        #{gettext("Hi %{name},", name: participant.first_name)}
+
+        #{gettext("Your payment has been received.")}
+
+        #{gettext("Race")}: #{race.name}
+        #{gettext("Amount")}: #{amount_str}
+        #{gettext("Date")}: #{paid_at_str}
+        #{gettext("Reference")}: #{payment.stripe_payment_intent_id || payment.stripe_checkout_session_id}
+
+        #{gettext("Bib number")}: #{participant.bib_number}
+
+        #{gettext("See you at the start line!")}
+
+        ==============================
+        """
+      )
+    end)
   end
 
   @doc """
@@ -29,44 +74,7 @@ defmodule Bibtime.Payments.PaymentNotifier do
   """
   def deliver_receipt(payment, participant, race) do
     if participant.email do
-      locale = SiteSettings.locale_for(Map.get(participant, :user))
-
-      Gettext.with_locale(BibtimeWeb.Gettext, locale, fn ->
-        amount_str = Payments.format_amount(payment.amount_cents, payment.currency)
-
-        paid_at_str =
-          if payment.paid_at do
-            date = LocaleHelpers.format_date(DateTime.to_date(payment.paid_at))
-            time = Calendar.strftime(payment.paid_at, "%H:%M UTC")
-            "#{date}, #{time}"
-          else
-            gettext("N/A")
-          end
-
-        deliver(
-          participant.email,
-          gettext("Payment Receipt") <> " — #{race.name}",
-          """
-
-          ==============================
-
-          #{gettext("Hi %{name},", name: participant.first_name)}
-
-          #{gettext("Your payment has been received.")}
-
-          #{gettext("Race")}: #{race.name}
-          #{gettext("Amount")}: #{amount_str}
-          #{gettext("Date")}: #{paid_at_str}
-          #{gettext("Reference")}: #{payment.stripe_payment_intent_id || payment.stripe_checkout_session_id}
-
-          #{gettext("Bib number")}: #{participant.bib_number}
-
-          #{gettext("See you at the start line!")}
-
-          ==============================
-          """
-        )
-      end)
+      payment |> email_receipt(participant, race) |> deliver()
     end
   end
 end

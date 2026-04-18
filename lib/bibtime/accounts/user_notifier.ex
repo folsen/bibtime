@@ -10,15 +10,15 @@ defmodule Bibtime.Accounts.UserNotifier do
     Application.get_env(:bibtime, :mailer_from_address, "contact@example.com")
   end
 
-  # Delivers the email using the application mailer.
-  defp deliver(recipient, subject, body) do
-    email =
-      new()
-      |> to(recipient)
-      |> from({SiteSettings.get().site_name, from_address()})
-      |> subject(subject)
-      |> text_body(body)
+  defp build_email(recipient, subject, body) do
+    new()
+    |> to(recipient)
+    |> from({SiteSettings.get().site_name, from_address()})
+    |> subject(subject)
+    |> text_body(body)
+  end
 
+  defp deliver(email) do
     with {:ok, _metadata} <- Mailer.deliver(email) do
       {:ok, email}
     end
@@ -29,11 +29,11 @@ defmodule Bibtime.Accounts.UserNotifier do
   end
 
   @doc """
-  Deliver instructions to update a user email.
+  Builds the email struct for `deliver_update_email_instructions/2` (for previews).
   """
-  def deliver_update_email_instructions(user, url) do
+  def email_update_email_instructions(user, url) do
     with_recipient_locale(user, fn ->
-      deliver(user.email, gettext("Update email instructions"), """
+      build_email(user.email, gettext("Update email instructions"), """
 
       ==============================
 
@@ -51,18 +51,18 @@ defmodule Bibtime.Accounts.UserNotifier do
   end
 
   @doc """
-  Deliver instructions to log in with a magic link.
+  Deliver instructions to update a user email.
   """
-  def deliver_login_instructions(user, url) do
-    case user do
-      %User{confirmed_at: nil} -> deliver_confirmation_instructions(user, url)
-      _ -> deliver_magic_link_instructions(user, url)
-    end
+  def deliver_update_email_instructions(user, url) do
+    user |> email_update_email_instructions(url) |> deliver()
   end
 
-  defp deliver_magic_link_instructions(user, url) do
+  @doc """
+  Builds the email struct for a magic-link login (for previews).
+  """
+  def email_magic_link_instructions(user, url) do
     with_recipient_locale(user, fn ->
-      deliver(user.email, gettext("Log in instructions"), """
+      build_email(user.email, gettext("Log in instructions"), """
 
       ==============================
 
@@ -79,9 +79,12 @@ defmodule Bibtime.Accounts.UserNotifier do
     end)
   end
 
-  defp deliver_confirmation_instructions(user, url) do
+  @doc """
+  Builds the email struct for an account confirmation link (for previews).
+  """
+  def email_confirmation_instructions(user, url) do
     with_recipient_locale(user, fn ->
-      deliver(user.email, gettext("Confirmation instructions"), """
+      build_email(user.email, gettext("Confirmation instructions"), """
 
       ==============================
 
@@ -96,5 +99,16 @@ defmodule Bibtime.Accounts.UserNotifier do
       ==============================
       """)
     end)
+  end
+
+  @doc """
+  Deliver instructions to log in with a magic link.
+  """
+  def deliver_login_instructions(%User{confirmed_at: nil} = user, url) do
+    user |> email_confirmation_instructions(url) |> deliver()
+  end
+
+  def deliver_login_instructions(user, url) do
+    user |> email_magic_link_instructions(url) |> deliver()
   end
 end

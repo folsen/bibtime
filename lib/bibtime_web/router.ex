@@ -145,6 +145,15 @@ defmodule BibtimeWeb.Router do
     # as long as you are also using SSL (which you should anyway).
     import Phoenix.LiveDashboard.Router
 
+    scope "/dev", BibtimeWeb do
+      pipe_through :browser
+
+      live_session :dev_email_preview,
+        on_mount: [{BibtimeWeb.UserAuth, :assign_current_scope}] do
+        live "/emails", Dev.EmailPreviewLive, :index
+      end
+    end
+
     scope "/dev" do
       pipe_through :browser
 
