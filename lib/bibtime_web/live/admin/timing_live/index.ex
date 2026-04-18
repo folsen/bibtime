@@ -29,6 +29,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
       |> assign(:timing_loading, true)
       |> assign(:error, nil)
       |> assign(:elapsed_seconds, compute_elapsed_seconds(race_start))
+      |> assign(:show_import, false)
       |> assign(:import_result, nil)
       |> assign(:import_errors, [])
       |> allow_upload(:timing_csv,
@@ -79,20 +80,136 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="max-w-4xl mx-auto">
-      <%!-- Header --%>
-      <div class="flex items-center justify-between gap-4 pb-3 sm:pb-6">
-        <div>
-          <div class="flex items-center gap-3">
-            <h1 class="text-2xl font-semibold tracking-tight text-base-content">
-              {gettext("Timing Console")}
-            </h1>
-            <.status_pill status={@race.status} />
-          </div>
-          <p class="mt-1 text-sm text-base-content/60">{@race.name}</p>
+    <div class="flex items-start justify-between gap-6 pb-6">
+      <div>
+        <div class="flex items-center gap-3">
+          <h1 class="text-2xl font-semibold tracking-tight text-base-content">
+            {gettext("Timing Console")}
+          </h1>
+          <.status_pill status={@race.status} />
         </div>
+        <p class="mt-1 text-sm text-base-content/60">{@race.name}</p>
+      </div>
+      <div class="flex gap-2">
+        <.button phx-click="toggle_import">
+          <.icon name="hero-arrow-up-tray" class="size-4 mr-1" /> {gettext("Import CSV")}
+        </.button>
+      </div>
+    </div>
+
+    <%!-- Import panel --%>
+    <div
+      :if={@show_import}
+      class="mb-5 rounded-xl border border-base-300 bg-base-100 shadow-sm p-5"
+    >
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <h2 class="text-lg font-semibold text-base-content">
+            {gettext("Import timing data from CSV")}
+          </h2>
+          <p class="text-sm text-base-content/60 mt-1">
+            {gettext("Columns: bib_number, split_short_name, elapsed_time")}
+          </p>
+        </div>
+        <button
+          type="button"
+          phx-click="toggle_import"
+          class="btn btn-ghost btn-sm btn-circle"
+          aria-label={gettext("Close")}
+        >
+          <.icon name="hero-x-mark" class="size-5" />
+        </button>
       </div>
 
+      <form id="timing-csv-form" phx-submit="import_csv" phx-change="validate_import">
+        <div
+          phx-drop-target={@uploads.timing_csv.ref}
+          class={[
+            "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
+            if(@uploads.timing_csv.entries != [],
+              do: "border-primary/50 bg-primary/5",
+              else: "border-base-300 hover:border-primary/40"
+            )
+          ]}
+        >
+          <.icon name="hero-document-text" class="size-10 mx-auto text-base-content/25 mb-2" />
+          <p class="text-sm text-base-content/60 mb-2">
+            {gettext("Drag a CSV file here or click to browse")}
+          </p>
+          <label for={@uploads.timing_csv.ref} class="btn btn-sm cursor-pointer">
+            {gettext("Choose File")}
+          </label>
+          <.live_file_input upload={@uploads.timing_csv} class="sr-only" />
+        </div>
+
+        <div :if={@uploads.timing_csv.entries != []} class="mt-3 space-y-2">
+          <div
+            :for={entry <- @uploads.timing_csv.entries}
+            class="flex items-center justify-between rounded border border-base-300 px-3 py-2"
+          >
+            <div class="flex items-center gap-2 text-sm">
+              <.icon name="hero-document-text" class="size-4 text-base-content/50" />
+              <span>{entry.client_name}</span>
+            </div>
+            <button
+              type="button"
+              phx-click="cancel_import_upload"
+              phx-value-ref={entry.ref}
+              class="btn btn-ghost btn-xs"
+            >
+              <.icon name="hero-x-mark" class="size-4" />
+            </button>
+            <p :for={err <- upload_errors(@uploads.timing_csv, entry)} class="text-xs text-error">
+              {upload_error_message(err)}
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-4 flex gap-2">
+          <.button
+            type="submit"
+            variant="primary"
+            disabled={@uploads.timing_csv.entries == []}
+          >
+            <.icon name="hero-arrow-up-tray" class="size-4 mr-1" /> {gettext("Import")}
+          </.button>
+          <.button type="button" phx-click="toggle_import">
+            {gettext("Cancel")}
+          </.button>
+        </div>
+      </form>
+
+      <div
+        :if={@import_result}
+        class="mt-4 flex items-center gap-3 rounded-lg bg-success/5 border border-success/30 px-4 py-3"
+      >
+        <.icon name="hero-check-circle" class="size-5 text-success shrink-0" />
+        <p class="text-sm text-success font-semibold">
+          {gettext("Successfully imported %{count} entries.", count: @import_result.imported)}
+        </p>
+      </div>
+
+      <div
+        :if={@import_errors != []}
+        class="mt-4 rounded-lg bg-warning/5 border border-warning/30 px-4 py-3"
+      >
+        <div class="flex items-center gap-2 mb-2">
+          <.icon name="hero-exclamation-triangle" class="size-5 text-warning shrink-0" />
+          <p class="text-sm text-warning font-semibold">{gettext("Import errors")}</p>
+        </div>
+        <ul class="space-y-1 text-sm text-base-content/70 ml-7">
+          <li :for={err <- @import_errors}>
+            <span class="font-mono text-xs bg-base-200 rounded px-1 py-0.5">
+              {gettext("Row %{row}", row: err.row)}
+            </span>
+            {err.message}
+            <span class="text-base-content/40">({err.field})</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div>
       <%!-- Start Race Section --%>
       <div
         :if={is_nil(@race_start)}
@@ -311,115 +428,6 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
           </div>
         </div>
       </div>
-
-      <%!-- CSV Import Section --%>
-      <details class="group mt-4 rounded-xl border border-base-300 bg-base-100 shadow-sm">
-        <summary class="flex cursor-pointer items-center justify-between p-5 text-base-content/80 hover:text-base-content transition-colors">
-          <div class="flex items-center gap-3">
-            <div class="rounded-lg bg-base-200 p-2">
-              <.icon name="hero-arrow-up-tray" class="size-5 text-base-content/50" />
-            </div>
-            <div>
-              <h3 class="font-semibold text-sm">{gettext("CSV Import")}</h3>
-              <p class="text-xs text-base-content/50">
-                {gettext("Bulk import timing data from CSV")}
-              </p>
-            </div>
-          </div>
-          <.icon
-            name="hero-chevron-down"
-            class="size-5 text-base-content/40 transition-transform group-open:rotate-180"
-          />
-        </summary>
-
-        <div class="border-t border-base-200 px-5 pb-5 pt-4">
-          <p class="text-xs text-base-content/50 mb-3 font-mono bg-base-200/50 rounded-lg px-3 py-2">
-            {gettext("Columns: bib_number, split_short_name, elapsed_time")}
-          </p>
-          <form id="timing-csv-form" phx-submit="import_csv" phx-change="validate_import">
-            <div
-              phx-drop-target={@uploads.timing_csv.ref}
-              class={[
-                "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
-                if(@uploads.timing_csv.entries != [],
-                  do: "border-primary/50 bg-primary/5",
-                  else: "border-base-300 hover:border-primary/40"
-                )
-              ]}
-            >
-              <.icon name="hero-document-text" class="size-8 mx-auto text-base-content/25 mb-2" />
-              <p class="text-sm text-base-content/60 mb-2">
-                {gettext("Drag a CSV file here or click to browse")}
-              </p>
-              <label for={@uploads.timing_csv.ref} class="btn btn-sm cursor-pointer">
-                {gettext("Choose File")}
-              </label>
-              <.live_file_input upload={@uploads.timing_csv} class="sr-only" />
-            </div>
-
-            <div :if={@uploads.timing_csv.entries != []} class="mt-3 space-y-2">
-              <div
-                :for={entry <- @uploads.timing_csv.entries}
-                class="flex items-center justify-between rounded border border-base-300 px-3 py-2"
-              >
-                <div class="flex items-center gap-2 text-sm">
-                  <.icon name="hero-document-text" class="size-4 text-base-content/50" />
-                  <span>{entry.client_name}</span>
-                </div>
-                <button
-                  type="button"
-                  phx-click="cancel_import_upload"
-                  phx-value-ref={entry.ref}
-                  class="btn btn-ghost btn-xs"
-                >
-                  <.icon name="hero-x-mark" class="size-4" />
-                </button>
-                <p :for={err <- upload_errors(@uploads.timing_csv, entry)} class="text-xs text-error">
-                  {upload_error_message(err)}
-                </p>
-              </div>
-            </div>
-
-            <.button
-              type="submit"
-              variant="primary"
-              class="mt-4"
-              disabled={@uploads.timing_csv.entries == []}
-            >
-              <.icon name="hero-arrow-up-tray" class="size-4 mr-1" /> {gettext("Import")}
-            </.button>
-          </form>
-
-          <div
-            :if={@import_result}
-            class="mt-4 flex items-center gap-3 rounded-lg bg-success/5 border border-success/30 px-4 py-3"
-          >
-            <.icon name="hero-check-circle" class="size-5 text-success shrink-0" />
-            <p class="text-sm text-success font-semibold">
-              {gettext("Successfully imported %{count} entries.", count: @import_result.imported)}
-            </p>
-          </div>
-
-          <div
-            :if={@import_errors != []}
-            class="mt-4 rounded-lg bg-warning/5 border border-warning/30 px-4 py-3"
-          >
-            <div class="flex items-center gap-2 mb-2">
-              <.icon name="hero-exclamation-triangle" class="size-5 text-warning shrink-0" />
-              <p class="text-sm text-warning font-semibold">{gettext("Import errors")}</p>
-            </div>
-            <ul class="space-y-1 text-sm text-base-content/70 ml-7">
-              <li :for={err <- @import_errors}>
-                <span class="font-mono text-xs bg-base-200 rounded px-1 py-0.5">
-                  {gettext("Row %{row}", row: err.row)}
-                </span>
-                {err.message}
-                <span class="text-base-content/40">({err.field})</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </details>
     </div>
     """
   end
@@ -526,6 +534,14 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
     end
   end
 
+  def handle_event("toggle_import", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_import, !socket.assigns.show_import)
+     |> assign(:import_errors, [])
+     |> assign(:import_result, nil)}
+  end
+
   def handle_event("validate_import", _params, socket), do: {:noreply, socket}
 
   def handle_event("cancel_import_upload", %{"ref" => ref}, socket) do
@@ -547,10 +563,15 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
       [{:ok, import_result}] ->
         {:noreply,
          socket
-         |> assign(:import_result, import_result)
+         |> assign(:show_import, false)
+         |> assign(:import_result, nil)
          |> assign(:import_errors, [])
          |> assign(:recent_entries, load_recent_entries(race.id))
-         |> assign(:next_up, load_next_up(race.id))}
+         |> assign(:next_up, load_next_up(race.id))
+         |> put_flash(
+           :info,
+           gettext("Successfully imported %{count} entries.", count: import_result.imported)
+         )}
 
       [{:error, errors}] when is_list(errors) ->
         {:noreply,
