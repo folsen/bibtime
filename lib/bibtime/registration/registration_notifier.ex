@@ -2,6 +2,11 @@ defmodule Bibtime.Registration.RegistrationNotifier do
   import Swoosh.Email
   use Gettext, backend: BibtimeWeb.Gettext
 
+  use Phoenix.VerifiedRoutes,
+    endpoint: BibtimeWeb.Endpoint,
+    router: BibtimeWeb.Router,
+    statics: BibtimeWeb.static_paths()
+
   alias Bibtime.Mailer
   alias Bibtime.SiteSettings
   alias BibtimeWeb.LocaleHelpers
@@ -47,9 +52,6 @@ defmodule Bibtime.Registration.RegistrationNotifier do
         participant.email,
         gettext("Registration Confirmed") <> " — #{race.name}",
         """
-
-        ==============================
-
         #{gettext("Hi %{name},", name: participant.first_name)}
 
         #{gettext("You are registered for %{race}!", race: race.name)}
@@ -61,14 +63,12 @@ defmodule Bibtime.Registration.RegistrationNotifier do
 
         #{gettext("An account has been created for you. To log in and manage your registration details, visit the login page and enter your email to receive a login link:")}
 
-        /users/log-in
+        #{url(~p"/users/log-in")}
 
         #{gettext("Or view your registration directly:")}
-        /races/#{race.slug}/my-registration/#{participant.confirmation_token}
+        #{url(~p"/races/#{race.slug}/my-registration/#{participant.confirmation_token}")}
 
         #{gettext("See you at the start line!")}
-
-        ==============================
         """
       )
     end)

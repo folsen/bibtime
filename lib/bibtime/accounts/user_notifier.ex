@@ -34,9 +34,6 @@ defmodule Bibtime.Accounts.UserNotifier do
   def email_update_email_instructions(user, url) do
     with_recipient_locale(user, fn ->
       build_email(user.email, gettext("Update email instructions"), """
-
-      ==============================
-
       #{gettext("Hi %{email},", email: user.email)}
 
       #{gettext("You can change your email by visiting the URL below:")}
@@ -44,8 +41,6 @@ defmodule Bibtime.Accounts.UserNotifier do
       #{url}
 
       #{gettext("If you didn't request this change, please ignore this.")}
-
-      ==============================
       """)
     end)
   end
@@ -63,9 +58,6 @@ defmodule Bibtime.Accounts.UserNotifier do
   def email_magic_link_instructions(user, url) do
     with_recipient_locale(user, fn ->
       build_email(user.email, gettext("Log in instructions"), """
-
-      ==============================
-
       #{gettext("Hi %{email},", email: user.email)}
 
       #{gettext("You can log into your account by visiting the URL below:")}
@@ -73,8 +65,6 @@ defmodule Bibtime.Accounts.UserNotifier do
       #{url}
 
       #{gettext("If you didn't request this email, please ignore this.")}
-
-      ==============================
       """)
     end)
   end
@@ -85,9 +75,6 @@ defmodule Bibtime.Accounts.UserNotifier do
   def email_confirmation_instructions(user, url) do
     with_recipient_locale(user, fn ->
       build_email(user.email, gettext("Confirmation instructions"), """
-
-      ==============================
-
       #{gettext("Hi %{email},", email: user.email)}
 
       #{gettext("You can confirm your account by visiting the URL below:")}
@@ -95,8 +82,6 @@ defmodule Bibtime.Accounts.UserNotifier do
       #{url}
 
       #{gettext("If you didn't create an account with us, please ignore this.")}
-
-      ==============================
       """)
     end)
   end

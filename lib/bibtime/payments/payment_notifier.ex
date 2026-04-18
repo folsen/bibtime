@@ -47,9 +47,6 @@ defmodule Bibtime.Payments.PaymentNotifier do
         participant.email,
         gettext("Payment Receipt") <> " — #{race.name}",
         """
-
-        ==============================
-
         #{gettext("Hi %{name},", name: participant.first_name)}
 
         #{gettext("Your payment has been received.")}
@@ -62,8 +59,6 @@ defmodule Bibtime.Payments.PaymentNotifier do
         #{gettext("Bib number")}: #{participant.bib_number}
 
         #{gettext("See you at the start line!")}
-
-        ==============================
         """
       )
     end)
