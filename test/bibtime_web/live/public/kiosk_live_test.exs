@@ -80,6 +80,42 @@ defmodule BibtimeWeb.Public.KioskLiveTest do
     end
   end
 
+  describe "category rotation" do
+    test "skips categories with no participants when rotating", %{conn: conn} do
+      slug = "kiosk-rotate-#{System.unique_integer([:positive])}"
+      {race, [swim, _bike, _run]} = triathlon_fixture(%{slug: slug})
+
+      populated = category_fixture(race, %{name: "Populated", sort_order: 1})
+      _empty = category_fixture(race, %{name: "Empty", sort_order: 2})
+
+      p =
+        participant_fixture(race, %{
+          bib_number: "1",
+          first_name: "Cat",
+          last_name: "Member",
+          race_category_id: populated.id
+        })
+
+      record_split_time!(p, swim, 100_000)
+
+      {:ok, view, _html} = live(conn, ~p"/races/#{race.slug}/kiosk")
+      _ = render_async(view)
+
+      # Manually trigger rotation; from "Overall" we should jump to "Populated"
+      # and skip "Empty" entirely.
+      send(view.pid, :rotate_category)
+      html = render(view)
+      assert html =~ "Populated"
+      refute html =~ ~r/>\s*Empty\s*</
+
+      send(view.pid, :rotate_category)
+      html = render(view)
+      # Wraps back to Overall (Empty stays skipped)
+      assert html =~ "Overall"
+      refute html =~ ~r/>\s*Empty\s*</
+    end
+  end
+
   describe "URL params" do
     test "custom columns param limits visible columns", %{conn: conn} do
       %{race: race} = create_race_with_results()

@@ -499,7 +499,14 @@ defmodule BibtimeWeb.Public.KioskLive.Index do
   @impl true
   def handle_info(:rotate_category, socket) do
     all_categories = build_category_list(socket.assigns)
-    next_index = rem(socket.assigns.current_category_index + 1, length(all_categories))
+
+    next_index =
+      next_non_empty_category_index(
+        socket.assigns.current_category_index,
+        all_categories,
+        socket.assigns.results
+      )
+
     {label, _filter} = Enum.at(all_categories, next_index)
 
     filtered = filter_by_index(socket.assigns.results, all_categories, next_index)
@@ -539,6 +546,40 @@ defmodule BibtimeWeb.Public.KioskLive.Index do
       end)
 
     [{gettext("Overall"), nil}] ++ manual ++ auto
+  end
+
+  # Walk forward from current_index, wrapping around, and return the first index
+  # whose category has at least one matching result. If no category has results,
+  # we cycle back to current_index and stay put.
+  defp next_non_empty_category_index(current_index, all_categories, results) do
+    total = length(all_categories)
+
+    Enum.reduce_while(1..total, current_index, fn offset, _acc ->
+      candidate = rem(current_index + offset, total)
+
+      if category_has_results?(results, all_categories, candidate) do
+        {:halt, candidate}
+      else
+        {:cont, candidate}
+      end
+    end)
+  end
+
+  defp category_has_results?(results, all_categories, index) do
+    {_label, filter} = Enum.at(all_categories, index, {gettext("Overall"), nil})
+
+    case filter do
+      nil ->
+        results != []
+
+      {:manual, cat_id} ->
+        Enum.any?(results, fn r -> r.category != nil and r.category.id == cat_id end)
+
+      {:auto, auto_cat_id} ->
+        Enum.any?(results, fn r ->
+          Enum.any?(r.auto_categories, &(&1.id == auto_cat_id))
+        end)
+    end
   end
 
   defp filter_by_index(results, all_categories, index) do
