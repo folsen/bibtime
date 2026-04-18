@@ -348,39 +348,68 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
                 </span>
                 <span :if={result.category == nil} class="text-base-content/30">&mdash;</span>
               </td>
-              <%= if result.status in [:dns, :dnf, :dsq] do %>
-                <td
-                  :for={_split <- @splits}
-                  class="text-right font-mono text-sm px-3 py-2.5 border-b border-base-300/20 text-base-content/25"
-                >
-                  &mdash;
-                </td>
-                <td class="text-right font-mono text-sm px-3 py-2.5 border-b border-base-300/20 text-base-content/25">
-                  &mdash;
-                </td>
-              <% else %>
-                <td
-                  :for={split <- @splits}
-                  class="text-right font-mono text-sm px-3 py-2.5 border-b border-base-300/20 text-base-content/70"
-                >
-                  <div>{Calculator.format_time(Map.get(result.leg_times, split.id))}</div>
-                  <div
-                    :if={
-                      pace_text =
-                        Calculator.format_pace(
-                          Map.get(result.leg_times, split.id),
-                          split.distance_meters,
-                          split.pace_display
-                        )
-                    }
-                    class="text-xs text-base-content/40"
+              <%= cond do %>
+                <% result.status in [:dns, :dsq] -> %>
+                  <td
+                    :for={_split <- @splits}
+                    class="text-right font-mono text-sm px-3 py-2.5 border-b border-base-300/20 text-base-content/25"
                   >
-                    {pace_text}
-                  </div>
-                </td>
-                <td class="text-right font-mono text-base font-bold px-3 py-2.5 border-b border-base-300/20 text-base-content">
-                  {Calculator.format_time(result.total_ms)}
-                </td>
+                    &mdash;
+                  </td>
+                  <td class="text-right font-mono text-sm px-3 py-2.5 border-b border-base-300/20 text-base-content/25">
+                    &mdash;
+                  </td>
+                <% result.status == :dnf -> %>
+                  <td
+                    :for={split <- @splits}
+                    class="text-right font-mono text-sm px-3 py-2.5 border-b border-base-300/20 text-base-content/70"
+                  >
+                    <%= case Map.get(result.leg_times, split.id) do %>
+                      <% nil -> %>
+                        <span class="text-base-content/25">&mdash;</span>
+                      <% leg_time -> %>
+                        <div>{Calculator.format_time(leg_time)}</div>
+                        <div
+                          :if={
+                            pace_text =
+                              Calculator.format_pace(
+                                leg_time,
+                                split.distance_meters,
+                                split.pace_display
+                              )
+                          }
+                          class="text-xs text-base-content/40"
+                        >
+                          {pace_text}
+                        </div>
+                    <% end %>
+                  </td>
+                  <td class="text-right font-mono text-sm px-3 py-2.5 border-b border-base-300/20 text-base-content/25">
+                    &mdash;
+                  </td>
+                <% true -> %>
+                  <td
+                    :for={split <- @splits}
+                    class="text-right font-mono text-sm px-3 py-2.5 border-b border-base-300/20 text-base-content/70"
+                  >
+                    <div>{Calculator.format_time(Map.get(result.leg_times, split.id))}</div>
+                    <div
+                      :if={
+                        pace_text =
+                          Calculator.format_pace(
+                            Map.get(result.leg_times, split.id),
+                            split.distance_meters,
+                            split.pace_display
+                          )
+                      }
+                      class="text-xs text-base-content/40"
+                    >
+                      {pace_text}
+                    </div>
+                  </td>
+                  <td class="text-right font-mono text-base font-bold px-3 py-2.5 border-b border-base-300/20 text-base-content">
+                    {Calculator.format_time(result.total_ms)}
+                  </td>
               <% end %>
               <td class="text-center px-3 py-2.5 border-b border-base-300/20">
                 <span

@@ -288,33 +288,59 @@ defmodule BibtimeWeb.Public.KioskLive.Index do
                 {result.participant.club || "\u2014"}
               </td>
               <%= if show_col?(@show_columns, "splits") do %>
-                <%= if result.status in [:dns, :dnf, :dsq] do %>
-                  <td
-                    :for={_split <- @splits}
-                    class="text-right font-mono text-xl px-6 py-3 border-b border-base-300/20 text-base-content/20"
-                  >
-                    &mdash;
-                  </td>
-                <% else %>
-                  <td
-                    :for={split <- @splits}
-                    class="text-right font-mono text-xl px-6 py-3 border-b border-base-300/20 text-base-content/70"
-                  >
-                    <div>{Calculator.format_time(Map.get(result.leg_times, split.id))}</div>
-                    <div
-                      :if={
-                        pace_text =
-                          Calculator.format_pace(
-                            Map.get(result.leg_times, split.id),
-                            split.distance_meters,
-                            split.pace_display
-                          )
-                      }
-                      class="text-sm text-base-content/40"
+                <%= cond do %>
+                  <% result.status in [:dns, :dsq] -> %>
+                    <td
+                      :for={_split <- @splits}
+                      class="text-right font-mono text-xl px-6 py-3 border-b border-base-300/20 text-base-content/20"
                     >
-                      {pace_text}
-                    </div>
-                  </td>
+                      &mdash;
+                    </td>
+                  <% result.status == :dnf -> %>
+                    <td
+                      :for={split <- @splits}
+                      class="text-right font-mono text-xl px-6 py-3 border-b border-base-300/20 text-base-content/70"
+                    >
+                      <%= case Map.get(result.leg_times, split.id) do %>
+                        <% nil -> %>
+                          <span class="text-base-content/20">&mdash;</span>
+                        <% leg_time -> %>
+                          <div>{Calculator.format_time(leg_time)}</div>
+                          <div
+                            :if={
+                              pace_text =
+                                Calculator.format_pace(
+                                  leg_time,
+                                  split.distance_meters,
+                                  split.pace_display
+                                )
+                            }
+                            class="text-sm text-base-content/40"
+                          >
+                            {pace_text}
+                          </div>
+                      <% end %>
+                    </td>
+                  <% true -> %>
+                    <td
+                      :for={split <- @splits}
+                      class="text-right font-mono text-xl px-6 py-3 border-b border-base-300/20 text-base-content/70"
+                    >
+                      <div>{Calculator.format_time(Map.get(result.leg_times, split.id))}</div>
+                      <div
+                        :if={
+                          pace_text =
+                            Calculator.format_pace(
+                              Map.get(result.leg_times, split.id),
+                              split.distance_meters,
+                              split.pace_display
+                            )
+                        }
+                        class="text-sm text-base-content/40"
+                      >
+                        {pace_text}
+                      </div>
+                    </td>
                 <% end %>
               <% end %>
               <td
