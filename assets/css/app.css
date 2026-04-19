@@ -158,6 +158,13 @@ body {
   box-shadow: 0 4px 12px oklch(0% 0 0 / 0.06);
 }
 
+/* daisyUI v5's .select uses inline-flex + align-items:center for centering,
+   which native <select> widgets don't honor consistently across browsers
+   (text sticks to the top in some). Force center via line-height. */
+select.select {
+  line-height: calc(var(--size, 2.5rem) - 2px);
+}
+
 /* ── Kiosk / Big-Screen Display ──────────────────────────────────── */
 
 /* Flash animation for new finishers */
