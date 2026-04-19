@@ -106,6 +106,17 @@ fly secrets set -a bibtime \
   AWS_REGION=...
 ```
 
+If you're using Stripe, create a webhook endpoint in the Stripe Dashboard
+(Developers → Webhooks → Add endpoint) pointing at
+`https://<PHX_HOST>/webhooks/stripe` and subscribe to these events:
+
+- `checkout.session.completed` — marks a registration paid and finalizes the participant
+- `charge.refunded` — records refunds against the matching payment
+
+The endpoint's signing secret is what you set as `STRIPE_WEBHOOK_SECRET` above.
+Register separate endpoints for prod and staging so each environment gets its
+own signing secret.
+
 ### 6. First deploy
 
 ```sh
