@@ -1110,11 +1110,6 @@ msgstr "Lopp"
 msgid "Race History"
 msgstr "Lopphistorik"
 
-#: lib/bibtime_web/live/public/registration_live/show.ex:149
-#, elixir-autogen, elixir-format
-msgid "Race Page"
-msgstr "Loppsida"
-
 #: lib/bibtime_web/live/admin/race_live/edit.ex:62
 #: lib/bibtime_web/live/admin/race_live/new.ex:138
 #, elixir-autogen, elixir-format
@@ -1522,7 +1517,6 @@ msgid "View"
 msgstr "Visa"
 
 #: lib/bibtime_web/live/public/race_live/show.ex:156
-#: lib/bibtime_web/live/public/registration_live/show.ex:155
 #, elixir-autogen, elixir-format
 msgid "View Results"
 msgstr "Visa resultat"
@@ -2085,7 +2079,7 @@ msgid "Entry fee (in smallest currency unit)"
 msgstr "Startavgift (i minsta valutaenhet)"
 
 #: lib/bibtime_web/live/admin/payment_live/index.ex:246
-#: lib/bibtime_web/live/public/registration_live/show.ex:166
+#: lib/bibtime_web/live/public/registration_live/show.ex:160
 #, elixir-autogen, elixir-format
 msgid "Failed"
 msgstr "Misslyckades"
@@ -2107,7 +2101,7 @@ msgid "No payments yet"
 msgstr "Inga betalningar ännu"
 
 #: lib/bibtime_web/live/admin/payment_live/index.ex:243
-#: lib/bibtime_web/live/public/registration_live/show.ex:163
+#: lib/bibtime_web/live/public/registration_live/show.ex:157
 #, elixir-autogen, elixir-format
 msgid "Paid"
 msgstr "Betald"
@@ -2156,7 +2150,7 @@ msgstr "Betalningar"
 
 #: lib/bibtime_web/live/admin/payment_live/index.ex:57
 #: lib/bibtime_web/live/admin/payment_live/index.ex:244
-#: lib/bibtime_web/live/public/registration_live/show.ex:164
+#: lib/bibtime_web/live/public/registration_live/show.ex:158
 #, elixir-autogen, elixir-format
 msgid "Pending"
 msgstr "Väntande"
@@ -2183,7 +2177,7 @@ msgstr "Återbetalning misslyckades: %{reason}"
 
 #: lib/bibtime_web/live/admin/payment_live/index.ex:69
 #: lib/bibtime_web/live/admin/payment_live/index.ex:245
-#: lib/bibtime_web/live/public/registration_live/show.ex:165
+#: lib/bibtime_web/live/public/registration_live/show.ex:159
 #, elixir-autogen, elixir-format
 msgid "Refunded"
 msgstr "Återbetald"
@@ -3039,3 +3033,8 @@ msgstr "Loppet är avslutat"
 #, elixir-autogen, elixir-format
 msgid "All Races"
 msgstr "Alla lopp"
+
+#: lib/bibtime_web/live/public/registration_live/show.ex:149
+#, elixir-autogen, elixir-format
+msgid "View Race"
+msgstr "Visa lopp"

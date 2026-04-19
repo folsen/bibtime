@@ -146,13 +146,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.Show do
             navigate={~p"/races/#{@race.slug}"}
             class="btn btn-outline btn-primary btn-sm gap-1.5"
           >
-            <.icon name="hero-arrow-left" class="size-4" /> {gettext("Race Page")}
-          </.link>
-          <.link
-            navigate={~p"/races/#{@race.slug}/results"}
-            class="btn btn-outline btn-sm gap-1.5"
-          >
-            <.icon name="hero-trophy" class="size-4" /> {gettext("View Results")}
+            <.icon name="hero-arrow-right" class="size-4" /> {gettext("View Race")}
           </.link>
         </div>
       </div>
