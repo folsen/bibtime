@@ -42,6 +42,8 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
          requires_birth_date: requires_birth_date,
          reg_opts: reg_opts,
          fee_cents: fee_cents,
+         user_registrations: user_registrations(socket.assigns.current_scope, race.id),
+         duplicate_error: nil,
          page_title: gettext("Register") <> " — " <> race.name
        )}
     else
@@ -51,10 +53,18 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
          form: nil,
          fee_cents: 0,
          registration_full: registration_full,
+         user_registrations: user_registrations(socket.assigns.current_scope, race.id),
+         duplicate_error: nil,
          page_title: gettext("Registration") <> " — " <> race.name
        )}
     end
   end
+
+  defp user_registrations(%{user: %{id: user_id}}, race_id) when not is_nil(user_id) do
+    Participants.list_user_participants_in_race(user_id, race_id)
+  end
+
+  defp user_registrations(_, _), do: []
 
   @impl true
   def handle_event("validate", %{"participant" => params}, socket) do
@@ -63,7 +73,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
       |> Registration.change_registration(params, socket.assigns.reg_opts)
       |> Map.put(:action, :validate)
 
-    {:noreply, assign(socket, form: to_form(changeset))}
+    {:noreply, assign(socket, form: to_form(changeset), duplicate_error: nil)}
   end
 
   @impl true
@@ -100,8 +110,29 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
            |> push_navigate(to: ~p"/races/#{race.slug}/register/confirmation/#{participant.id}")}
         end
 
+      {:error, :duplicate, existing} ->
+        {:noreply, handle_duplicate(socket, race, existing)}
+
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}
+    end
+  end
+
+  defp handle_duplicate(socket, race, %Participant{} = existing) do
+    current_user_id =
+      case socket.assigns[:current_scope] do
+        %{user: %{id: id}} -> id
+        _ -> nil
+      end
+
+    owned_by_current_user? = current_user_id && existing.user_id == current_user_id
+
+    if owned_by_current_user? do
+      push_navigate(socket,
+        to: ~p"/races/#{race.slug}/my-registration/#{existing.confirmation_token}"
+      )
+    else
+      assign(socket, duplicate_error: existing)
     end
   end
 
@@ -126,6 +157,68 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
           {format_date(@race.date)}
           {if @race.location, do: " — #{@race.location}", else: ""}
         </p>
+      </div>
+
+      <%!-- Duplicate-submission error --%>
+      <div
+        :if={@duplicate_error}
+        class="rounded-lg bg-error/10 border border-error/30 px-5 py-4 mb-6 flex items-start gap-3"
+        role="alert"
+      >
+        <.icon name="hero-exclamation-triangle" class="size-5 text-error shrink-0 mt-0.5" />
+        <div>
+          <p class="text-sm font-semibold text-base-content">
+            {gettext("%{name} (%{email}) is already registered for this race.",
+              name: duplicate_display_name(@duplicate_error),
+              email: @duplicate_error.email
+            )}
+          </p>
+          <p class="text-xs text-base-content/60 mt-1">
+            {gettext("If you're registering a different person, change the name or email.")}
+          </p>
+        </div>
+      </div>
+
+      <%!-- Existing registrations banner (for logged-in users) --%>
+      <div
+        :if={@user_registrations != []}
+        class="rounded-lg bg-success/10 border border-success/20 px-5 py-4 mb-6"
+      >
+        <div class="flex items-start gap-3">
+          <.icon name="hero-check-circle" class="size-5 text-success shrink-0 mt-0.5" />
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-base-content">
+              {ngettext(
+                "You already have a registration for this race.",
+                "You already have %{count} registrations for this race.",
+                length(@user_registrations),
+                count: length(@user_registrations)
+              )}
+            </p>
+            <p class="text-xs text-base-content/60 mt-0.5">
+              {gettext("Only continue if you're registering someone else.")}
+            </p>
+            <ul class="mt-3 space-y-1.5">
+              <li
+                :for={p <- @user_registrations}
+                class="flex items-center gap-2 text-sm"
+              >
+                <span class="inline-flex items-center justify-center rounded-md bg-primary/10 font-mono text-xs font-bold text-primary px-2 py-0.5">
+                  {p.bib_number}
+                </span>
+                <span class="text-base-content">
+                  {p.first_name} {p.last_name}
+                </span>
+                <.link
+                  navigate={~p"/races/#{@race.slug}/my-registration/#{p.confirmation_token}"}
+                  class="ml-auto text-xs text-primary hover:underline inline-flex items-center gap-1"
+                >
+                  {gettext("View")} <.icon name="hero-arrow-right" class="size-3" />
+                </.link>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
 
       <%!-- Entry fee banner --%>
@@ -262,6 +355,10 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
       </div>
     </div>
     """
+  end
+
+  defp duplicate_display_name(%Participant{first_name: first, last_name: last}) do
+    String.trim("#{first} #{last || ""}")
   end
 
   defp prefill_attrs_for_user(%{user: nil}), do: %{}

@@ -17,6 +17,7 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
     participant_count = Participants.count_participants(race.id)
     photo_count = Photos.count_photos(race.id)
     registration_full = Registration.registration_full?(race)
+    user_registrations = user_registrations(socket.assigns.current_scope, race.id)
 
     {:ok,
      assign(socket,
@@ -25,9 +26,16 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
        participant_count: participant_count,
        photo_count: photo_count,
        registration_full: registration_full,
+       user_registrations: user_registrations,
        page_title: race.name
      )}
   end
+
+  defp user_registrations(%{user: %{id: user_id}}, race_id) when not is_nil(user_id) do
+    Participants.list_user_participants_in_race(user_id, race_id)
+  end
+
+  defp user_registrations(_, _), do: []
 
   @impl true
   def render(assigns) do
@@ -138,15 +146,77 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
         </p>
       </div>
 
+      <%!-- Your registrations banner (logged-in + already registered) --%>
+      <div
+        :if={@user_registrations != []}
+        class="rounded-xl bg-success/10 border border-success/20 px-6 py-5 mb-6"
+      >
+        <div class="flex items-start gap-3 mb-3">
+          <.icon name="hero-check-circle" class="size-6 text-success shrink-0 mt-0.5" />
+          <div class="flex-1 min-w-0">
+            <h2 class="text-base font-semibold text-base-content">
+              {ngettext(
+                "You're registered for this race",
+                "You have %{count} registrations for this race",
+                length(@user_registrations),
+                count: length(@user_registrations)
+              )}
+            </h2>
+          </div>
+        </div>
+
+        <ul class="space-y-2">
+          <li
+            :for={p <- @user_registrations}
+            class="flex items-center justify-between rounded-lg bg-base-100 border border-base-300/40 px-4 py-2.5"
+          >
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 font-mono text-sm font-bold text-primary shrink-0">
+                {p.bib_number}
+              </span>
+              <span class="font-medium text-base-content truncate">
+                {p.first_name} {p.last_name}
+              </span>
+              <span
+                :if={p.race_category}
+                class="text-xs text-base-content/50 hidden sm:inline"
+              >
+                {p.race_category.name}
+              </span>
+            </div>
+            <.link
+              navigate={~p"/races/#{@race.slug}/my-registration/#{p.confirmation_token}"}
+              class="btn btn-ghost btn-sm gap-1 shrink-0"
+            >
+              {gettext("View")} <.icon name="hero-arrow-right" class="size-4" />
+            </.link>
+          </li>
+        </ul>
+      </div>
+
       <%!-- CTA buttons --%>
       <div class="mb-10 flex flex-wrap gap-4">
         <.link
-          :if={@race.status == :registration_open && !@registration_full}
+          :if={
+            @race.status == :registration_open && !@registration_full &&
+              @user_registrations == []
+          }
           navigate={~p"/races/#{@race.slug}/register"}
           class="btn btn-primary btn-lg gap-2 shadow-md hover:shadow-lg transition-shadow"
         >
           <.icon name="hero-pencil-square" class="size-5" /> {gettext("Register Now")}
           <.icon name="hero-arrow-right" class="size-5" />
+        </.link>
+        <.link
+          :if={
+            @race.status == :registration_open && !@registration_full &&
+              @user_registrations != []
+          }
+          navigate={~p"/races/#{@race.slug}/register"}
+          class="btn btn-outline btn-primary gap-2"
+        >
+          <.icon name="hero-user-plus" class="size-5" />
+          {gettext("Register another person")}
         </.link>
         <.link
           :if={@race.status in [:in_progress, :finished, :archived]}

@@ -231,4 +231,53 @@ defmodule Bibtime.Participants do
     |> limit(1)
     |> Repo.one()
   end
+
+  @doc """
+  Returns all participant entries linked to a user for the given race.
+  Preloads `:race_category`, ordered by bib_number.
+  """
+  def list_user_participants_in_race(nil, _race_id), do: []
+
+  def list_user_participants_in_race(user_id, race_id) do
+    Participant
+    |> where([p], p.user_id == ^user_id and p.race_id == ^race_id)
+    |> preload(:race_category)
+    |> order_by([p], p.bib_number)
+    |> Repo.all()
+  end
+
+  @doc """
+  Finds an existing participant in `race_id` whose (first_name, last_name, email)
+  matches the given values after trim + downcase normalization. Returns the
+  participant or nil.
+
+  Intended as an anti-duplicate-registration check — a logged-in user or a
+  distracted re-submit of the same form would produce exact matches we want
+  to block, while still letting the same email register *different* people
+  (e.g. a spouse).
+  """
+  def find_duplicate_registration(race_id, first_name, last_name, email) do
+    target_first = normalize_registration_field(first_name)
+    target_last = normalize_registration_field(last_name)
+    target_email = normalize_registration_field(email)
+
+    if target_first == "" or target_email == "" do
+      nil
+    else
+      Participant
+      |> where([p], p.race_id == ^race_id)
+      |> Repo.all()
+      |> Enum.find(fn p ->
+        normalize_registration_field(p.first_name) == target_first and
+          normalize_registration_field(p.last_name) == target_last and
+          normalize_registration_field(p.email) == target_email
+      end)
+    end
+  end
+
+  defp normalize_registration_field(nil), do: ""
+
+  defp normalize_registration_field(value) when is_binary(value) do
+    value |> String.trim() |> String.downcase()
+  end
 end

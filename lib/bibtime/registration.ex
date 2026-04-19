@@ -65,34 +65,47 @@ defmodule Bibtime.Registration do
           }
           |> Participant.registration_changeset(attrs, reg_opts)
 
-        email =
-          Ecto.Changeset.get_change(changeset, :email) ||
-            Ecto.Changeset.get_field(changeset, :email)
+        email = field(changeset, :email)
+        first_name = field(changeset, :first_name)
+        last_name = field(changeset, :last_name)
 
-        case Repo.insert(changeset) do
-          {:ok, participant} ->
-            # Find or create a user account for this email
-            user = find_or_create_user(email)
+        duplicate =
+          if changeset.valid?,
+            do: Participants.find_duplicate_registration(race.id, first_name, last_name, email)
 
-            if user do
-              participant
-              |> Ecto.Changeset.change(%{user_id: user.id})
-              |> Repo.update!()
-            end
-
-            participant = Repo.preload(participant, :race_category)
-
-            # Only send confirmation email for free races.
-            # For paid races, the email is sent after payment confirmation.
-            unless race.payment_required do
-              RegistrationNotifier.deliver_confirmation(participant, race)
-            end
-
-            {:ok, participant}
-
-          {:error, changeset} ->
-            {:error, changeset}
+        if duplicate do
+          {:error, :duplicate, duplicate}
+        else
+          insert_registration(race, changeset, email)
         end
+    end
+  end
+
+  defp field(changeset, key) do
+    Ecto.Changeset.get_change(changeset, key) || Ecto.Changeset.get_field(changeset, key)
+  end
+
+  defp insert_registration(race, changeset, email) do
+    case Repo.insert(changeset) do
+      {:ok, participant} ->
+        user = find_or_create_user(email)
+
+        if user do
+          participant
+          |> Ecto.Changeset.change(%{user_id: user.id})
+          |> Repo.update!()
+        end
+
+        participant = Repo.preload(participant, :race_category)
+
+        unless race.payment_required do
+          RegistrationNotifier.deliver_confirmation(participant, race)
+        end
+
+        {:ok, participant}
+
+      {:error, changeset} ->
+        {:error, changeset}
     end
   end
 

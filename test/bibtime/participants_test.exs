@@ -34,6 +34,12 @@ defmodule Bibtime.ParticipantsTest do
     participant
   end
 
+  defp link_user(%Participant{} = participant, user) do
+    participant
+    |> Ecto.Changeset.change(%{user_id: user.id})
+    |> Repo.update!()
+  end
+
   # ---------------------------------------------------------------------------
   # Tests
   # ---------------------------------------------------------------------------
@@ -164,6 +170,95 @@ defmodule Bibtime.ParticipantsTest do
       p = create_participant!(race)
       assert {:ok, updated} = Participants.mark_finished(p)
       assert updated.status == :finished
+    end
+  end
+
+  describe "list_user_participants_in_race/2" do
+    test "returns [] for nil user" do
+      race = create_race!()
+      assert Participants.list_user_participants_in_race(nil, race.id) == []
+    end
+
+    test "returns only the given user's participants in the race, ordered by bib" do
+      race = create_race!()
+      other_race = create_race!()
+
+      {:ok, user} = Bibtime.Accounts.register_user(%{email: "u@example.com"})
+      {:ok, other_user} = Bibtime.Accounts.register_user(%{email: "o@example.com"})
+
+      p1 = link_user(create_participant!(race, %{bib_number: "2"}), user)
+      p2 = link_user(create_participant!(race, %{bib_number: "1"}), user)
+      _other = link_user(create_participant!(race), other_user)
+      _different_race = link_user(create_participant!(other_race), user)
+
+      results = Participants.list_user_participants_in_race(user.id, race.id)
+      assert Enum.map(results, & &1.id) == [p2.id, p1.id]
+    end
+  end
+
+  describe "find_duplicate_registration/4" do
+    test "matches exact (case/whitespace insensitive) same-race entry" do
+      race = create_race!()
+
+      existing =
+        create_participant!(race, %{
+          first_name: "Alice",
+          last_name: "Smith",
+          email: "alice@example.com"
+        })
+
+      match =
+        Participants.find_duplicate_registration(
+          race.id,
+          " ALICE ",
+          "smith",
+          "Alice@Example.COM"
+        )
+
+      assert match && match.id == existing.id
+    end
+
+    test "returns nil when name differs" do
+      race = create_race!()
+
+      _existing =
+        create_participant!(race, %{
+          first_name: "Alice",
+          last_name: "Smith",
+          email: "alice@example.com"
+        })
+
+      refute Participants.find_duplicate_registration(
+               race.id,
+               "Bob",
+               "Smith",
+               "alice@example.com"
+             )
+    end
+
+    test "returns nil when in a different race" do
+      race1 = create_race!()
+      race2 = create_race!()
+
+      _existing =
+        create_participant!(race1, %{
+          first_name: "Alice",
+          last_name: "Smith",
+          email: "alice@example.com"
+        })
+
+      refute Participants.find_duplicate_registration(
+               race2.id,
+               "Alice",
+               "Smith",
+               "alice@example.com"
+             )
+    end
+
+    test "returns nil when email or first_name is blank" do
+      race = create_race!()
+      refute Participants.find_duplicate_registration(race.id, nil, "x", "a@b.com")
+      refute Participants.find_duplicate_registration(race.id, "x", "y", nil)
     end
   end
 end

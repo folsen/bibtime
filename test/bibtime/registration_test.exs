@@ -304,5 +304,75 @@ defmodule Bibtime.RegistrationTest do
 
       assert p1.confirmation_token != p2.confirmation_token
     end
+
+    # -------------------------------------------------------------------------
+    # Duplicate-registration block (same race + email + first + last)
+    # -------------------------------------------------------------------------
+
+    test "blocks an exact duplicate (same name + email + race)" do
+      race = create_race!()
+      category = create_category!(race)
+
+      {:ok, first} = Registration.register_participant(race, valid_attrs(category))
+
+      assert {:error, :duplicate, existing} =
+               Registration.register_participant(race, valid_attrs(category))
+
+      assert existing.id == first.id
+    end
+
+    test "duplicate detection is case-insensitive and trims whitespace" do
+      race = create_race!()
+      category = create_category!(race)
+
+      {:ok, _} = Registration.register_participant(race, valid_attrs(category))
+
+      attrs = %{
+        first_name: "  ALICE ",
+        last_name: "smith",
+        email: "ALICE@Example.com",
+        race_category_id: category.id
+      }
+
+      assert {:error, :duplicate, _} = Registration.register_participant(race, attrs)
+    end
+
+    test "allows same email with a different name (e.g. registering a spouse)" do
+      race = create_race!()
+      category = create_category!(race)
+
+      {:ok, _} = Registration.register_participant(race, valid_attrs(category))
+
+      spouse_attrs = %{
+        first_name: "Bob",
+        last_name: "Smith",
+        email: "alice@example.com",
+        race_category_id: category.id
+      }
+
+      assert {:ok, %Participant{first_name: "Bob"}} =
+               Registration.register_participant(race, spouse_attrs)
+    end
+
+    test "allows the same name+email across different races" do
+      race1 = create_race!()
+      race2 = create_race!()
+      category1 = create_category!(race1)
+      category2 = create_category!(race2)
+
+      {:ok, _} = Registration.register_participant(race1, valid_attrs(category1))
+
+      assert {:ok, %Participant{}} =
+               Registration.register_participant(race2, valid_attrs(category2))
+    end
+
+    test "duplicate check does not short-circuit regular validation errors" do
+      race = create_race!()
+      _category = create_category!(race)
+      # Missing email — should still return a changeset error, not a duplicate tuple
+      attrs = %{first_name: "Alice", last_name: "Smith"}
+
+      assert {:error, %Ecto.Changeset{}} = Registration.register_participant(race, attrs)
+    end
   end
 end
