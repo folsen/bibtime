@@ -103,7 +103,7 @@ defmodule Bibtime.Races do
   end
 
   defp copy_race_children(race, source) do
-    for cat <- source.categories do
+    for cat <- Map.get(source, :categories, []) do
       create_category(%{
         "race_id" => race.id,
         "name" => cat.name,

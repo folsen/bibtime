@@ -1,7 +1,12 @@
 defmodule Bibtime.Races.Templates do
   @moduledoc """
-  Built-in race templates with predefined splits and categories.
+  Built-in race templates with predefined splits and gender auto-categories.
   """
+
+  @gender_auto_categories [
+    %{type: :gender, name: "Men", gender_value: :male, sort_order: 1},
+    %{type: :gender, name: "Women", gender_value: :female, sort_order: 2}
+  ]
 
   def list do
     [
@@ -47,12 +52,7 @@ defmodule Bibtime.Races.Templates do
             sort_order: 5
           }
         ],
-        categories: [
-          %{name: "Elite Men", gender: :male, distance_label: "Olympic", sort_order: 1},
-          %{name: "Elite Women", gender: :female, distance_label: "Olympic", sort_order: 2},
-          %{name: "Age Group Men", gender: :male, distance_label: "Olympic", sort_order: 3},
-          %{name: "Age Group Women", gender: :female, distance_label: "Olympic", sort_order: 4}
-        ]
+        auto_categories: @gender_auto_categories
       },
       %{
         id: "sprint_triathlon",
@@ -90,10 +90,7 @@ defmodule Bibtime.Races.Templates do
           },
           %{name: "Run", short_name: "RUN", leg_type: :run, distance_meters: 5_000, sort_order: 5}
         ],
-        categories: [
-          %{name: "Men", gender: :male, distance_label: "Sprint", sort_order: 1},
-          %{name: "Women", gender: :female, distance_label: "Sprint", sort_order: 2}
-        ]
+        auto_categories: @gender_auto_categories
       },
       %{
         id: "duathlon",
@@ -137,10 +134,7 @@ defmodule Bibtime.Races.Templates do
             sort_order: 5
           }
         ],
-        categories: [
-          %{name: "Men", gender: :male, distance_label: "Standard", sort_order: 1},
-          %{name: "Women", gender: :female, distance_label: "Standard", sort_order: 2}
-        ]
+        auto_categories: @gender_auto_categories
       },
       %{
         id: "aquathlon",
@@ -164,10 +158,7 @@ defmodule Bibtime.Races.Templates do
           },
           %{name: "Run", short_name: "RUN", leg_type: :run, distance_meters: 5_000, sort_order: 3}
         ],
-        categories: [
-          %{name: "Men", gender: :male, distance_label: "Standard", sort_order: 1},
-          %{name: "Women", gender: :female, distance_label: "Standard", sort_order: 2}
-        ]
+        auto_categories: @gender_auto_categories
       },
       %{
         id: "5k",
@@ -183,14 +174,7 @@ defmodule Bibtime.Races.Templates do
             sort_order: 1
           }
         ],
-        categories: [
-          %{name: "Men", gender: :male, distance_label: "5K", sort_order: 1},
-          %{name: "Women", gender: :female, distance_label: "5K", sort_order: 2}
-        ],
-        auto_categories: [
-          %{type: :gender, name: "Men", gender_value: :male, sort_order: 1},
-          %{type: :gender, name: "Women", gender_value: :female, sort_order: 2}
-        ]
+        auto_categories: @gender_auto_categories
       },
       %{
         id: "10k",
@@ -207,14 +191,7 @@ defmodule Bibtime.Races.Templates do
             sort_order: 2
           }
         ],
-        categories: [
-          %{name: "Men", gender: :male, distance_label: "10K", sort_order: 1},
-          %{name: "Women", gender: :female, distance_label: "10K", sort_order: 2}
-        ],
-        auto_categories: [
-          %{type: :gender, name: "Men", gender_value: :male, sort_order: 1},
-          %{type: :gender, name: "Women", gender_value: :female, sort_order: 2}
-        ]
+        auto_categories: @gender_auto_categories
       },
       %{
         id: "half_marathon",
@@ -245,14 +222,7 @@ defmodule Bibtime.Races.Templates do
             sort_order: 4
           }
         ],
-        categories: [
-          %{name: "Men", gender: :male, distance_label: "Half Marathon", sort_order: 1},
-          %{name: "Women", gender: :female, distance_label: "Half Marathon", sort_order: 2}
-        ],
-        auto_categories: [
-          %{type: :gender, name: "Men", gender_value: :male, sort_order: 1},
-          %{type: :gender, name: "Women", gender_value: :female, sort_order: 2}
-        ]
+        auto_categories: @gender_auto_categories
       },
       %{
         id: "marathon",
@@ -290,14 +260,7 @@ defmodule Bibtime.Races.Templates do
             sort_order: 5
           }
         ],
-        categories: [
-          %{name: "Men", gender: :male, distance_label: "Marathon", sort_order: 1},
-          %{name: "Women", gender: :female, distance_label: "Marathon", sort_order: 2}
-        ],
-        auto_categories: [
-          %{type: :gender, name: "Men", gender_value: :male, sort_order: 1},
-          %{type: :gender, name: "Women", gender_value: :female, sort_order: 2}
-        ]
+        auto_categories: @gender_auto_categories
       }
     ]
   end
