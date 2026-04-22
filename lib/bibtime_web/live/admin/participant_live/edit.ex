@@ -83,6 +83,7 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Edit do
       <.input field={@form[:club]} type="text" label={gettext("Club")} />
       <.input field={@form[:chip_id]} type="text" label={gettext("Chip ID")} />
       <.input
+        :if={@race.categories != []}
         field={@form[:race_category_id]}
         type="select"
         label={gettext("Category")}

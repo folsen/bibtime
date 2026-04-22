@@ -78,7 +78,8 @@ defmodule Bibtime.Mailer.Previews do
       name: "Sample Triathlon 2026",
       slug: "sample-triathlon-2026",
       date: ~D[2026-06-15],
-      location: "Stadsparken, Lund"
+      location: "Stadsparken, Lund",
+      categories: [%Bibtime.Races.RaceCategory{name: "Olympic Men"}]
     }
   end
 

@@ -10,6 +10,7 @@ defmodule Bibtime.Results.PdfTemplate do
   Renders a complete HTML document for race results, styled for print/poster display.
   """
   def render(race, results, splits, opts \\ []) do
+    has_manual_categories = Keyword.get(opts, :has_manual_categories, true)
     has_auto_categories = Keyword.get(opts, :has_auto_categories, false)
 
     """
@@ -22,7 +23,7 @@ defmodule Bibtime.Results.PdfTemplate do
     <body>
       #{header_section(race)}
       #{stats_bar(results)}
-      #{results_table(results, splits, has_auto_categories)}
+      #{results_table(results, splits, has_manual_categories, has_auto_categories)}
       #{accolades_section(results, splits)}
       #{footer(race)}
     </body>
@@ -67,9 +68,9 @@ defmodule Bibtime.Results.PdfTemplate do
     """
   end
 
-  defp results_table(results, splits, has_auto_categories) do
-    header = table_header(splits, has_auto_categories)
-    rows = Enum.map(results, &table_row(&1, splits, has_auto_categories))
+  defp results_table(results, splits, has_manual_categories, has_auto_categories) do
+    header = table_header(splits, has_manual_categories, has_auto_categories)
+    rows = Enum.map(results, &table_row(&1, splits, has_manual_categories, has_auto_categories))
 
     """
     <table>
@@ -79,7 +80,10 @@ defmodule Bibtime.Results.PdfTemplate do
     """
   end
 
-  defp table_header(splits, has_auto_categories) do
+  defp table_header(splits, has_manual_categories, has_auto_categories) do
+    category_col =
+      if has_manual_categories, do: "<th>#{escape(gettext("Category"))}</th>", else: ""
+
     auto_cols =
       if has_auto_categories do
         """
@@ -101,7 +105,7 @@ defmodule Bibtime.Results.PdfTemplate do
       <th class="bib">#{escape(gettext("Bib"))}</th>
       <th class="name">#{escape(gettext("Name"))}</th>
       <th>#{escape(gettext("Club"))}</th>
-      <th>#{escape(gettext("Category"))}</th>
+      #{category_col}
       #{auto_cols}
       #{split_cols}
       <th class="time total-col">#{escape(gettext("Total"))}</th>
@@ -110,9 +114,12 @@ defmodule Bibtime.Results.PdfTemplate do
     """
   end
 
-  defp table_row(result, splits, has_auto_categories) do
+  defp table_row(result, splits, has_manual_categories, has_auto_categories) do
     rank = if result.status == :finished, do: result.rank, else: nil
     rank_class = rank_css_class(rank)
+
+    category_col =
+      if has_manual_categories, do: "<td>#{category_badge(result.category)}</td>", else: ""
 
     auto_cols =
       if has_auto_categories do
@@ -174,7 +181,7 @@ defmodule Bibtime.Results.PdfTemplate do
       <td class="bib">#{escape(to_string(result.participant.bib_number))}</td>
       <td class="name">#{escape(result.participant.first_name)} #{escape(result.participant.last_name)}</td>
       <td>#{escape(result.participant.club || "\u2014")}</td>
-      <td>#{category_badge(result.category)}</td>
+      #{category_col}
       #{auto_cols}
       #{split_cells}
       #{total_cell}

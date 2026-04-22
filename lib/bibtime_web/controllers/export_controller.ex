@@ -9,13 +9,16 @@ defmodule BibtimeWeb.ExportController do
     race =
       slug
       |> Races.get_race_by_slug!()
-      |> Bibtime.Repo.preload([:splits, :auto_categories])
+      |> Bibtime.Repo.preload([:splits, :categories, :auto_categories])
 
     results = Results.get_race_results(race.id)
     splits = Races.list_splits(race.id)
 
     {:ok, pdf_base64} =
-      Export.to_pdf(race, results, splits, has_auto_categories: race.auto_categories != [])
+      Export.to_pdf(race, results, splits,
+        has_manual_categories: race.categories != [],
+        has_auto_categories: race.auto_categories != []
+      )
 
     pdf_binary = Base.decode64!(pdf_base64)
 
@@ -34,11 +37,16 @@ defmodule BibtimeWeb.ExportController do
     race =
       slug
       |> Races.get_race_by_slug!()
-      |> Bibtime.Repo.preload([:splits, :auto_categories])
+      |> Bibtime.Repo.preload([:splits, :categories, :auto_categories])
 
     results = Results.get_race_results(race.id)
     splits = Races.list_splits(race.id)
-    csv = Export.to_csv(results, splits, has_auto_categories: race.auto_categories != [])
+
+    csv =
+      Export.to_csv(results, splits,
+        has_manual_categories: race.categories != [],
+        has_auto_categories: race.auto_categories != []
+      )
 
     filename =
       race.slug

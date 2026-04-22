@@ -261,7 +261,7 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
                 {gettext("Club")}<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="club" />
               </th>
               <th
-                :if={no_category_selected?(assigns)}
+                :if={@categories != [] and no_category_selected?(assigns)}
                 phx-click="sort"
                 phx-value-col="category"
                 class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-left cursor-pointer hover:text-base-content select-none"
@@ -337,7 +337,7 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
                 {result.participant.club || "\u2014"}
               </td>
               <td
-                :if={no_category_selected?(assigns)}
+                :if={@categories != [] and no_category_selected?(assigns)}
                 class="text-sm px-3 py-2.5 border-b border-base-300/20"
               >
                 <span

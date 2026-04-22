@@ -130,6 +130,7 @@ defmodule BibtimeWeb.Public.MyRacesLive.Edit do
           />
 
           <.input
+            :if={@race.categories != []}
             field={@form[:race_category_id]}
             type="select"
             label={gettext("Category")}

@@ -35,6 +35,11 @@ defmodule Bibtime.Registration.RegistrationNotifier do
   def email_confirmation(participant, race) do
     locale = SiteSettings.locale_for(Map.get(participant, :user))
 
+    race =
+      if Ecto.assoc_loaded?(race.categories),
+        do: race,
+        else: Bibtime.Repo.preload(race, :categories)
+
     Gettext.with_locale(BibtimeWeb.Gettext, locale, fn ->
       date_str =
         if race.date,
@@ -43,10 +48,17 @@ defmodule Bibtime.Registration.RegistrationNotifier do
 
       location_str = race.location || gettext("TBD")
 
-      category_name =
-        if participant.race_category,
-          do: participant.race_category.name,
-          else: gettext("Unassigned")
+      category_line =
+        if race.categories != [] do
+          name =
+            if participant.race_category,
+              do: participant.race_category.name,
+              else: gettext("Unassigned")
+
+          "#{gettext("Category")}: #{name}\n"
+        else
+          ""
+        end
 
       build_email(
         participant.email,
@@ -58,8 +70,7 @@ defmodule Bibtime.Registration.RegistrationNotifier do
 
         #{gettext("Race date")}: #{date_str}
         #{gettext("Location")}: #{location_str}
-        #{gettext("Category")}: #{category_name}
-        #{gettext("Bib number")}: #{participant.bib_number}
+        #{category_line}#{gettext("Bib number")}: #{participant.bib_number}
 
         #{gettext("An account has been created for you. To log in and manage your registration details, visit the login page and enter your email to receive a login link:")}
 

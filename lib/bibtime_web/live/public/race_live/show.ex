@@ -273,7 +273,10 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
                 <th class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-left">
                   {gettext("Club")}
                 </th>
-                <th class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-left last:rounded-tr-xl">
+                <th
+                  :if={@race.categories != []}
+                  class="sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm px-3 py-3 font-semibold border-b border-base-300/50 text-left last:rounded-tr-xl"
+                >
                   {gettext("Category")}
                 </th>
               </tr>
@@ -292,7 +295,10 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
                 <td class="text-base-content/50 text-sm px-3 py-2.5 border-b border-base-300/20">
                   {participant.club || "\u2014"}
                 </td>
-                <td class="text-sm px-3 py-2.5 border-b border-base-300/20">
+                <td
+                  :if={@race.categories != []}
+                  class="text-sm px-3 py-2.5 border-b border-base-300/20"
+                >
                   <span
                     :if={participant.race_category}
                     class="inline-flex items-center rounded-full bg-primary/8 text-primary/80 px-2 py-0.5 text-xs font-medium"

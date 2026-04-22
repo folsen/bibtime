@@ -10,7 +10,7 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
 
   @impl true
   def mount(%{"id" => race_id}, _session, socket) do
-    race = Races.get_race!(race_id)
+    race = Races.get_race!(race_id, preload: [:categories])
 
     socket =
       socket
@@ -416,6 +416,7 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
               {gettext("Email")}<.sort_indicator sort_by={@sort_by} sort_dir={@sort_dir} col="email" />
             </th>
             <th
+              :if={@race.categories != []}
               phx-click="sort"
               phx-value-col="category"
               class="font-semibold cursor-pointer hover:text-base-content select-none"
@@ -460,7 +461,7 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
               {participant.first_name} {participant.last_name}
             </td>
             <td class="py-3 text-sm text-base-content/70">{participant.email || "-"}</td>
-            <td class="py-3 text-sm text-base-content/70">
+            <td :if={@race.categories != []} class="py-3 text-sm text-base-content/70">
               {if participant.race_category, do: participant.race_category.name, else: "-"}
             </td>
             <td class="py-3 text-sm text-base-content/70">{participant.club || "-"}</td>
