@@ -95,7 +95,7 @@ defmodule BibtimeWeb.Admin.StationLive.GlobalIndex do
                   status_badge(station.status)
                 ]}>
                   <span class={["inline-block size-1.5 rounded-full", status_dot(station.status)]} />
-                  {to_string(station.status)}
+                  {status_label(station.status)}
                 </span>
               </td>
               <td class="py-3 text-xs text-base-content/60 font-mono">
@@ -239,4 +239,10 @@ defmodule BibtimeWeb.Admin.StationLive.GlobalIndex do
   defp status_dot(:reading), do: "bg-info"
   defp status_dot(:error), do: "bg-error"
   defp status_dot(_), do: "bg-base-300"
+
+  defp status_label(:online), do: gettext("online")
+  defp status_label(:reading), do: gettext("reading")
+  defp status_label(:error), do: gettext("error")
+  defp status_label(:offline), do: gettext("offline")
+  defp status_label(other), do: to_string(other)
 end
