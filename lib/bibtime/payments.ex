@@ -107,6 +107,10 @@ defmodule Bibtime.Payments do
   @doc """
   Handles a successful checkout session completion from Stripe webhook.
   Marks payment as completed and transitions participant to registered.
+
+  Side effects (fetching the payment intent from Stripe, delivering emails)
+  run outside the DB transaction so the webhook can respond within Stripe's
+  10s timeout even when SMTP or the Stripe API are slow.
   """
   def handle_checkout_completed(session_id) do
     case Repo.one(from p in Payment, where: p.stripe_checkout_session_id == ^session_id) do
@@ -117,34 +121,65 @@ defmodule Bibtime.Payments do
         {:ok, payment}
 
       %Payment{} = payment ->
-        Repo.transaction(fn ->
-          {:ok, payment} =
-            payment
-            |> Payment.changeset(%{
-              status: :completed,
-              stripe_payment_intent_id: fetch_payment_intent_id(session_id),
-              paid_at: DateTime.utc_now() |> DateTime.truncate(:second)
-            })
-            |> Repo.update()
+        payment_intent_id = fetch_payment_intent_id(session_id)
 
-          participant = Repo.get!(Participant, payment.participant_id)
+        txn =
+          Repo.transaction(fn ->
+            {:ok, updated_payment} =
+              payment
+              |> Payment.changeset(%{
+                status: :completed,
+                stripe_payment_intent_id: payment_intent_id,
+                paid_at: DateTime.utc_now() |> DateTime.truncate(:second)
+              })
+              |> Repo.update()
 
-          if participant.status == :pending_payment do
-            participant
-            |> Ecto.Changeset.change(%{status: :registered})
-            |> Repo.update!()
-          end
+            participant = Repo.get!(Participant, updated_payment.participant_id)
 
-          # Send confirmation email now that payment is complete
-          participant = Repo.preload(participant, [:race_category])
-          race = Bibtime.Races.get_race!(payment.race_id)
+            participant =
+              if participant.status == :pending_payment do
+                participant
+                |> Ecto.Changeset.change(%{status: :registered})
+                |> Repo.update!()
+              else
+                participant
+              end
 
-          Bibtime.Registration.RegistrationNotifier.deliver_confirmation(participant, race)
-          Bibtime.Payments.PaymentNotifier.deliver_receipt(payment, participant, race)
+            {updated_payment, participant}
+          end)
 
-          payment
-        end)
+        case txn do
+          {:ok, {updated_payment, participant}} ->
+            deliver_fulfillment_notifications_async(updated_payment, participant)
+            {:ok, updated_payment}
+
+          {:error, _} = err ->
+            err
+        end
     end
+  end
+
+  defp deliver_fulfillment_notifications_async(%Payment{} = payment, %Participant{} = participant) do
+    Task.Supervisor.start_child(Bibtime.TaskSupervisor, fn ->
+      participant = Repo.preload(participant, [:race_category])
+      race = Bibtime.Races.get_race!(payment.race_id)
+
+      require Logger
+
+      try do
+        Bibtime.Registration.RegistrationNotifier.deliver_confirmation(participant, race)
+      rescue
+        e -> Logger.error("Registration confirmation email failed: #{inspect(e)}")
+      end
+
+      try do
+        Bibtime.Payments.PaymentNotifier.deliver_receipt(payment, participant, race)
+      rescue
+        e -> Logger.error("Payment receipt email failed: #{inspect(e)}")
+      end
+    end)
+
+    :ok
   end
 
   @doc """
