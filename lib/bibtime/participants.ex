@@ -15,7 +15,7 @@ defmodule Bibtime.Participants do
   def list_participants(race_id) do
     Participant
     |> where([p], p.race_id == ^race_id)
-    |> order_by([p], p.bib_number)
+    |> order_by([p], asc: fragment("LENGTH(?)", p.bib_number), asc: p.bib_number)
     |> preload(:race_category)
     |> Repo.all()
   end

@@ -103,6 +103,17 @@ defmodule Bibtime.ParticipantsTest do
       assert Enum.map(participants, & &1.bib_number) == ["1", "2", "3"]
     end
 
+    test "sorts numeric bib_numbers numerically, not lexicographically" do
+      race = create_race!()
+
+      for bib <- ~w(1 2 3 10 11 20 100) do
+        create_participant!(race, %{bib_number: bib})
+      end
+
+      assert Enum.map(Participants.list_participants(race.id), & &1.bib_number) ==
+               ~w(1 2 3 10 11 20 100)
+    end
+
     test "does not return participants from other races" do
       race1 = create_race!()
       race2 = create_race!()
