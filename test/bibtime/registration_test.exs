@@ -374,5 +374,74 @@ defmodule Bibtime.RegistrationTest do
 
       assert {:error, %Ecto.Changeset{}} = Registration.register_participant(race, attrs)
     end
+
+    # -------------------------------------------------------------------------
+    # Resume of a pending paid registration
+    # -------------------------------------------------------------------------
+
+    test "resubmitting a :pending_payment registration returns the same participant" do
+      race =
+        Repo.insert!(%Race{
+          name: "Paid Race",
+          slug: "paid-race-#{System.unique_integer([:positive])}",
+          race_type: :running,
+          status: :registration_open,
+          payment_required: true,
+          entry_fee_cents: 10_000,
+          currency: "SEK"
+        })
+
+      category = create_category!(race)
+
+      {:ok, first} = Registration.register_participant(race, valid_attrs(category))
+      assert first.status == :pending_payment
+
+      assert {:ok, %Participant{} = second} =
+               Registration.register_participant(race, valid_attrs(category))
+
+      assert second.id == first.id
+      assert second.bib_number == first.bib_number
+      assert second.confirmation_token == first.confirmation_token
+      assert second.status == :pending_payment
+    end
+
+    test "resuming a pending registration applies edited form fields" do
+      race =
+        Repo.insert!(%Race{
+          name: "Paid Race",
+          slug: "paid-race-#{System.unique_integer([:positive])}",
+          race_type: :running,
+          status: :registration_open,
+          payment_required: true,
+          entry_fee_cents: 10_000,
+          currency: "SEK"
+        })
+
+      category = create_category!(race)
+
+      {:ok, first} = Registration.register_participant(race, valid_attrs(category))
+
+      edited_attrs = Map.merge(valid_attrs(category), %{club: "New Club"})
+
+      assert {:ok, %Participant{} = second} =
+               Registration.register_participant(race, edited_attrs)
+
+      assert second.id == first.id
+      assert second.club == "New Club"
+    end
+
+    test "still blocks duplicates whose status is past pending_payment" do
+      race = create_race!()
+      category = create_category!(race)
+
+      {:ok, first} = Registration.register_participant(race, valid_attrs(category))
+      # Free-race registrations land at :registered immediately
+      assert first.status == :registered
+
+      assert {:error, :duplicate, existing} =
+               Registration.register_participant(race, valid_attrs(category))
+
+      assert existing.id == first.id
+    end
   end
 end

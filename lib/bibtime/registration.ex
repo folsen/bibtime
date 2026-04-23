@@ -73,11 +73,29 @@ defmodule Bibtime.Registration do
           if changeset.valid?,
             do: Participants.find_duplicate_registration(race.id, first_name, last_name, email)
 
-        if duplicate do
-          {:error, :duplicate, duplicate}
-        else
-          insert_registration(race, changeset, email)
+        cond do
+          is_nil(duplicate) ->
+            insert_registration(race, changeset, email)
+
+          duplicate.status == :pending_payment ->
+            resume_pending_registration(duplicate, attrs, reg_opts)
+
+          true ->
+            {:error, :duplicate, duplicate}
         end
+    end
+  end
+
+  # User started a paid registration, never paid, and is back submitting again.
+  # Update the existing pending row in place — keep its bib number, confirmation
+  # token, and user link — so the caller can hand them a fresh checkout session.
+  defp resume_pending_registration(participant, attrs, reg_opts) do
+    participant
+    |> Participant.registration_changeset(attrs, reg_opts)
+    |> Repo.update()
+    |> case do
+      {:ok, updated} -> {:ok, Repo.preload(updated, :race_category)}
+      {:error, _} = err -> err
     end
   end
 
