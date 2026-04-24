@@ -48,16 +48,62 @@ defmodule Bibtime.Payments do
   defp do_create_checkout_session(participant, race, success_url, cancel_url) do
     amount = effective_fee_cents(race)
     currency = String.downcase(race.currency || "sek")
-
     participant = Repo.preload(participant, :race_category)
 
+    existing = get_pending_payment_for_participant(participant.id)
+
+    case reusable_session_url(existing) do
+      {:ok, url} ->
+        {:ok, url}
+
+      :none ->
+        checkout_params =
+          build_checkout_params(participant, race, amount, currency, success_url, cancel_url)
+
+        case Stripe.Checkout.Session.create(checkout_params) do
+          {:ok, session} ->
+            {:ok, _payment} =
+              upsert_payment(existing, session, participant, race, amount, currency)
+
+            {:ok, session.url}
+
+          {:error, %Stripe.Error{} = error} ->
+            require Logger
+            Logger.error("Stripe checkout session creation failed: #{error.message}")
+            {:error, error.message}
+        end
+    end
+  end
+
+  defp get_pending_payment_for_participant(participant_id) do
+    Repo.one(
+      from p in Payment,
+        where: p.participant_id == ^participant_id and p.status == :pending,
+        order_by: [desc: p.inserted_at],
+        limit: 1
+    )
+  end
+
+  defp reusable_session_url(nil), do: :none
+
+  defp reusable_session_url(%Payment{stripe_checkout_session_id: session_id}) do
+    case Stripe.Checkout.Session.retrieve(session_id) do
+      {:ok, %{status: "open", payment_status: "unpaid", url: url}} when is_binary(url) ->
+        {:ok, url}
+
+      _ ->
+        :none
+    end
+  end
+
+  defp build_checkout_params(participant, race, amount, currency, success_url, cancel_url) do
     description =
       case participant.race_category do
         nil -> race.name
         cat -> "#{race.name} - #{cat.name}"
       end
 
-    checkout_params = %{
+    %{
       mode: :payment,
       success_url: success_url,
       cancel_url: cancel_url,
@@ -80,28 +126,29 @@ defmodule Bibtime.Payments do
         "race_id" => to_string(race.id)
       }
     }
+  end
 
-    case Stripe.Checkout.Session.create(checkout_params) do
-      {:ok, session} ->
-        {:ok, _payment} =
-          %Payment{}
-          |> Payment.changeset(%{
-            participant_id: participant.id,
-            race_id: race.id,
-            stripe_checkout_session_id: session.id,
-            amount_cents: amount,
-            currency: String.upcase(currency),
-            status: :pending
-          })
-          |> Repo.insert()
+  defp upsert_payment(nil, session, participant, race, amount, currency) do
+    %Payment{}
+    |> Payment.changeset(%{
+      participant_id: participant.id,
+      race_id: race.id,
+      stripe_checkout_session_id: session.id,
+      amount_cents: amount,
+      currency: String.upcase(currency),
+      status: :pending
+    })
+    |> Repo.insert()
+  end
 
-        {:ok, session.url}
-
-      {:error, %Stripe.Error{} = error} ->
-        require Logger
-        Logger.error("Stripe checkout session creation failed: #{error.message}")
-        {:error, error.message}
-    end
+  defp upsert_payment(%Payment{} = existing, session, _participant, _race, amount, currency) do
+    existing
+    |> Payment.changeset(%{
+      stripe_checkout_session_id: session.id,
+      amount_cents: amount,
+      currency: String.upcase(currency)
+    })
+    |> Repo.update()
   end
 
   @doc """
