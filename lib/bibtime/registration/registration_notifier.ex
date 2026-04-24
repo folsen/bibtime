@@ -94,4 +94,37 @@ defmodule Bibtime.Registration.RegistrationNotifier do
       participant |> email_confirmation(race) |> deliver()
     end
   end
+
+  @doc """
+  Builds the race-filled-and-refunded email (for previews).
+  """
+  def email_race_filled(participant, race) do
+    locale = SiteSettings.locale_for(Map.get(participant, :user))
+
+    Gettext.with_locale(BibtimeWeb.Gettext, locale, fn ->
+      build_email(
+        participant.email,
+        gettext("Registration could not be completed") <> " — #{race.name}",
+        """
+        #{gettext("Hi %{name},", name: participant.first_name)}
+
+        #{gettext("Unfortunately %{race} filled up before your payment was processed, so your payment has been automatically refunded.", race: race.name)}
+
+        #{gettext("The refund should appear on your statement within a few business days. We're sorry for the inconvenience.")}
+
+        #{gettext("Race page:")} #{url(~p"/races/#{race.slug}")}
+        """
+      )
+    end)
+  end
+
+  @doc """
+  Sends a notice that the participant's payment was refunded because the
+  race filled up before their (lapsed) hold could be renewed at payment.
+  """
+  def deliver_race_filled_notice(participant, race) do
+    if participant.email do
+      participant |> email_race_filled(race) |> deliver()
+    end
+  end
 end

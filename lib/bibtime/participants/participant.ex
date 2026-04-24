@@ -12,6 +12,7 @@ defmodule Bibtime.Participants.Participant do
     field :club, :string
     field :chip_id, :string
     field :checked_in_at, :utc_datetime
+    field :hold_expires_at, :utc_datetime
 
     field :status, Ecto.Enum,
       values: [:pending_payment, :registered, :checked_in, :racing, :dns, :dnf, :dsq, :finished],
@@ -43,13 +44,26 @@ defmodule Bibtime.Participants.Participant do
       :club,
       :chip_id,
       :checked_in_at,
+      :hold_expires_at,
       :status,
       :registration_data,
       :race_id,
       :race_category_id
     ])
-    |> validate_required([:bib_number, :first_name, :race_id])
+    |> validate_required([:first_name, :race_id])
+    |> require_bib_when_not_pending()
     |> unique_constraint([:race_id, :bib_number])
+  end
+
+  # Bib numbers are only assigned when a participant becomes :registered
+  # (or any later racing state). Pending-payment rows are allowed to have
+  # a nil bib — the hold reserves the slot, the bib is assigned at payment.
+  defp require_bib_when_not_pending(changeset) do
+    case get_field(changeset, :status) do
+      :pending_payment -> changeset
+      nil -> changeset
+      _ -> validate_required(changeset, [:bib_number])
+    end
   end
 
   def registration_changeset(participant, attrs, opts \\ []) do

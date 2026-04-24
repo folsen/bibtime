@@ -30,7 +30,13 @@ defmodule BibtimeWeb.Admin.CheckInLive.Index do
     socket =
       if connected?(socket) do
         start_async(socket, :load_participants, fn ->
-          participants = Participants.list_participants(race_id)
+          # Only registered-and-beyond participants have bibs and can be
+          # checked in. Pending-payment holds are excluded.
+          participants =
+            race_id
+            |> Participants.list_participants()
+            |> Enum.reject(&is_nil(&1.bib_number))
+
           checked_in_count = Participants.count_checked_in_participants(race_id)
           %{participants: participants, checked_in_count: checked_in_count}
         end)

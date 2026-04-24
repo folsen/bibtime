@@ -1,6 +1,8 @@
 defmodule Bibtime.RegistrationTest do
   use Bibtime.DataCase, async: true
 
+  import Ecto.Query
+
   alias Bibtime.Registration
   alias Bibtime.Participants.Participant
   alias Bibtime.Races.{Race, RaceCategory}
@@ -442,6 +444,117 @@ defmodule Bibtime.RegistrationTest do
                Registration.register_participant(race, valid_attrs(category))
 
       assert existing.id == first.id
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Hold-based flow for paid races (bib assigned at payment, not registration)
+  # ---------------------------------------------------------------------------
+
+  describe "paid-race registration" do
+    defp create_paid_race!(opts \\ []) do
+      Repo.insert!(%Race{
+        name: "Paid Race",
+        slug: "paid-race-#{System.unique_integer([:positive])}",
+        race_type: :running,
+        status: :registration_open,
+        payment_required: true,
+        entry_fee_cents: 10_000,
+        currency: "SEK",
+        participant_limit: Keyword.get(opts, :participant_limit)
+      })
+    end
+
+    test "new registration on a paid race has no bib and an active hold" do
+      race = create_paid_race!()
+      category = create_category!(race)
+
+      {:ok, participant} = Registration.register_participant(race, valid_attrs(category))
+
+      assert participant.status == :pending_payment
+      assert is_nil(participant.bib_number)
+      assert participant.hold_expires_at
+      assert DateTime.compare(participant.hold_expires_at, DateTime.utc_now()) == :gt
+    end
+
+    test "resume refreshes a lapsed hold back into the future" do
+      race = create_paid_race!()
+      category = create_category!(race)
+
+      {:ok, first} = Registration.register_participant(race, valid_attrs(category))
+
+      past = DateTime.add(DateTime.utc_now(), -60, :second) |> DateTime.truncate(:second)
+
+      Repo.update_all(
+        from(p in Participant, where: p.id == ^first.id),
+        set: [hold_expires_at: past]
+      )
+
+      {:ok, resumed} = Registration.register_participant(race, valid_attrs(category))
+
+      assert resumed.id == first.id
+      assert DateTime.compare(resumed.hold_expires_at, DateTime.utc_now()) == :gt
+      # Fresh expiry should be within a few seconds of now + hold_ttl.
+      expected = DateTime.add(DateTime.utc_now(), Registration.hold_ttl_seconds(), :second)
+      diff = DateTime.diff(expected, resumed.hold_expires_at, :second)
+      assert abs(diff) <= 5
+    end
+
+    test "resume attempt is blocked when the race has filled during a lapsed hold" do
+      race = create_paid_race!(participant_limit: 1)
+      category = create_category!(race)
+
+      {:ok, first} = Registration.register_participant(race, valid_attrs(category))
+
+      Repo.update_all(
+        from(p in Participant, where: p.id == ^first.id),
+        set: [hold_expires_at: DateTime.add(DateTime.utc_now(), -60, :second)]
+      )
+
+      {:ok, _other} =
+        Registration.register_participant(race, %{
+          first_name: "Bob",
+          last_name: "Jones",
+          email: "bob@example.com",
+          race_category_id: category.id
+        })
+
+      # Top-level registration_full? fires before the duplicate check and
+      # returns a generic changeset error — same user-facing message a brand
+      # new user would get.
+      assert {:error, %Ecto.Changeset{} = cs} =
+               Registration.register_participant(race, valid_attrs(category))
+
+      assert {"Registration is full", _} = cs.errors[:base]
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Capacity counting — holds count, lapsed holds don't
+  # ---------------------------------------------------------------------------
+
+  describe "registration_full?/1 with holds" do
+    test "includes active holds in the slot count" do
+      race = create_paid_race!(participant_limit: 1)
+      category = create_category!(race)
+
+      {:ok, _held} = Registration.register_participant(race, valid_attrs(category))
+
+      assert Registration.registration_full?(race) == true
+    end
+
+    test "excludes lapsed holds from the slot count" do
+      race = create_paid_race!(participant_limit: 1)
+      category = create_category!(race)
+
+      {:ok, held} = Registration.register_participant(race, valid_attrs(category))
+
+      Repo.update_all(
+        from(p in Participant, where: p.id == ^held.id),
+        set: [hold_expires_at: DateTime.add(DateTime.utc_now(), -60, :second)]
+      )
+
+      assert Registration.registration_full?(race) == false
     end
   end
 end

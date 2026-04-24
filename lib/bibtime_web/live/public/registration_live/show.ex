@@ -81,14 +81,22 @@ defmodule BibtimeWeb.Public.RegistrationLive.Show do
 
         <%!-- Details --%>
         <div class="px-8 py-6 space-y-5">
-          <%!-- Bib number highlight --%>
-          <div class="text-center py-4">
+          <%!-- Bib number highlight (hidden until payment clears) --%>
+          <div :if={@participant.bib_number} class="text-center py-4">
             <p class="text-xs uppercase tracking-widest text-base-content/40 font-semibold mb-2">
               {gettext("Your Bib Number")}
             </p>
             <span class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 border-2 border-primary/30">
               <span class="text-3xl font-bold font-mono text-primary">{@participant.bib_number}</span>
             </span>
+          </div>
+          <div :if={is_nil(@participant.bib_number)} class="text-center py-4">
+            <p class="text-xs uppercase tracking-widest text-base-content/40 font-semibold mb-2">
+              {gettext("Bib Number")}
+            </p>
+            <p class="text-sm text-base-content/60">
+              {gettext("Your bib will be assigned once payment is received.")}
+            </p>
           </div>
 
           <div class="divide-y divide-base-300/30">
@@ -142,6 +150,14 @@ defmodule BibtimeWeb.Public.RegistrationLive.Show do
 
         <%!-- Actions --%>
         <div class="px-8 py-5 bg-base-200/30 border-t border-base-300/30 flex flex-wrap gap-3">
+          <button
+            :if={@participant.status == :pending_payment && @race.payment_required}
+            type="button"
+            phx-click="resume_payment"
+            class="btn btn-warning btn-sm gap-1.5"
+          >
+            <.icon name="hero-credit-card" class="size-4" /> {gettext("Continue to Payment")}
+          </button>
           <.link
             navigate={~p"/races/#{@race.slug}"}
             class="btn btn-outline btn-primary btn-sm gap-1.5"
@@ -152,6 +168,23 @@ defmodule BibtimeWeb.Public.RegistrationLive.Show do
       </div>
     </div>
     """
+  end
+
+  @impl true
+  def handle_event("resume_payment", _params, socket) do
+    %{race: race, participant: participant} = socket.assigns
+    base_url = BibtimeWeb.Endpoint.url()
+    success_url = base_url <> ~p"/races/#{race.slug}/register/confirmation/#{participant.id}"
+    cancel_url = base_url <> ~p"/races/#{race.slug}/register/confirmation/#{participant.id}"
+
+    case Payments.create_checkout_session(participant, race, success_url, cancel_url) do
+      {:ok, checkout_url} ->
+        {:noreply, redirect(socket, external: checkout_url)}
+
+      {:error, reason} ->
+        {:noreply,
+         put_flash(socket, :error, gettext("Payment setup failed: %{reason}", reason: reason))}
+    end
   end
 
   defp payment_status_label(:completed), do: gettext("Paid")

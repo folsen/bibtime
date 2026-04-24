@@ -13,8 +13,15 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
       |> Races.get_race_by_slug!()
       |> Bibtime.Repo.preload([:categories, :splits])
 
-    participants = Participants.list_participants(race.id)
-    participant_count = Participants.count_participants(race.id)
+    # Public start list hides pending-payment participants — their bib
+    # isn't yet assigned and they haven't fully committed to the race.
+    # Admin views use `list_participants` directly and see everyone.
+    participants =
+      race.id
+      |> Participants.list_participants()
+      |> Enum.reject(&is_nil(&1.bib_number))
+
+    slots_taken = Participants.count_slots_taken(race.id)
     photo_count = Photos.count_photos(race.id)
     registration_full = Registration.registration_full?(race)
     user_registrations = user_registrations(socket.assigns.current_scope, race.id)
@@ -23,7 +30,8 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
      assign(socket,
        race: race,
        participants: participants,
-       participant_count: participant_count,
+       slots_taken: slots_taken,
+       start_list_count: length(participants),
        photo_count: photo_count,
        registration_full: registration_full,
        user_registrations: user_registrations,
@@ -32,10 +40,24 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
   end
 
   defp user_registrations(%{user: %{id: user_id}}, race_id) when not is_nil(user_id) do
-    Participants.list_user_participants_in_race(user_id, race_id)
+    now = DateTime.utc_now()
+
+    user_id
+    |> Participants.list_user_participants_in_race(race_id)
+    |> Enum.split_with(fn p ->
+      (p.status == :pending_payment and p.hold_expires_at) &&
+        DateTime.compare(p.hold_expires_at, now) == :gt
+    end)
+    |> then(fn {pending, others} ->
+      # Drop expired-hold pending rows from the banner — they're effectively
+      # abandoned. The user can re-submit the form to refresh the hold,
+      # which goes through `resume_pending_registration`.
+      registered = Enum.filter(others, fn p -> not is_nil(p.bib_number) end)
+      %{pending: pending, registered: registered}
+    end)
   end
 
-  defp user_registrations(_, _), do: []
+  defp user_registrations(_, _), do: %{pending: [], registered: []}
 
   @impl true
   def render(assigns) do
@@ -54,17 +76,17 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
                 class="inline-flex items-center px-3 py-1 font-semibold tracking-wide uppercase"
               />
               <span
-                :if={@participant_count > 0}
+                :if={@slots_taken > 0}
                 class="inline-flex items-center gap-1.5 rounded-full bg-base-300/50 px-3 py-1 text-xs font-semibold text-base-content/70"
               >
                 <.icon name="hero-users" class="size-3.5" />
                 <%= if @race.participant_limit do %>
                   {gettext("%{count} / %{limit} Registered",
-                    count: @participant_count,
+                    count: @slots_taken,
                     limit: @race.participant_limit
                   )}
                 <% else %>
-                  {ngettext("%{count} Registered", "%{count} Registered", @participant_count)}
+                  {ngettext("%{count} Registered", "%{count} Registered", @slots_taken)}
                 <% end %>
               </span>
               <span
@@ -146,9 +168,49 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
         </p>
       </div>
 
+      <%!-- Pending-payment banner (logged-in user with an active hold) --%>
+      <div
+        :if={@user_registrations.pending != []}
+        class="rounded-xl bg-warning/10 border border-warning/20 px-6 py-5 mb-6"
+      >
+        <div class="flex items-start gap-3 mb-3">
+          <.icon name="hero-clock" class="size-6 text-warning shrink-0 mt-0.5" />
+          <div class="flex-1 min-w-0">
+            <h2 class="text-base font-semibold text-base-content">
+              {gettext("Your spot is held — finish payment to confirm")}
+            </h2>
+            <p class="text-xs text-base-content/60 mt-0.5">
+              {gettext("Your bib will be assigned once payment is received.")}
+            </p>
+          </div>
+        </div>
+
+        <ul class="space-y-2">
+          <li
+            :for={p <- @user_registrations.pending}
+            class="flex items-center justify-between rounded-lg bg-base-100 border border-base-300/40 px-4 py-2.5"
+          >
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="inline-flex items-center justify-center px-2.5 h-7 rounded-lg bg-warning/20 text-warning text-xs font-bold uppercase tracking-wide shrink-0">
+                {gettext("Pending")}
+              </span>
+              <span class="font-medium text-base-content truncate">
+                {p.first_name} {p.last_name}
+              </span>
+            </div>
+            <.link
+              navigate={~p"/races/#{@race.slug}/register/confirmation/#{p.id}"}
+              class="btn btn-warning btn-sm gap-1 shrink-0"
+            >
+              {gettext("Finish Payment")} <.icon name="hero-arrow-right" class="size-4" />
+            </.link>
+          </li>
+        </ul>
+      </div>
+
       <%!-- Your registrations banner (logged-in + already registered) --%>
       <div
-        :if={@user_registrations != []}
+        :if={@user_registrations.registered != []}
         class="rounded-xl bg-success/10 border border-success/20 px-6 py-5 mb-6"
       >
         <div class="flex items-start gap-3 mb-3">
@@ -158,8 +220,8 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
               {ngettext(
                 "You're registered for this race",
                 "You have %{count} registrations for this race",
-                length(@user_registrations),
-                count: length(@user_registrations)
+                length(@user_registrations.registered),
+                count: length(@user_registrations.registered)
               )}
             </h2>
           </div>
@@ -167,7 +229,7 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
 
         <ul class="space-y-2">
           <li
-            :for={p <- @user_registrations}
+            :for={p <- @user_registrations.registered}
             class="flex items-center justify-between rounded-lg bg-base-100 border border-base-300/40 px-4 py-2.5"
           >
             <div class="flex items-center gap-3 min-w-0">
@@ -199,7 +261,7 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
         <.link
           :if={
             @race.status == :registration_open && !@registration_full &&
-              @user_registrations == []
+              @user_registrations.pending == [] && @user_registrations.registered == []
           }
           navigate={~p"/races/#{@race.slug}/register"}
           class="btn btn-primary btn-lg gap-2 shadow-md hover:shadow-lg transition-shadow"
@@ -210,7 +272,7 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
         <.link
           :if={
             @race.status == :registration_open && !@registration_full &&
-              @user_registrations != []
+              (@user_registrations.pending != [] or @user_registrations.registered != [])
           }
           navigate={~p"/races/#{@race.slug}/register"}
           class="btn btn-outline btn-primary gap-2"
@@ -256,7 +318,7 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
           <h2 class="text-lg font-semibold text-base-content">{gettext("Start List")}</h2>
           <span class="inline-flex items-center gap-1.5 rounded-full bg-base-300/50 px-3 py-1 text-xs font-semibold text-base-content/70">
             <.icon name="hero-users" class="size-3.5" />
-            {ngettext("%{count} participant", "%{count} participants", @participant_count)}
+            {ngettext("%{count} participant", "%{count} participants", @start_list_count)}
           </span>
         </div>
 

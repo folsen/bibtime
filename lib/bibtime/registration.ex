@@ -20,20 +20,38 @@ defmodule Bibtime.Registration do
 
   @doc """
   Returns true if the race has a participant limit and it has been reached.
+
+  "Full" counts registered participants plus pending-payment participants
+  whose hold has not expired — see `Participants.count_slots_taken/1`.
   """
   def registration_full?(%{participant_limit: nil}), do: false
 
   def registration_full?(%{participant_limit: limit, id: race_id}) do
-    Participants.count_participants(race_id) >= limit
+    Participants.count_slots_taken(race_id) >= limit
   end
+
+  @doc """
+  Hold TTL for a pending-payment participant. Slightly longer than the
+  Stripe checkout session's own expiry so a successful payment that lands
+  close to the session deadline still finds a valid hold on our side.
+  """
+  @hold_ttl_seconds 35 * 60
+  def hold_ttl_seconds, do: @hold_ttl_seconds
 
   @doc """
   Registers a participant for a race.
 
-  Auto-assigns a bib number, generates a confirmation token, and creates
-  a user account (if one doesn't exist) linked to the participant.
+  For free races the participant is immediately `:registered` with a fresh
+  bib number. For paid races the participant is inserted as
+  `:pending_payment` with a hold on a race slot — no bib is assigned until
+  payment completes, and the hold expires after `hold_ttl_seconds/0`.
 
-  Returns {:ok, participant} or {:error, changeset}.
+  Also creates a user account if one doesn't exist for the participant's
+  email and sends them login instructions.
+
+  Returns `{:ok, participant}`, `{:error, changeset}`, `{:error, :duplicate, existing}`
+  for a non-resumable duplicate, or `{:error, :race_full}` when a lapsed
+  hold can't be refreshed because the race filled in the meantime.
   """
   def register_participant(race, attrs) do
     cond do
@@ -50,18 +68,18 @@ defmodule Bibtime.Registration do
          |> Ecto.Changeset.add_error(:base, "Registration is full")}
 
       true ->
-        bib_number = Participants.next_bib_number(race.id)
         token = generate_token()
         reg_opts = registration_opts(race)
 
-        initial_status = if race.payment_required, do: :pending_payment, else: :registered
+        {status, bib_number, hold_expires_at} = initial_slot_attrs(race)
 
         changeset =
           %Participant{
             race_id: race.id,
             bib_number: bib_number,
+            hold_expires_at: hold_expires_at,
             confirmation_token: token,
-            status: initial_status
+            status: status
           }
           |> Participant.registration_changeset(attrs, reg_opts)
 
@@ -78,7 +96,7 @@ defmodule Bibtime.Registration do
             insert_registration(race, changeset, email)
 
           duplicate.status == :pending_payment ->
-            resume_pending_registration(duplicate, attrs, reg_opts)
+            resume_pending_registration(duplicate, attrs, reg_opts, race)
 
           true ->
             {:error, :duplicate, duplicate}
@@ -86,17 +104,42 @@ defmodule Bibtime.Registration do
     end
   end
 
+  defp initial_slot_attrs(%{payment_required: true}),
+    do: {:pending_payment, nil, fresh_hold_expiry()}
+
+  defp initial_slot_attrs(_race),
+    do: {:registered, nil, nil}
+
+  defp fresh_hold_expiry do
+    DateTime.utc_now()
+    |> DateTime.add(@hold_ttl_seconds, :second)
+    |> DateTime.truncate(:second)
+  end
+
   # User started a paid registration, never paid, and is back submitting again.
-  # Update the existing pending row in place — keep its bib number, confirmation
-  # token, and user link — so the caller can hand them a fresh checkout session.
-  defp resume_pending_registration(participant, attrs, reg_opts) do
-    participant
-    |> Participant.registration_changeset(attrs, reg_opts)
-    |> Repo.update()
-    |> case do
-      {:ok, updated} -> {:ok, Repo.preload(updated, :race_category)}
-      {:error, _} = err -> err
+  # Refresh their hold and keep the existing row — bib stays nil, confirmation
+  # token + user link preserved — so the caller can hand them a fresh checkout
+  # session. If their old hold had lapsed and the race has since filled, we
+  # refuse the refresh rather than quietly letting them pay into a full race.
+  defp resume_pending_registration(participant, attrs, reg_opts, race) do
+    if expired_hold?(participant) and registration_full?(race) do
+      {:error, :race_full}
+    else
+      participant
+      |> Participant.registration_changeset(attrs, reg_opts)
+      |> Ecto.Changeset.put_change(:hold_expires_at, fresh_hold_expiry())
+      |> Repo.update()
+      |> case do
+        {:ok, updated} -> {:ok, Repo.preload(updated, :race_category)}
+        {:error, _} = err -> err
+      end
     end
+  end
+
+  defp expired_hold?(%Participant{hold_expires_at: nil}), do: true
+
+  defp expired_hold?(%Participant{hold_expires_at: ts}) do
+    DateTime.compare(ts, DateTime.utc_now()) == :lt
   end
 
   defp field(changeset, key) do
@@ -106,13 +149,28 @@ defmodule Bibtime.Registration do
   defp insert_registration(race, changeset, email) do
     case Repo.insert(changeset) do
       {:ok, participant} ->
-        user = find_or_create_user(email)
+        # For paid races, bib assignment happens at payment. For free races,
+        # pick a bib now so the confirmation email can render it.
+        participant =
+          if race.payment_required do
+            participant
+          else
+            bib = Participants.next_bib_number(participant.race_id)
+
+            participant
+            |> Ecto.Changeset.change(%{bib_number: bib})
+            |> Repo.update!()
+          end
+
+        {user, user_was_new?} = find_or_create_user(email)
 
         if user do
           participant
           |> Ecto.Changeset.change(%{user_id: user.id})
           |> Repo.update!()
         end
+
+        if user_was_new?, do: Accounts.deliver_login_instructions(user)
 
         participant = Repo.preload(participant, :race_category)
 
@@ -145,17 +203,17 @@ defmodule Bibtime.Registration do
     ]
   end
 
-  defp find_or_create_user(nil), do: nil
+  defp find_or_create_user(nil), do: {nil, false}
 
   defp find_or_create_user(email) do
     case Accounts.get_user_by_email(email) do
       %{} = user ->
-        user
+        {user, false}
 
       nil ->
         case Accounts.register_user(%{email: email}) do
-          {:ok, user} -> user
-          {:error, _} -> nil
+          {:ok, user} -> {user, true}
+          {:error, _} -> {nil, false}
         end
     end
   end

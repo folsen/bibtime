@@ -190,6 +190,29 @@ defmodule Bibtime.Participants do
   end
 
   @doc """
+  Returns the count of "slots taken" in a race: registered participants plus
+  pending-payment participants whose hold has not yet expired. This is the
+  number that `Registration.registration_full?/1` checks against the race's
+  `participant_limit`.
+
+  A participant row without a hold and without being registered (e.g. a
+  previous-attempt pending row whose hold lapsed) doesn't count — the
+  slot is free to take again.
+  """
+  def count_slots_taken(race_id) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    Participant
+    |> where([p], p.race_id == ^race_id)
+    |> where(
+      [p],
+      not is_nil(p.bib_number) or
+        (p.status == :pending_payment and p.hold_expires_at > ^now)
+    )
+    |> Repo.aggregate(:count)
+  end
+
+  @doc """
   Gets a participant by confirmation token.
   """
   def get_participant_by_token(token) do

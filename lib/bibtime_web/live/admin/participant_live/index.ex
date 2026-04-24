@@ -455,7 +455,18 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
             class="border-b border-base-200 odd:bg-base-100 even:bg-base-200/30 hover:bg-primary/5 transition-colors"
           >
             <td class="py-3">
-              <span class="font-mono font-semibold text-primary">{participant.bib_number}</span>
+              <span
+                :if={participant.bib_number}
+                class="font-mono font-semibold text-primary"
+              >
+                {participant.bib_number}
+              </span>
+              <span
+                :if={is_nil(participant.bib_number)}
+                class="font-mono text-xs text-base-content/40"
+              >
+                —
+              </span>
             </td>
             <td class="py-3 font-medium">
               {participant.first_name} {participant.last_name}

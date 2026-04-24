@@ -8,6 +8,7 @@ defmodule Bibtime.Payments do
 
   import Ecto.Query
   alias Bibtime.Repo
+  alias Bibtime.Participants
   alias Bibtime.Payments.Payment
   alias Bibtime.Participants.Participant
 
@@ -96,6 +97,12 @@ defmodule Bibtime.Payments do
     end
   end
 
+  # Stripe session lifetime. Kept slightly shorter than
+  # `Registration.hold_ttl_seconds/0` so the session is guaranteed to be
+  # closed by Stripe before our hold lapses, preventing payments from
+  # landing after we'd consider the slot free.
+  @stripe_session_ttl_seconds 30 * 60
+
   defp build_checkout_params(participant, race, amount, currency, success_url, cancel_url) do
     description =
       case participant.race_category do
@@ -107,6 +114,7 @@ defmodule Bibtime.Payments do
       mode: :payment,
       success_url: success_url,
       cancel_url: cancel_url,
+      expires_at: System.system_time(:second) + @stripe_session_ttl_seconds,
       line_items: [
         %{
           price_data: %{
@@ -153,11 +161,9 @@ defmodule Bibtime.Payments do
 
   @doc """
   Handles a successful checkout session completion from Stripe webhook.
-  Marks payment as completed and transitions participant to registered.
-
-  Side effects (fetching the payment intent from Stripe, delivering emails)
-  run outside the DB transaction so the webhook can respond within Stripe's
-  10s timeout even when SMTP or the Stripe API are slow.
+  Delegates to `fulfill_payment/2` which assigns a bib (if needed),
+  transitions the participant to `:registered`, and auto-refunds when
+  the race has filled up while the hold was expired.
   """
   def handle_checkout_completed(session_id) do
     case Repo.one(from p in Payment, where: p.stripe_checkout_session_id == ^session_id) do
@@ -167,43 +173,178 @@ defmodule Bibtime.Payments do
       %Payment{status: :completed} = payment ->
         {:ok, payment}
 
+      %Payment{status: :refunded} = payment ->
+        {:ok, payment}
+
       %Payment{} = payment ->
-        payment_intent_id = fetch_payment_intent_id(session_id)
-
-        txn =
-          Repo.transaction(fn ->
-            {:ok, updated_payment} =
-              payment
-              |> Payment.changeset(%{
-                status: :completed,
-                stripe_payment_intent_id: payment_intent_id,
-                paid_at: DateTime.utc_now() |> DateTime.truncate(:second)
-              })
-              |> Repo.update()
-
-            participant = Repo.get!(Participant, updated_payment.participant_id)
-
-            participant =
-              if participant.status == :pending_payment do
-                participant
-                |> Ecto.Changeset.change(%{status: :registered})
-                |> Repo.update!()
-              else
-                participant
-              end
-
-            {updated_payment, participant}
-          end)
-
-        case txn do
-          {:ok, {updated_payment, participant}} ->
-            deliver_fulfillment_notifications_async(updated_payment, participant)
-            {:ok, updated_payment}
-
-          {:error, _} = err ->
-            err
-        end
+        fulfill_payment(payment, fetch_payment_intent_id(session_id))
     end
+  end
+
+  # Drives a pending Payment to its terminal state: either `:completed`
+  # (participant becomes `:registered` with a bib assigned) or `:refunded`
+  # (participant stays pending without a bib and we refund the customer).
+  #
+  # Shared between the webhook path and `mark_paid_offline/1`. Runs bib
+  # assignment inside a transaction and retries on the partial unique
+  # index collision that two concurrent webhooks can trigger when both
+  # compute `MAX+1 = N` for the same race.
+  defp fulfill_payment(%Payment{} = payment, payment_intent_id, attempts_remaining \\ 5) do
+    participant = Repo.get!(Participant, payment.participant_id)
+
+    if should_refund?(participant) do
+      refund_payment_for_full_race(payment, payment_intent_id, participant)
+    else
+      complete_and_register(payment, payment_intent_id, participant, attempts_remaining)
+    end
+  end
+
+  # A participant who already has a bib (grandfathered `:pending_payment`
+  # row from before the hold-based flow, or a participant whose bib was
+  # previously assigned) keeps it and gets fulfilled normally. A
+  # participant without a bib only gets one if a slot is still available
+  # at the moment of payment — otherwise the hold lapsed and the race
+  # filled up from under them, and we refund.
+  defp should_refund?(%Participant{bib_number: bib}) when is_binary(bib), do: false
+
+  defp should_refund?(%Participant{} = participant) do
+    if hold_valid?(participant) do
+      false
+    else
+      race = Bibtime.Races.get_race!(participant.race_id)
+      Bibtime.Registration.registration_full?(race)
+    end
+  end
+
+  defp hold_valid?(%Participant{hold_expires_at: nil}), do: false
+
+  defp hold_valid?(%Participant{hold_expires_at: ts}) do
+    DateTime.compare(ts, DateTime.utc_now()) == :gt
+  end
+
+  defp complete_and_register(payment, payment_intent_id, participant, attempts_remaining) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    txn =
+      Repo.transaction(fn ->
+        {:ok, updated_payment} =
+          payment
+          |> Payment.changeset(%{
+            status: :completed,
+            stripe_payment_intent_id: payment_intent_id,
+            paid_at: now
+          })
+          |> Repo.update()
+
+        participant_attrs = %{status: :registered, hold_expires_at: nil}
+
+        participant_attrs =
+          if is_nil(participant.bib_number) do
+            Map.put(
+              participant_attrs,
+              :bib_number,
+              Participants.next_bib_number(participant.race_id)
+            )
+          else
+            participant_attrs
+          end
+
+        case participant |> Participant.changeset(participant_attrs) |> Repo.update() do
+          {:ok, updated_participant} ->
+            {updated_payment, updated_participant}
+
+          {:error, changeset} ->
+            Repo.rollback({:participant_update_failed, changeset})
+        end
+      end)
+
+    case txn do
+      {:ok, {updated_payment, updated_participant}} ->
+        deliver_fulfillment_notifications_async(updated_payment, updated_participant)
+        {:ok, updated_payment}
+
+      {:error, {:participant_update_failed, %Ecto.Changeset{errors: errors}}} ->
+        if bib_collision?(errors) and attempts_remaining > 0 do
+          complete_and_register(payment, payment_intent_id, participant, attempts_remaining - 1)
+        else
+          {:error, :bib_assignment_failed}
+        end
+
+      {:error, _} = err ->
+        err
+    end
+  end
+
+  defp bib_collision?(errors) do
+    Enum.any?(errors, fn
+      {:bib_number, {_, opts}} -> opts[:constraint] == :unique
+      _ -> false
+    end)
+  end
+
+  # Race filled while the participant's hold was lapsed. Refund via Stripe
+  # (best-effort) and mark the payment `:refunded`. The participant row is
+  # left as `:pending_payment` with no bib — their row persists so they
+  # can see it in their profile and so the admin can follow up.
+  defp refund_payment_for_full_race(payment, payment_intent_id, participant) do
+    pi_id =
+      payment_intent_id || payment.stripe_payment_intent_id ||
+        fetch_payment_intent_id(payment.stripe_checkout_session_id)
+
+    require Logger
+
+    if is_nil(pi_id) do
+      Logger.error(
+        "Cannot auto-refund payment ##{payment.id}: no payment intent. Race #{participant.race_id} filled while hold for participant ##{participant.id} was expired."
+      )
+
+      {:error, :no_payment_intent_for_refund}
+    else
+      case Stripe.Refund.create(%{payment_intent: pi_id}) do
+        {:ok, _refund} ->
+          now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+          {:ok, updated_payment} =
+            payment
+            |> Payment.changeset(%{
+              status: :refunded,
+              stripe_payment_intent_id: pi_id,
+              paid_at: now,
+              refunded_at: now
+            })
+            |> Repo.update()
+
+          Logger.warning(
+            "Auto-refunded payment ##{payment.id} for participant ##{participant.id}: race #{participant.race_id} filled while hold was expired"
+          )
+
+          deliver_race_filled_notice_async(participant)
+
+          {:ok, updated_payment}
+
+        {:error, %Stripe.Error{} = err} ->
+          Logger.error(
+            "Auto-refund FAILED for payment ##{payment.id} (participant ##{participant.id}): #{err.message}. Manual intervention required."
+          )
+
+          {:error, {:refund_failed, err.message}}
+      end
+    end
+  end
+
+  defp deliver_race_filled_notice_async(%Participant{} = participant) do
+    Task.Supervisor.start_child(Bibtime.TaskSupervisor, fn ->
+      require Logger
+      race = Bibtime.Races.get_race!(participant.race_id)
+
+      try do
+        Bibtime.Registration.RegistrationNotifier.deliver_race_filled_notice(participant, race)
+      rescue
+        e -> Logger.error("Race-filled notice email failed: #{inspect(e)}")
+      end
+    end)
+
+    :ok
   end
 
   defp deliver_fulfillment_notifications_async(%Payment{} = payment, %Participant{} = participant) do
@@ -229,63 +370,17 @@ defmodule Bibtime.Payments do
     :ok
   end
 
-  defp deliver_confirmation_async(%Participant{} = participant, race_id) do
-    Task.Supervisor.start_child(Bibtime.TaskSupervisor, fn ->
-      participant = Repo.preload(participant, [:race_category])
-      race = Bibtime.Races.get_race!(race_id)
-
-      require Logger
-
-      try do
-        Bibtime.Registration.RegistrationNotifier.deliver_confirmation(participant, race)
-      rescue
-        e -> Logger.error("Registration confirmation email failed: #{inspect(e)}")
-      end
-    end)
-
-    :ok
-  end
-
   @doc """
   Marks a pending payment as paid offline (e.g. bank transfer, cash).
 
-  Transitions the payment to `:completed` and the participant from
-  `:pending_payment` to `:registered`, then sends the registration
-  confirmation email asynchronously. No Stripe API call is made.
+  Runs through the same `fulfill_payment/2` path as the Stripe webhook —
+  assigns a bib if the participant doesn't have one, transitions them to
+  `:registered`, clears the hold. Admins should confirm race capacity
+  before marking offline since the same race-full refund guard applies
+  (and there's no Stripe payment to refund, so it'd error out instead).
   """
   def mark_paid_offline(%Payment{status: :pending} = payment) do
-    txn =
-      Repo.transaction(fn ->
-        {:ok, updated_payment} =
-          payment
-          |> Payment.changeset(%{
-            status: :completed,
-            paid_at: DateTime.utc_now() |> DateTime.truncate(:second)
-          })
-          |> Repo.update()
-
-        participant = Repo.get!(Participant, updated_payment.participant_id)
-
-        participant =
-          if participant.status == :pending_payment do
-            participant
-            |> Ecto.Changeset.change(%{status: :registered})
-            |> Repo.update!()
-          else
-            participant
-          end
-
-        {updated_payment, participant}
-      end)
-
-    case txn do
-      {:ok, {updated_payment, participant}} ->
-        deliver_confirmation_async(participant, updated_payment.race_id)
-        {:ok, updated_payment}
-
-      {:error, _} = err ->
-        err
-    end
+    fulfill_payment(payment, nil)
   end
 
   def mark_paid_offline(%Payment{}),

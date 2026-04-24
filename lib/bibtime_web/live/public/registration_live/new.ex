@@ -113,6 +113,17 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
       {:error, :duplicate, existing} ->
         {:noreply, handle_duplicate(socket, race, existing)}
 
+      {:error, :race_full} ->
+        {:noreply,
+         socket
+         |> put_flash(
+           :error,
+           gettext(
+             "This race filled up while your hold was expired. Your previous payment attempt can't be resumed."
+           )
+         )
+         |> push_navigate(to: ~p"/races/#{race.slug}")}
+
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}
     end

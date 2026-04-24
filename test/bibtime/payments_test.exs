@@ -245,6 +245,66 @@ defmodule Bibtime.PaymentsTest do
   end
 
   # ---------------------------------------------------------------------------
+  # mark_paid_offline/1 — same fulfill path as the Stripe webhook
+  # ---------------------------------------------------------------------------
+
+  describe "mark_paid_offline/1" do
+    test "assigns the next bib to a pending participant without one" do
+      race = paid_race_fixture()
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      {:ok, participant} =
+        Bibtime.Participants.create_participant(%{
+          bib_number: nil,
+          first_name: "Alice",
+          race_id: race.id,
+          status: :pending_payment,
+          hold_expires_at: DateTime.add(now, 60 * 30, :second)
+        })
+
+      payment = payment_fixture(participant, race, %{status: :pending})
+
+      assert {:ok, updated_payment} = Payments.mark_paid_offline(payment)
+      assert updated_payment.status == :completed
+
+      reloaded = Bibtime.Participants.get_participant!(participant.id)
+      assert reloaded.status == :registered
+      assert reloaded.bib_number == "1"
+      assert reloaded.hold_expires_at == nil
+    end
+
+    test "preserves existing bib on a grandfathered participant" do
+      race = paid_race_fixture()
+
+      participant =
+        participant_fixture(race, %{
+          bib_number: "42",
+          status: :pending_payment,
+          hold_expires_at: ~U[2099-01-01 00:00:00Z]
+        })
+
+      payment = payment_fixture(participant, race, %{status: :pending})
+
+      assert {:ok, updated_payment} = Payments.mark_paid_offline(payment)
+      assert updated_payment.status == :completed
+
+      reloaded = Bibtime.Participants.get_participant!(participant.id)
+      assert reloaded.status == :registered
+      assert reloaded.bib_number == "42"
+      assert reloaded.hold_expires_at == nil
+    end
+
+    test "rejects non-pending payments" do
+      race = paid_race_fixture()
+      participant = participant_fixture(race, %{bib_number: "1"})
+      payment = payment_fixture(participant, race, %{status: :completed})
+
+      assert {:error, "Only pending payments can be marked as paid"} =
+               Payments.mark_paid_offline(payment)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # handle_charge_refunded/1
   # ---------------------------------------------------------------------------
 

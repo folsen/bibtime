@@ -82,8 +82,24 @@ defmodule BibtimeWeb.Public.RegistrationLive.MyRegistration do
         <%!-- Header --%>
         <div class="px-8 py-6 border-b border-base-300/30">
           <div class="flex items-center gap-4">
-            <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20">
-              <span class="text-2xl font-bold font-mono text-primary">{@participant.bib_number}</span>
+            <div class={[
+              "flex items-center justify-center w-14 h-14 rounded-2xl border",
+              if(@participant.bib_number,
+                do: "bg-primary/10 border-primary/20",
+                else: "bg-warning/10 border-warning/20"
+              )
+            ]}>
+              <span
+                :if={@participant.bib_number}
+                class="text-2xl font-bold font-mono text-primary"
+              >
+                {@participant.bib_number}
+              </span>
+              <.icon
+                :if={is_nil(@participant.bib_number)}
+                name="hero-clock"
+                class="size-7 text-warning"
+              />
             </div>
             <div>
               <h1 class="text-xl font-bold text-base-content">

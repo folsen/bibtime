@@ -21,7 +21,11 @@ defmodule BibtimeWeb.Public.ProfileLive.Show do
         all_results = Results.get_race_results(race.id)
         result = Enum.find(all_results, fn r -> r.participant.id == participant.id end)
         rankings = Results.get_participant_rankings(race.id, participant.id)
-        photos = Photos.list_photos_for_bib(race.id, participant.bib_number)
+
+        photos =
+          if participant.bib_number,
+            do: Photos.list_photos_for_bib(race.id, participant.bib_number),
+            else: []
 
         {:ok,
          assign(socket,
