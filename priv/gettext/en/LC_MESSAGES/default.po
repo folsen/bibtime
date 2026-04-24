@@ -77,7 +77,7 @@ msgstr ""
 #: lib/bibtime_web/components/core_components.ex:368
 #: lib/bibtime_web/live/admin/check_in_live/index.ex:163
 #: lib/bibtime_web/live/admin/participant_live/index.ex:448
-#: lib/bibtime_web/live/admin/payment_live/index.ex:113
+#: lib/bibtime_web/live/admin/payment_live/index.ex:114
 #: lib/bibtime_web/live/admin/race_live/index.ex:43
 #: lib/bibtime_web/live/admin/race_live/show.ex:208
 #: lib/bibtime_web/live/admin/race_live/show.ex:299
@@ -118,7 +118,7 @@ msgstr ""
 
 #: lib/bibtime_web/live/admin/participant_live/index.ex:248
 #: lib/bibtime_web/live/admin/participant_live/new.ex:60
-#: lib/bibtime_web/live/admin/payment_live/index.ex:183
+#: lib/bibtime_web/live/admin/payment_live/index.ex:208
 #, elixir-autogen, elixir-format
 msgid "Add Participant"
 msgstr ""
@@ -289,7 +289,8 @@ msgstr ""
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:108
 #: lib/bibtime_web/live/admin/participant_live/index.ex:332
 #: lib/bibtime_web/live/admin/participant_live/new.ex:97
-#: lib/bibtime_web/live/admin/payment_live/index.ex:153
+#: lib/bibtime_web/live/admin/payment_live/index.ex:154
+#: lib/bibtime_web/live/admin/payment_live/index.ex:178
 #: lib/bibtime_web/live/admin/photo_live/index.ex:95
 #: lib/bibtime_web/live/admin/photo_live/index.ex:202
 #: lib/bibtime_web/live/admin/race_live/edit.ex:188
@@ -460,7 +461,7 @@ msgid "Dashboard"
 msgstr ""
 
 #: lib/bibtime/payments/payment_notifier.ex:56
-#: lib/bibtime_web/live/admin/payment_live/index.ex:112
+#: lib/bibtime_web/live/admin/payment_live/index.ex:113
 #: lib/bibtime_web/live/admin/race_live/edit.ex:50
 #: lib/bibtime_web/live/admin/race_live/index.ex:39
 #: lib/bibtime_web/live/admin/race_live/new.ex:126
@@ -1370,7 +1371,7 @@ msgstr ""
 #: lib/bibtime_web/live/admin/check_in_live/index.ex:162
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:96
 #: lib/bibtime_web/live/admin/participant_live/index.ex:442
-#: lib/bibtime_web/live/admin/payment_live/index.ex:111
+#: lib/bibtime_web/live/admin/payment_live/index.ex:112
 #: lib/bibtime_web/live/admin/race_live/edit.ex:69
 #: lib/bibtime_web/live/admin/race_live/index.ex:42
 #: lib/bibtime_web/live/admin/race_live/new.ex:145
@@ -1984,23 +1985,23 @@ msgstr ""
 msgid "e.g. 101, 203, 45"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/payment_live/index.ex:51
-#: lib/bibtime_web/live/admin/payment_live/index.ex:63
-#: lib/bibtime_web/live/admin/payment_live/index.ex:75
-#: lib/bibtime_web/live/admin/payment_live/index.ex:97
+#: lib/bibtime_web/live/admin/payment_live/index.ex:52
+#: lib/bibtime_web/live/admin/payment_live/index.ex:64
+#: lib/bibtime_web/live/admin/payment_live/index.ex:76
+#: lib/bibtime_web/live/admin/payment_live/index.ex:98
 #, elixir-autogen, elixir-format
 msgid "1 payment"
 msgid_plural "%{count} payments"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/bibtime_web/live/admin/payment_live/index.ex:95
+#: lib/bibtime_web/live/admin/payment_live/index.ex:96
 #, elixir-autogen, elixir-format
 msgid "All Payments"
 msgstr ""
 
 #: lib/bibtime/payments/payment_notifier.ex:55
-#: lib/bibtime_web/live/admin/payment_live/index.ex:110
+#: lib/bibtime_web/live/admin/payment_live/index.ex:111
 #, elixir-autogen, elixir-format
 msgid "Amount"
 msgstr ""
@@ -2016,12 +2017,13 @@ msgstr ""
 msgid "Bib number"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/payment_live/index.ex:175
+#: lib/bibtime_web/live/admin/payment_live/index.ex:200
 #, elixir-autogen, elixir-format
 msgid "Complimentary Registration"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/payment_live/index.ex:147
+#: lib/bibtime_web/live/admin/payment_live/index.ex:148
+#: lib/bibtime_web/live/admin/payment_live/index.ex:172
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Confirm"
 msgstr ""
@@ -2036,7 +2038,7 @@ msgstr ""
 msgid "E.g. 30000 = 300.00 SEK"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/payment_live/index.ex:87
+#: lib/bibtime_web/live/admin/payment_live/index.ex:88
 #, elixir-autogen, elixir-format
 msgid "Early bird"
 msgstr ""
@@ -2056,7 +2058,7 @@ msgstr ""
 msgid "Early bird pricing until %{date}"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/payment_live/index.ex:81
+#: lib/bibtime_web/live/admin/payment_live/index.ex:82
 #, elixir-autogen, elixir-format
 msgid "Entry Fee"
 msgstr ""
@@ -2071,7 +2073,7 @@ msgstr ""
 msgid "Entry fee (in smallest currency unit)"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/payment_live/index.ex:246
+#: lib/bibtime_web/live/admin/payment_live/index.ex:318
 #: lib/bibtime_web/live/public/registration_live/show.ex:160
 #, elixir-autogen, elixir-format
 msgid "Failed"
@@ -2088,18 +2090,18 @@ msgstr ""
 msgid "Leave empty for no early bird pricing"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/payment_live/index.ex:103
+#: lib/bibtime_web/live/admin/payment_live/index.ex:104
 #, elixir-autogen, elixir-format
 msgid "No payments yet"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/payment_live/index.ex:243
+#: lib/bibtime_web/live/admin/payment_live/index.ex:315
 #: lib/bibtime_web/live/public/registration_live/show.ex:157
 #, elixir-autogen, elixir-format
 msgid "Paid"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/payment_live/index.ex:109
+#: lib/bibtime_web/live/admin/payment_live/index.ex:110
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Participant"
 msgstr ""
@@ -2124,7 +2126,7 @@ msgstr ""
 msgid "Payment overview & refunds"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/payment_live/index.ex:225
+#: lib/bibtime_web/live/admin/payment_live/index.ex:250
 #, elixir-autogen, elixir-format
 msgid "Payment refunded successfully."
 msgstr ""
@@ -2135,14 +2137,14 @@ msgid "Payment setup failed: %{reason}"
 msgstr ""
 
 #: lib/bibtime_web/live/admin/payment_live/index.ex:16
-#: lib/bibtime_web/live/admin/payment_live/index.ex:35
+#: lib/bibtime_web/live/admin/payment_live/index.ex:36
 #: lib/bibtime_web/live/admin/race_live/show.ex:178
 #, elixir-autogen, elixir-format
 msgid "Payments"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/payment_live/index.ex:57
-#: lib/bibtime_web/live/admin/payment_live/index.ex:244
+#: lib/bibtime_web/live/admin/payment_live/index.ex:58
+#: lib/bibtime_web/live/admin/payment_live/index.ex:316
 #: lib/bibtime_web/live/public/registration_live/show.ex:158
 #, elixir-autogen, elixir-format
 msgid "Pending"
@@ -2158,18 +2160,18 @@ msgstr ""
 msgid "Reference"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/payment_live/index.ex:162
+#: lib/bibtime_web/live/admin/payment_live/index.ex:163
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Refund"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/payment_live/index.ex:233
+#: lib/bibtime_web/live/admin/payment_live/index.ex:258
 #, elixir-autogen, elixir-format
 msgid "Refund failed: %{reason}"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/payment_live/index.ex:69
-#: lib/bibtime_web/live/admin/payment_live/index.ex:245
+#: lib/bibtime_web/live/admin/payment_live/index.ex:70
+#: lib/bibtime_web/live/admin/payment_live/index.ex:317
 #: lib/bibtime_web/live/public/registration_live/show.ex:159
 #, elixir-autogen, elixir-format
 msgid "Refunded"
@@ -2191,12 +2193,12 @@ msgstr ""
 msgid "See you at the start line!"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/payment_live/index.ex:178
+#: lib/bibtime_web/live/admin/payment_live/index.ex:203
 #, elixir-autogen, elixir-format
 msgid "To register a participant without payment, use the regular"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/payment_live/index.ex:45
+#: lib/bibtime_web/live/admin/payment_live/index.ex:46
 #, elixir-autogen, elixir-format
 msgid "Total Collected"
 msgstr ""
@@ -2211,7 +2213,7 @@ msgstr ""
 msgid "Your registration will be confirmed once payment is received."
 msgstr ""
 
-#: lib/bibtime_web/live/admin/payment_live/index.ex:185
+#: lib/bibtime_web/live/admin/payment_live/index.ex:210
 #, elixir-autogen, elixir-format
 msgid "form. Admin-added participants skip the payment requirement."
 msgstr ""
@@ -3084,4 +3086,19 @@ msgstr ""
 #: lib/bibtime_web/live/admin/station_live/global_index.ex:244
 #, elixir-autogen, elixir-format, fuzzy
 msgid "reading"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/payment_live/index.ex:305
+#, elixir-autogen, elixir-format
+msgid "Could not mark as paid: %{reason}"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/payment_live/index.ex:187
+#, elixir-autogen, elixir-format
+msgid "Mark as Paid"
+msgstr ""
+
+#: lib/bibtime_web/live/admin/payment_live/index.ex:297
+#, elixir-autogen, elixir-format
+msgid "Marked as paid. Confirmation email sent."
 msgstr ""

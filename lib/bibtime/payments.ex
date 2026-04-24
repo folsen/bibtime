@@ -182,6 +182,68 @@ defmodule Bibtime.Payments do
     :ok
   end
 
+  defp deliver_confirmation_async(%Participant{} = participant, race_id) do
+    Task.Supervisor.start_child(Bibtime.TaskSupervisor, fn ->
+      participant = Repo.preload(participant, [:race_category])
+      race = Bibtime.Races.get_race!(race_id)
+
+      require Logger
+
+      try do
+        Bibtime.Registration.RegistrationNotifier.deliver_confirmation(participant, race)
+      rescue
+        e -> Logger.error("Registration confirmation email failed: #{inspect(e)}")
+      end
+    end)
+
+    :ok
+  end
+
+  @doc """
+  Marks a pending payment as paid offline (e.g. bank transfer, cash).
+
+  Transitions the payment to `:completed` and the participant from
+  `:pending_payment` to `:registered`, then sends the registration
+  confirmation email asynchronously. No Stripe API call is made.
+  """
+  def mark_paid_offline(%Payment{status: :pending} = payment) do
+    txn =
+      Repo.transaction(fn ->
+        {:ok, updated_payment} =
+          payment
+          |> Payment.changeset(%{
+            status: :completed,
+            paid_at: DateTime.utc_now() |> DateTime.truncate(:second)
+          })
+          |> Repo.update()
+
+        participant = Repo.get!(Participant, updated_payment.participant_id)
+
+        participant =
+          if participant.status == :pending_payment do
+            participant
+            |> Ecto.Changeset.change(%{status: :registered})
+            |> Repo.update!()
+          else
+            participant
+          end
+
+        {updated_payment, participant}
+      end)
+
+    case txn do
+      {:ok, {updated_payment, participant}} ->
+        deliver_confirmation_async(participant, updated_payment.race_id)
+        {:ok, updated_payment}
+
+      {:error, _} = err ->
+        err
+    end
+  end
+
+  def mark_paid_offline(%Payment{}),
+    do: {:error, "Only pending payments can be marked as paid"}
+
   @doc """
   Checks a pending payment's Stripe session status and fulfills it if paid.
   Called from the confirmation page as a fallback when webhooks are delayed.

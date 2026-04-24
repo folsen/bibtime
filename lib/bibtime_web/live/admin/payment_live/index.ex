@@ -17,7 +17,8 @@ defmodule BibtimeWeb.Admin.PaymentLive.Index do
      |> assign(:race, race)
      |> assign(:payments, payments)
      |> assign(:summary, summary)
-     |> assign(:confirm_refund_id, nil)}
+     |> assign(:confirm_refund_id, nil)
+     |> assign(:confirm_mark_paid_id, nil)}
   end
 
   @impl true
@@ -136,8 +137,8 @@ defmodule BibtimeWeb.Admin.PaymentLive.Index do
               {format_date_short(payment.paid_at || payment.inserted_at)}
             </td>
             <td class="py-3 text-right">
-              <%= if payment.status == :completed do %>
-                <%= if @confirm_refund_id == payment.id do %>
+              <%= cond do %>
+                <% payment.status == :completed and @confirm_refund_id == payment.id -> %>
                   <div class="flex items-center justify-end gap-2">
                     <button
                       phx-click="confirm_refund"
@@ -153,7 +154,7 @@ defmodule BibtimeWeb.Admin.PaymentLive.Index do
                       {gettext("Cancel")}
                     </button>
                   </div>
-                <% else %>
+                <% payment.status == :completed -> %>
                   <button
                     phx-click="refund"
                     phx-value-id={payment.id}
@@ -161,7 +162,31 @@ defmodule BibtimeWeb.Admin.PaymentLive.Index do
                   >
                     <.icon name="hero-arrow-uturn-left" class="size-3.5" /> {gettext("Refund")}
                   </button>
-                <% end %>
+                <% payment.status == :pending and @confirm_mark_paid_id == payment.id -> %>
+                  <div class="flex items-center justify-end gap-2">
+                    <button
+                      phx-click="confirm_mark_paid"
+                      phx-value-id={payment.id}
+                      class="btn btn-success btn-xs"
+                    >
+                      {gettext("Confirm")}
+                    </button>
+                    <button
+                      phx-click="cancel_mark_paid"
+                      class="btn btn-ghost btn-xs"
+                    >
+                      {gettext("Cancel")}
+                    </button>
+                  </div>
+                <% payment.status == :pending -> %>
+                  <button
+                    phx-click="mark_paid"
+                    phx-value-id={payment.id}
+                    class="btn btn-ghost btn-xs text-success"
+                  >
+                    <.icon name="hero-check-circle" class="size-3.5" /> {gettext("Mark as Paid")}
+                  </button>
+                <% true -> %>
               <% end %>
             </td>
           </tr>
@@ -232,6 +257,56 @@ defmodule BibtimeWeb.Admin.PaymentLive.Index do
          socket
          |> put_flash(:error, gettext("Refund failed: %{reason}", reason: reason))
          |> assign(:confirm_refund_id, nil)}
+    end
+  end
+
+  @impl true
+  def handle_event("mark_paid", %{"id" => id}, socket) do
+    {:noreply, assign(socket, :confirm_mark_paid_id, String.to_integer(id))}
+  end
+
+  @impl true
+  def handle_event("cancel_mark_paid", _params, socket) do
+    {:noreply, assign(socket, :confirm_mark_paid_id, nil)}
+  end
+
+  @impl true
+  def handle_event("confirm_mark_paid", %{"id" => id}, socket) do
+    payment = Payments.get_payment!(id)
+
+    case Payments.mark_paid_offline(payment) do
+      {:ok, _payment} ->
+        AuditLog.log(
+          socket.assigns.current_scope.user,
+          "payment.marked_paid_offline",
+          "payment",
+          payment.id,
+          %{
+            "participant_id" => payment.participant_id,
+            "amount_cents" => payment.amount_cents,
+            "currency" => payment.currency
+          }
+        )
+
+        race = socket.assigns.race
+        payments = Payments.list_payments_for_race(race.id)
+        summary = Payments.race_payment_summary(race.id)
+
+        {:noreply,
+         socket
+         |> put_flash(:info, gettext("Marked as paid. Confirmation email sent."))
+         |> assign(:payments, payments)
+         |> assign(:summary, summary)
+         |> assign(:confirm_mark_paid_id, nil)}
+
+      {:error, reason} ->
+        {:noreply,
+         socket
+         |> put_flash(
+           :error,
+           gettext("Could not mark as paid: %{reason}", reason: inspect(reason))
+         )
+         |> assign(:confirm_mark_paid_id, nil)}
     end
   end
 
