@@ -75,15 +75,18 @@ defmodule Bibtime.Accounts.UserNotifier do
   end
 
   @doc """
-  Builds the email struct for an account confirmation link (for previews).
+  Builds the email struct for the welcome / account-created email
+  delivered when a participant registers and we auto-create their
+  account (for previews).
   """
   def email_confirmation_instructions(user, encoded_token) do
     with_recipient_locale(user, fn ->
-      build_email(user.email, gettext("Confirmation instructions"), """
+      build_email(user.email, gettext("Account created"), """
       #{gettext("Hi %{email},", email: user.email)}
 
-      #{gettext("You can confirm your account by visiting the URL below:")}
+      #{gettext("An account has been created for you on bibtime. You can use this account to view your registrations and, after the race, see results and photos.")}
 
+      #{gettext("Log in here:")}
       #{url(~p"/users/log-in/#{encoded_token}")}
 
       #{gettext("If you didn't create an account with us, please ignore this.")}
