@@ -46,6 +46,31 @@ All user-facing strings must go through gettext. Never hardcode display text.
 - After adding new strings: `mix gettext.extract --merge`
 - Swedish translations: `priv/gettext/sv/LC_MESSAGES/default.po`
 
+## Debugging Production
+
+Production and staging stdout is shipped to Better Stack by the Fly log
+shipper (see [DEPLOY.md](DEPLOY.md#log-aggregation-better-stack)). Query
+recent logs from the terminal — credentials live in `.env`:
+
+```bash
+scripts/logs.sh tail 100               # last 100 entries
+scripts/logs.sh errors                 # recent errors / Elixir crashes
+scripts/logs.sh recent 15              # everything from the last 15 minutes
+scripts/logs.sh search "stripe"        # case-insensitive substring match
+scripts/logs.sh request abc-123        # all log lines for a Phoenix request_id
+scripts/logs.sh sql "<ClickHouse SQL>" # raw query escape hatch
+```
+
+Output is JSONEachRow — pipe through `jq` when reading interactively.
+Logs land in Better Stack within a few seconds; if `tail` returns empty,
+check the `bibtime-log-shipper` app on Fly is running.
+
+When investigating an incident: start with `errors`, narrow to the
+`request_id` from a representative crash, then widen to `recent N` for
+surrounding context. The Phoenix log line includes the `request_id` and
+controller mfa, so request-scoped debugging is usually enough without
+needing user/session correlation.
+
 ## When implementing new features
 
 - When working from a TODO file (e.g. `PHASE4_TODO.md`), check off completed items (`- [ ]` → `- [x]`) as you finish each one.

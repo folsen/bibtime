@@ -28,5 +28,12 @@ config :swoosh, local: false
 # Do not print debug messages in production
 config :logger, level: :info
 
+# Richer metadata in stdout so the Fly → Better Stack log shipper has
+# enough context to index. Better Stack auto-extracts the key=value pairs
+# emitted by Logger.Formatter. See DEPLOY.md for the log shipper setup.
+config :logger, :default_formatter,
+  format: "$time $metadata[$level] $message\n",
+  metadata: [:request_id, :mfa, :file, :line, :crash_reason, :station_id, :race_id, :user_id]
+
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.

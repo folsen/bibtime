@@ -140,6 +140,90 @@ all work the same):
 
 `fly certs show` reports when the Let's Encrypt cert is issued.
 
+## Log aggregation (Better Stack)
+
+Production logs are shipped to [Better Stack
+Telemetry](https://betterstack.com/telemetry) via the official
+[fly-log-shipper](https://github.com/superfly/fly-log-shipper). This
+captures both Phoenix log output and Fly platform events (machine
+restarts, OOM kills, deploy failures) in a single searchable stream that
+AI agents can query through `scripts/logs.sh`.
+
+### One-time setup
+
+1. **Create a source in Better Stack.** Telemetry → Sources → Connect
+   source → "Fly.io". Pick a name per environment, e.g.
+   `bibtime-prod` and `bibtime-staging`. Copy the **source token** and
+   the **ingesting host** (e.g. `s12345.eu-nbg-2.betterstackdata.com`)
+   from the source's setup page.
+
+2. **Launch a log-shipper Fly app** in a *separate working directory* —
+   `fly launch` generates a `fly.toml` in the cwd and would otherwise
+   clobber this repo's `fly.toml`:
+
+   ```sh
+   mkdir -p ~/code/bibtime-log-shipper && cd ~/code/bibtime-log-shipper
+   fly launch --no-deploy --image flyio/log-shipper:latest \
+     --name bibtime-log-shipper          # repeat with -staging suffix
+   ```
+
+   Edit the generated `fly.toml` for the shipper to expose the internal
+   metrics port:
+
+   ```toml
+   [[services]]
+     internal_port = 8686
+   ```
+
+3. **Set secrets on the shipper app:**
+
+   ```sh
+   ORG=personal   # your Fly org slug
+   fly secrets set -a bibtime-log-shipper \
+     ORG=$ORG \
+     ACCESS_TOKEN=$(fly tokens create readonly $ORG | cut -d' ' -f2) \
+     BETTER_STACK_SOURCE_TOKEN=<source token> \
+     BETTER_STACK_INGESTING_HOST=<ingesting host without https://>
+
+   fly deploy -a bibtime-log-shipper
+   ```
+
+   Repeat with `-a bibtime-log-shipper-staging` and the staging source's
+   token/host. The shipper consumes Fly's NATS log feed for the entire
+   org, so a single shipper app covers all your apps; create separate
+   shippers per env only if you want logs split by Better Stack source.
+
+4. **Verify** logs land in Better Stack — open the source's Live Tail.
+   You should see `bibtime`'s Phoenix output within a few seconds.
+
+### Querying logs from the dev machine
+
+`scripts/logs.sh` runs ClickHouse SQL queries against Better Stack's
+read API (designed so AI assistants can debug prod incidents). Set up
+read credentials once:
+
+1. In Better Stack → Sources → click the `bibtime-prod` source → Connect
+   → "Connect remotely" / "SQL API". Copy the host, username, password,
+   and the source's table name (`tNNNNNN_bibtime_prod_logs`).
+
+2. Add to `.env` (gitignored):
+
+   ```sh
+   BETTERSTACK_QUERY_HOST=eu-nbg-2-connect.betterstackdata.com
+   BETTERSTACK_QUERY_USERNAME=<from Better Stack>
+   BETTERSTACK_QUERY_PASSWORD=<from Better Stack>
+   BETTERSTACK_QUERY_TABLE=t123456_bibtime_prod_logs
+   ```
+
+3. Test it:
+
+   ```sh
+   scripts/logs.sh tail 20 | jq
+   ```
+
+   See `scripts/logs.sh help` and CLAUDE.md → Debugging Production for
+   the full command set.
+
 ## Day-to-day
 
 ```sh
