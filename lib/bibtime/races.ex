@@ -149,12 +149,16 @@ defmodule Bibtime.Races do
     end
 
     for split <- source.splits do
+      pace_display =
+        Map.get(split, :pace_display) || default_pace_display(split.leg_type)
+
       create_split(%{
         "race_id" => race.id,
         "name" => split.name,
         "short_name" => split.short_name,
         "leg_type" => Atom.to_string(split.leg_type),
         "distance_meters" => split.distance_meters,
+        "pace_display" => Atom.to_string(pace_display),
         "sort_order" => split.sort_order
       })
     end
@@ -172,6 +176,11 @@ defmodule Bibtime.Races do
       })
     end
   end
+
+  defp default_pace_display(:swim), do: :min_per_100m
+  defp default_pace_display(:bike), do: :km_per_h
+  defp default_pace_display(:run), do: :min_per_km
+  defp default_pace_display(_), do: :none
 
   ## Categories
 
