@@ -186,18 +186,25 @@ lib/
     accounts/                 # User auth, sessions, roles
     races/                    # Race CRUD, categories, splits, templates
     participants/             # Participant management, bib assignment
-    timing/                   # Split time recording, race starts
-    results/                  # Calculator + Ranker modules
+    timing/                   # Split time recording, race starts, timing stations
+    results/                  # Calculator + Ranker, CSV/PDF export
     registration/             # Public registration flow
     payments/                 # Stripe integration
     photos/                   # Photo upload and storage
-    audit/                    # Audit logging
+    site_settings/            # Whitelabel site settings (singleton)
+    audit_log/                # Audit logging
+    mailer/                   # Swoosh email previews
   bibtime_web/                # Web layer
     live/
       admin/                  # Admin LiveView pages
       public/                 # Public LiveView pages
-    controllers/              # Traditional controllers (auth, payments, exports)
-    components/               # Shared UI components
+      dev/                    # Dev-only LiveViews (email previews)
+    controllers/              # Traditional controllers (auth, payments, exports, station API)
+    components/               # Shared UI components and layouts
+    plugs/                    # SetLocale, RateLimiter, AssignSiteSettings
+    helpers/                  # LocaleHelpers
+bibtime_station/              # Standalone Pi-side OTP app (RFID reader → server)
+hardware/                     # Hardware setup notes and R200 protocol research
 assets/
   css/app.css                 # Tailwind CSS v4 config
   js/app.js                   # JavaScript entry point with hooks
@@ -209,4 +216,4 @@ priv/
 
 ## License
 
-All rights reserved.
+MIT — see [LICENSE](LICENSE).

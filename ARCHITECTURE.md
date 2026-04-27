@@ -16,10 +16,15 @@ Bibtime.Application
   ├── Ecto.Migrator (auto-runs in releases)
   ├── DNSCluster
   ├── Phoenix.PubSub (name: Bibtime.PubSub)
+  ├── Task.Supervisor (name: Bibtime.TaskSupervisor)
   ├── Bibtime.RateLimiter (ETS-based token bucket)
-  ├── ChromicPDF (lazy-started on first PDF export)
   └── BibtimeWeb.Endpoint (Bandit HTTP server)
 ```
+
+ChromicPDF is **not** part of the supervision tree — it's lazy-started on
+the first PDF export by `Bibtime.Results.Export.ensure_chromic_pdf_started/0`,
+which keeps test/dev startup fast and avoids spawning headless Chrome on
+servers that never render PDFs.
 
 ## Data Model
 
@@ -86,6 +91,7 @@ RacePhoto
 | `Registration` | Public registration flow | Auto-creates user accounts, assigns bibs, sends confirmation emails via `RegistrationNotifier` |
 | `Payments` | Stripe Checkout integration | `create_checkout_session/4`, webhook handling, early-bird pricing logic |
 | `Photos` | Race photo management | S3 upload via `ExAws.S3`, bib-number tagging |
+| `SiteSettings` | Whitelabel singleton (site name, hero copy, CTA, default locale, organizer contact) | Single-row table cached in `:persistent_term`, refreshed on update; assigned to every browser request by `BibtimeWeb.Plugs.AssignSiteSettings` |
 | `AuditLog` | Action logging | Tracks admin actions with actor, action, metadata |
 
 ### Timing context (`lib/bibtime/timing.ex`)
@@ -246,6 +252,7 @@ Timing.record_split_time  ◄──── Timing.ingest_chip_read  ◄───�
 - `/admin/races` — CRUD, show, participants, photos, payments
 - `/admin/users` — user management
 - `/admin/stations` — global station management
+- `/admin/settings` — whitelabel site settings (SettingsLive.Edit)
 
 **Timer** (require_timer_or_admin_user):
 - `/admin/races/:id/timing` — TimingLive.Index (manual split-time recording, file-upload import of timing data)
@@ -258,6 +265,11 @@ Timing.record_split_time  ◄──── Timing.ingest_chip_read  ◄───�
 - `PUT  /api/stations/:token/heartbeat` — station status
 - `GET  /healthz` — load balancer health check
 - `POST /webhooks/stripe` — signature-verified Stripe webhook
+
+**Dev** (mounted only when `:dev_routes` is enabled, behind HTTP basic auth):
+- `/dev/emails` — `Dev.EmailPreviewLive` (rendered email previews)
+- `/dev/dashboard` — Phoenix LiveDashboard
+- `/dev/mailbox` — Swoosh local mailbox preview
 
 ## Layouts
 
@@ -319,17 +331,26 @@ lib/
     registration/             # RegistrationNotifier
     payments/                 # Payment, PaymentNotifier
     photos/                   # RacePhoto, Storage
+    site_settings/            # SiteSettings (whitelabel singleton schema)
     audit_log/                # AuditLogEntry
+    mailer/                   # Swoosh email previews (used by Dev.EmailPreviewLive)
+    application.ex            # OTP supervisor
+    mailer.ex                 # Swoosh.Mailer
+    rate_limiter.ex           # ETS-based token bucket GenServer
+    release.ex                # Release tasks (migrate, rollback) for `bin/bibtime eval`
   bibtime_web/                # Web layer
     live/
-      admin/                  # RaceLive, ParticipantLive, TimingLive, CheckInLive, StationLive, UserLive, PhotoLive, PaymentLive
+      admin/                  # RaceLive, ParticipantLive, TimingLive, CheckInLive, StationLive, UserLive, PhotoLive, PaymentLive, SettingsLive
       public/                 # RaceLive, ResultsLive, KioskLive, RegistrationLive, ProfileLive, MyRacesLive, PhotoLive
+      dev/                    # EmailPreviewLive (dev-only)
     controllers/
       api/                    # StationController, StationAuth (token plug)
-      …                       # PageController, ExportController, HealthController, StripeWebhookController, auth controllers
-    components/               # CoreComponents, Layouts, RaceComponents
+      …                       # PageController, ExportController, HealthController, StripeWebhookController,
+                              #   CheckoutController, PhotoController, LocaleController,
+                              #   UserSession/UserSettings/UserRegistration controllers
+    components/               # CoreComponents, Layouts, RaceComponents (+ layouts/ heex templates)
     helpers/                  # LocaleHelpers
-    plugs/                    # SetLocale, RateLimiter
+    plugs/                    # SetLocale, RateLimiter, AssignSiteSettings
 
 bibtime_station/              # Standalone Pi-side Elixir release
   lib/bibtime_station/
