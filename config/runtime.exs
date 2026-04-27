@@ -240,3 +240,12 @@ if config_env() in [:prod, :staging] do
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 end
+
+if config_env() == :dev do
+  username = System.get_env("DEV_TOOLS_BASIC_AUTH_USERNAME")
+  password = System.get_env("DEV_TOOLS_BASIC_AUTH_PASSWORD")
+
+  if username && password do
+    config :bibtime, :dev_tools_basic_auth, username: username, password: password
+  end
+end
