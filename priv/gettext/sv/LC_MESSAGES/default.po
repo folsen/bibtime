@@ -147,7 +147,8 @@ msgstr "Lägg till standardåldersgrupper"
 msgid "Add your first participant to get started."
 msgstr "Lägg till din första deltagare för att komma igång."
 
-#: lib/bibtime_web/components/layouts/root.html.heex:56
+#: lib/bibtime_web/components/layouts/root.html.heex:58
+#: lib/bibtime_web/components/layouts/root.html.heex:99
 #: lib/bibtime_web/helpers/locale_helpers.ex:196
 #, elixir-autogen, elixir-format
 msgid "Admin"
@@ -798,7 +799,7 @@ msgstr "Delsträcketyp"
 msgid "Location"
 msgstr "Plats"
 
-#: lib/bibtime_web/components/layouts/root.html.heex:74
+#: lib/bibtime_web/components/layouts/root.html.heex:112
 #: lib/bibtime_web/controllers/page_html/home.html.heex:32
 #: lib/bibtime_web/controllers/user_session_html/confirm.html.heex:45
 #: lib/bibtime_web/controllers/user_session_html/new.html.heex:5
@@ -832,7 +833,8 @@ msgstr "Logga in med e-post"
 msgid "Log me in only this time"
 msgstr "Logga in mig bara denna gång"
 
-#: lib/bibtime_web/components/layouts/root.html.heex:70
+#: lib/bibtime_web/components/layouts/root.html.heex:72
+#: lib/bibtime_web/components/layouts/root.html.heex:106
 #, elixir-autogen, elixir-format
 msgid "Log out"
 msgstr "Logga ut"
@@ -894,7 +896,8 @@ msgstr "Min ålder"
 msgid "My Profile"
 msgstr "Min profil"
 
-#: lib/bibtime_web/components/layouts/root.html.heex:43
+#: lib/bibtime_web/components/layouts/root.html.heex:45
+#: lib/bibtime_web/components/layouts/root.html.heex:92
 #: lib/bibtime_web/live/public/my_races_live/index.ex:14
 #: lib/bibtime_web/live/public/my_races_live/index.ex:24
 #, elixir-autogen, elixir-format
@@ -1089,7 +1092,8 @@ msgstr "Välj en splitpunkt."
 msgid "Podiums"
 msgstr "Pallplatser"
 
-#: lib/bibtime_web/components/layouts/root.html.heex:49
+#: lib/bibtime_web/components/layouts/root.html.heex:51
+#: lib/bibtime_web/components/layouts/root.html.heex:95
 #, elixir-autogen, elixir-format
 msgid "Profile"
 msgstr "Profil"
@@ -1304,7 +1308,8 @@ msgid "Self-hosted, open-source timing for triathlons, running races, and more. 
 msgstr "Självhostad, öppen tidtagning för triathlon, löplopp och mer. Liveresultat, splituppföljning, inget leverantörsberoende."
 
 #: lib/bibtime_web/components/layouts/admin.html.heex:98
-#: lib/bibtime_web/components/layouts/root.html.heex:63
+#: lib/bibtime_web/components/layouts/root.html.heex:65
+#: lib/bibtime_web/components/layouts/root.html.heex:103
 #, elixir-autogen, elixir-format
 msgid "Settings"
 msgstr "Inställningar"
@@ -3212,3 +3217,8 @@ msgstr "Logga in här:"
 #, elixir-autogen, elixir-format
 msgid "Your spot is held for 30 minutes. Finish payment within that time or it's released."
 msgstr "Din plats är reserverad i 30 minuter. Slutför betalningen inom den tiden, annars släpps platsen."
+
+#: lib/bibtime_web/components/layouts/root.html.heex:81
+#, elixir-autogen, elixir-format
+msgid "Open menu"
+msgstr "Öppna meny"

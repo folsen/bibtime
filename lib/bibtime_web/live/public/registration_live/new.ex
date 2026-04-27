@@ -88,7 +88,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
       # an expired hold is effectively abandoned — re-submitting the form
       # will refresh it via the resume path, no need to warn them.
       not is_nil(p.bib_number) or
-        (p.status == :pending_payment and p.hold_expires_at &&
+        ((p.status == :pending_payment and p.hold_expires_at) &&
            DateTime.compare(p.hold_expires_at, now) == :gt)
     end)
   end
@@ -116,8 +116,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
           # cookie can be written before the user lands on Stripe — that
           # cookie is what lets the form pre-fill itself if the user hits
           # the browser back button after abandoning checkout.
-          {:noreply,
-           redirect(socket, to: ~p"/races/#{race.slug}/checkout/#{participant.id}")}
+          {:noreply, redirect(socket, to: ~p"/races/#{race.slug}/checkout/#{participant.id}")}
         else
           {:noreply,
            socket
@@ -380,7 +379,9 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
               :if={@race.payment_required}
               class="mt-2 text-xs text-base-content/50 text-center"
             >
-              {gettext("Your spot is held for 30 minutes. Finish payment within that time or it's released.")}
+              {gettext(
+                "Your spot is held for 30 minutes. Finish payment within that time or it's released."
+              )}
             </p>
           </div>
         </.form>

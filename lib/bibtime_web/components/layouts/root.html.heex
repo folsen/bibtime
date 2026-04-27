@@ -33,42 +33,64 @@
           <% end %>
         </a>
 
-        <nav class="ml-auto flex items-center gap-5 text-sm">
+        <nav class="ml-auto flex items-center gap-3 sm:gap-5 text-sm">
           <%= if @current_scope do %>
-            <span class="text-base-content/50 hidden sm:inline">{@current_scope.user.email}</span>
-            <.link
-              href={~p"/my-races"}
-              class="text-base-content/70 hover:text-primary transition-colors"
-            >
-              {gettext("My Races")}
-            </.link>
-            <.link
-              href={~p"/profile"}
-              class="text-base-content/70 hover:text-primary transition-colors"
-            >
-              {gettext("Profile")}
-            </.link>
-            <%= if @current_scope.user.role in ["admin", "timer"] do %>
+            <%!-- Desktop nav --%>
+            <div class="hidden md:flex items-center gap-5">
+              <span class="text-base-content/50">{@current_scope.user.email}</span>
               <.link
-                href={~p"/admin/races"}
+                href={~p"/my-races"}
                 class="text-base-content/70 hover:text-primary transition-colors"
               >
-                {gettext("Admin")}
+                {gettext("My Races")}
               </.link>
-            <% end %>
-            <.link
-              href={~p"/users/settings"}
-              class="text-base-content/70 hover:text-primary transition-colors"
+              <.link
+                href={~p"/profile"}
+                class="text-base-content/70 hover:text-primary transition-colors"
+              >
+                {gettext("Profile")}
+              </.link>
+              <%= if @current_scope.user.role in ["admin", "timer"] do %>
+                <.link
+                  href={~p"/admin/races"}
+                  class="text-base-content/70 hover:text-primary transition-colors"
+                >
+                  {gettext("Admin")}
+                </.link>
+              <% end %>
+              <.link
+                href={~p"/users/settings"}
+                class="text-base-content/70 hover:text-primary transition-colors"
+              >
+                {gettext("Settings")}
+              </.link>
+              <.link
+                href={~p"/users/log-out"}
+                method="delete"
+                class="text-base-content/70 hover:text-secondary transition-colors"
+              >
+                {gettext("Log out")}
+              </.link>
+            </div>
+
+            <%!-- Mobile hamburger --%>
+            <button
+              type="button"
+              phx-click={
+                Phoenix.LiveView.JS.toggle_class("hidden",
+                  to: "#mobile-nav",
+                  transition:
+                    {"transition ease-out duration-200", "opacity-0 -translate-y-2",
+                     "opacity-100 translate-y-0"},
+                  time: 200
+                )
+              }
+              aria-label={gettext("Open menu")}
+              aria-controls="mobile-nav"
+              class="btn btn-ghost btn-sm btn-square md:hidden"
             >
-              {gettext("Settings")}
-            </.link>
-            <.link
-              href={~p"/users/log-out"}
-              method="delete"
-              class="text-base-content/70 hover:text-secondary transition-colors"
-            >
-              {gettext("Log out")}
-            </.link>
+              <.icon name="hero-bars-3" class="size-5" />
+            </button>
           <% else %>
             <.link href={~p"/users/log-in"} class="btn btn-sm btn-primary">
               {gettext("Log in")}
@@ -94,6 +116,63 @@
           </div>
         </nav>
       </div>
+
+      <%!-- Mobile slide-down menu (full width, below the header bar) --%>
+      <%= if @current_scope do %>
+        <nav
+          id="mobile-nav"
+          class="hidden md:hidden border-t border-base-300 bg-base-100"
+        >
+          <div class="px-3 py-2 text-xs text-base-content/50 truncate border-b border-base-200">
+            {@current_scope.user.email}
+          </div>
+          <ul class="flex flex-col py-1">
+            <li>
+              <.link
+                href={~p"/my-races"}
+                class="block px-4 py-3 text-base-content/80 hover:bg-base-200 hover:text-primary transition-colors"
+              >
+                {gettext("My Races")}
+              </.link>
+            </li>
+            <li>
+              <.link
+                href={~p"/profile"}
+                class="block px-4 py-3 text-base-content/80 hover:bg-base-200 hover:text-primary transition-colors"
+              >
+                {gettext("Profile")}
+              </.link>
+            </li>
+            <%= if @current_scope.user.role in ["admin", "timer"] do %>
+              <li>
+                <.link
+                  href={~p"/admin/races"}
+                  class="block px-4 py-3 text-base-content/80 hover:bg-base-200 hover:text-primary transition-colors"
+                >
+                  {gettext("Admin")}
+                </.link>
+              </li>
+            <% end %>
+            <li>
+              <.link
+                href={~p"/users/settings"}
+                class="block px-4 py-3 text-base-content/80 hover:bg-base-200 hover:text-primary transition-colors"
+              >
+                {gettext("Settings")}
+              </.link>
+            </li>
+            <li>
+              <.link
+                href={~p"/users/log-out"}
+                method="delete"
+                class="block px-4 py-3 text-base-content/80 hover:bg-base-200 hover:text-secondary transition-colors"
+              >
+                {gettext("Log out")}
+              </.link>
+            </li>
+          </ul>
+        </nav>
+      <% end %>
     </header>
     <BibtimeWeb.Layouts.pending_payment_banner current_scope={assigns[:current_scope]} />
     <div class="flex-1">
