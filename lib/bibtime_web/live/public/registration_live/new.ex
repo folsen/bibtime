@@ -36,7 +36,11 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
       #   2. The current user's most recent registration (cross-race
       #      defaults, eg. name + birth date). Existing behavior.
       prefill_attrs =
-        case prefill_attrs_for_pending_participant(session, race.id) do
+        case prefill_attrs_for_pending_participant(
+               session,
+               race.id,
+               socket.assigns.current_scope
+             ) do
           %{} = attrs when map_size(attrs) > 0 -> attrs
           _ -> prefill_attrs_for_user(socket.assigns.current_scope)
         end
@@ -385,23 +389,34 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
 
   # Hits when CheckoutController set `:pending_participant_id` on the way to
   # Stripe and the user is now back on the form (typically via browser back).
-  # We only honour the cookie if the participant belongs to *this* race and
-  # is still in :pending_payment — otherwise it's stale and we ignore it.
-  defp prefill_attrs_for_pending_participant(%{"pending_participant_id" => id}, race_id)
+  # We only honour the cookie if the participant belongs to *this* race, is
+  # still in :pending_payment, AND the cookie's owner is consistent with the
+  # current login state — otherwise it's stale or someone else's, and we
+  # ignore it. The owner check defends a shared-browser scenario where user
+  # B logs into a session whose cookie still references participant A.
+  defp prefill_attrs_for_pending_participant(
+         %{"pending_participant_id" => id},
+         race_id,
+         current_scope
+       )
        when is_integer(id) do
     case Participants.get_participant!(id) do
       %Participant{race_id: ^race_id, status: :pending_payment} = p ->
-        %{
-          "first_name" => p.first_name,
-          "last_name" => p.last_name,
-          "email" => p.email,
-          "gender" => if(p.gender, do: Atom.to_string(p.gender)),
-          "birth_date" => if(p.birth_date, do: Date.to_iso8601(p.birth_date)),
-          "club" => p.club,
-          "race_category_id" => p.race_category_id
-        }
-        |> Enum.reject(fn {_k, v} -> is_nil(v) end)
-        |> Map.new()
+        if owner_consistent_with_scope?(p, current_scope) do
+          %{
+            "first_name" => p.first_name,
+            "last_name" => p.last_name,
+            "email" => p.email,
+            "gender" => if(p.gender, do: Atom.to_string(p.gender)),
+            "birth_date" => if(p.birth_date, do: Date.to_iso8601(p.birth_date)),
+            "club" => p.club,
+            "race_category_id" => p.race_category_id
+          }
+          |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+          |> Map.new()
+        else
+          %{}
+        end
 
       _ ->
         %{}
@@ -410,7 +425,18 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
     Ecto.NoResultsError -> %{}
   end
 
-  defp prefill_attrs_for_pending_participant(_session, _race_id), do: %{}
+  defp prefill_attrs_for_pending_participant(_session, _race_id, _scope), do: %{}
+
+  # Anyone-not-logged-in is fine — that's the back-from-Stripe case where
+  # the cookie's owner is the same browser session that submitted the form.
+  # Logged-in users only get the prefill when the participant is theirs.
+  defp owner_consistent_with_scope?(_participant, nil), do: true
+  defp owner_consistent_with_scope?(_participant, %{user: nil}), do: true
+
+  defp owner_consistent_with_scope?(%Participant{user_id: pid}, %{user: %{id: uid}}),
+    do: pid == uid
+
+  defp owner_consistent_with_scope?(_participant, _scope), do: false
 
   defp prefill_attrs_for_user(%{user: nil}), do: %{}
   defp prefill_attrs_for_user(nil), do: %{}
