@@ -296,7 +296,7 @@ msgstr ""
 #: lib/bibtime_web/live/admin/photo_live/index.ex:95
 #: lib/bibtime_web/live/admin/photo_live/index.ex:202
 #: lib/bibtime_web/live/admin/race_live/edit.ex:188
-#: lib/bibtime_web/live/admin/race_live/new.ex:160
+#: lib/bibtime_web/live/admin/race_live/new.ex:264
 #: lib/bibtime_web/live/admin/race_live/show.ex:485
 #: lib/bibtime_web/live/admin/timing_live/index.ex:177
 #, elixir-autogen, elixir-format
@@ -423,7 +423,7 @@ msgstr ""
 msgid "Create Participant"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/race_live/new.ex:154
+#: lib/bibtime_web/live/admin/race_live/new.ex:258
 #, elixir-autogen, elixir-format
 msgid "Create Race"
 msgstr ""
@@ -1110,7 +1110,7 @@ msgstr ""
 msgid "Race Type"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/race_live/new.ex:253
+#: lib/bibtime_web/live/admin/race_live/new.ex:357
 #, elixir-autogen, elixir-format
 msgid "Race created successfully."
 msgstr ""
@@ -2027,11 +2027,13 @@ msgid "Confirm"
 msgstr ""
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:151
+#: lib/bibtime_web/live/admin/race_live/new.ex:227
 #, elixir-autogen, elixir-format
 msgid "Currency"
 msgstr ""
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:145
+#: lib/bibtime_web/live/admin/race_live/new.ex:221
 #, elixir-autogen, elixir-format
 msgid "E.g. 30000 = 300.00 SEK"
 msgstr ""
@@ -2042,11 +2044,13 @@ msgid "Early bird"
 msgstr ""
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:172
+#: lib/bibtime_web/live/admin/race_live/new.ex:248
 #, elixir-autogen, elixir-format
 msgid "Early bird deadline"
 msgstr ""
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:161
+#: lib/bibtime_web/live/admin/race_live/new.ex:237
 #, elixir-autogen, elixir-format
 msgid "Early bird fee (optional)"
 msgstr ""
@@ -2067,6 +2071,7 @@ msgid "Entry fee"
 msgstr ""
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:139
+#: lib/bibtime_web/live/admin/race_live/new.ex:215
 #, elixir-autogen, elixir-format
 msgid "Entry fee (in smallest currency unit)"
 msgstr ""
@@ -2086,6 +2091,7 @@ msgid "Hi %{name},"
 msgstr ""
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:166
+#: lib/bibtime_web/live/admin/race_live/new.ex:242
 #, elixir-autogen, elixir-format
 msgid "Leave empty for no early bird pricing"
 msgstr ""
@@ -2117,6 +2123,7 @@ msgid "Payment Receipt"
 msgstr ""
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:120
+#: lib/bibtime_web/live/admin/race_live/new.ex:196
 #, elixir-autogen, elixir-format
 msgid "Payment Settings"
 msgstr ""
@@ -2186,6 +2193,7 @@ msgid "Register & Pay %{amount}"
 msgstr ""
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:127
+#: lib/bibtime_web/live/admin/race_live/new.ex:203
 #, elixir-autogen, elixir-format
 msgid "Require payment for registration"
 msgstr ""
@@ -2665,11 +2673,13 @@ msgid "All available spots have been taken. Check back later in case spots open 
 msgstr ""
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:91
+#: lib/bibtime_web/live/admin/race_live/new.ex:167
 #, elixir-autogen, elixir-format
 msgid "Leave empty for unlimited registrations"
 msgstr ""
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:86
+#: lib/bibtime_web/live/admin/race_live/new.ex:162
 #, elixir-autogen, elixir-format
 msgid "Participant limit"
 msgstr ""
@@ -2680,6 +2690,7 @@ msgid "Registration Full"
 msgstr ""
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:78
+#: lib/bibtime_web/live/admin/race_live/new.ex:154
 #, elixir-autogen, elixir-format
 msgid "Registration Settings"
 msgstr ""
@@ -2695,6 +2706,7 @@ msgid "Registration is full. No more spots are available."
 msgstr ""
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:87
+#: lib/bibtime_web/live/admin/race_live/new.ex:163
 #, elixir-autogen, elixir-format
 msgid "Unlimited"
 msgstr ""
@@ -2780,6 +2792,7 @@ msgid "If you are registered for this race, please log in with the email address
 msgstr ""
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:100
+#: lib/bibtime_web/live/admin/race_live/new.ex:176
 #, elixir-autogen, elixir-format
 msgid "Photo Settings"
 msgstr ""
@@ -2790,11 +2803,13 @@ msgid "Photos are only available to race participants"
 msgstr ""
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:107
+#: lib/bibtime_web/live/admin/race_live/new.ex:183
 #, elixir-autogen, elixir-format
 msgid "Photos visible to everyone"
 msgstr ""
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:110
+#: lib/bibtime_web/live/admin/race_live/new.ex:186
 #, elixir-autogen, elixir-format
 msgid "When unchecked, only logged-in race participants can view photos for this race."
 msgstr ""

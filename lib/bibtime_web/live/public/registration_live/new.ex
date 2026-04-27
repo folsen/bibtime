@@ -11,7 +11,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
   def mount(%{"slug" => slug}, session, socket) do
     race =
       slug
-      |> Races.get_race_by_slug!()
+      |> Races.get_visible_race_by_slug!(socket.assigns.current_scope)
       |> Bibtime.Repo.preload([:categories, :auto_categories])
 
     registration_full = Registration.registration_full?(race)

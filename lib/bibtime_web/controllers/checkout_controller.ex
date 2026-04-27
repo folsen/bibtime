@@ -13,7 +13,7 @@ defmodule BibtimeWeb.CheckoutController do
   alias Bibtime.{Participants, Payments, Races}
 
   def start(conn, %{"slug" => slug, "participant_id" => participant_id}) do
-    race = Races.get_race_by_slug!(slug)
+    race = Races.get_visible_race_by_slug!(slug, conn.assigns.current_scope)
     participant = Participants.get_participant!(participant_id)
 
     if participant.race_id != race.id do

@@ -6,6 +6,7 @@ defmodule Bibtime.Races do
   import Ecto.Query, warn: false
   alias Bibtime.Repo
 
+  alias Bibtime.Accounts.User
   alias Bibtime.Races.Race
   alias Bibtime.Races.RaceCategory
   alias Bibtime.Races.RaceAutoCategory
@@ -18,6 +19,21 @@ defmodule Bibtime.Races do
     Race
     |> order_by(desc: :date)
     |> Repo.all()
+  end
+
+  @doc """
+  Returns the races the given scope is allowed to see. Admins see everything;
+  everyone else only sees races whose status has progressed past `:draft`.
+  """
+  def list_visible_races(scope) do
+    if scope_admin?(scope) do
+      list_races()
+    else
+      Race
+      |> where([r], r.status != :draft)
+      |> order_by(desc: :date)
+      |> Repo.all()
+    end
   end
 
   def get_race(id), do: Repo.get(Race, id)
@@ -43,6 +59,23 @@ defmodule Bibtime.Races do
   def get_race_by_slug!(slug) do
     Repo.get_by!(Race, slug: slug)
   end
+
+  @doc """
+  Like `get_race_by_slug!/1` but raises `Ecto.NoResultsError` (→ 404) if the
+  race is in `:draft` status and the scope is not an admin.
+  """
+  def get_visible_race_by_slug!(slug, scope) do
+    race = Repo.get_by!(Race, slug: slug)
+
+    if race.status == :draft and not scope_admin?(scope) do
+      raise Ecto.NoResultsError, queryable: Race
+    end
+
+    race
+  end
+
+  defp scope_admin?(%{user: %User{} = user}), do: User.admin?(user)
+  defp scope_admin?(_), do: false
 
   def create_race(attrs \\ %{}) do
     %Race{}

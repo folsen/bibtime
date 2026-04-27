@@ -305,7 +305,7 @@ msgstr "Födelsedatum"
 #: lib/bibtime_web/live/admin/photo_live/index.ex:95
 #: lib/bibtime_web/live/admin/photo_live/index.ex:202
 #: lib/bibtime_web/live/admin/race_live/edit.ex:188
-#: lib/bibtime_web/live/admin/race_live/new.ex:160
+#: lib/bibtime_web/live/admin/race_live/new.ex:264
 #: lib/bibtime_web/live/admin/race_live/show.ex:485
 #: lib/bibtime_web/live/admin/timing_live/index.ex:177
 #, elixir-autogen, elixir-format
@@ -432,7 +432,7 @@ msgstr "Bekräftar..."
 msgid "Create Participant"
 msgstr "Skapa deltagare"
 
-#: lib/bibtime_web/live/admin/race_live/new.ex:154
+#: lib/bibtime_web/live/admin/race_live/new.ex:258
 #, elixir-autogen, elixir-format
 msgid "Create Race"
 msgstr "Skapa lopp"
@@ -1119,7 +1119,7 @@ msgstr "Lopphistorik"
 msgid "Race Type"
 msgstr "Lopptyp"
 
-#: lib/bibtime_web/live/admin/race_live/new.ex:253
+#: lib/bibtime_web/live/admin/race_live/new.ex:357
 #, elixir-autogen, elixir-format
 msgid "Race created successfully."
 msgstr "Lopp har skapats."
@@ -2036,11 +2036,13 @@ msgid "Confirm"
 msgstr "Bekräfta"
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:151
+#: lib/bibtime_web/live/admin/race_live/new.ex:227
 #, elixir-autogen, elixir-format
 msgid "Currency"
 msgstr "Valuta"
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:145
+#: lib/bibtime_web/live/admin/race_live/new.ex:221
 #, elixir-autogen, elixir-format
 msgid "E.g. 30000 = 300.00 SEK"
 msgstr "T.ex. 30000 = 300,00 SEK"
@@ -2051,11 +2053,13 @@ msgid "Early bird"
 msgstr "Early bird"
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:172
+#: lib/bibtime_web/live/admin/race_live/new.ex:248
 #, elixir-autogen, elixir-format
 msgid "Early bird deadline"
 msgstr "Early bird-deadline"
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:161
+#: lib/bibtime_web/live/admin/race_live/new.ex:237
 #, elixir-autogen, elixir-format
 msgid "Early bird fee (optional)"
 msgstr "Early bird-avgift (valfritt)"
@@ -2076,6 +2080,7 @@ msgid "Entry fee"
 msgstr "Startavgift"
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:139
+#: lib/bibtime_web/live/admin/race_live/new.ex:215
 #, elixir-autogen, elixir-format
 msgid "Entry fee (in smallest currency unit)"
 msgstr "Startavgift (i minsta valutaenhet)"
@@ -2095,6 +2100,7 @@ msgid "Hi %{name},"
 msgstr "Hej %{name},"
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:166
+#: lib/bibtime_web/live/admin/race_live/new.ex:242
 #, elixir-autogen, elixir-format
 msgid "Leave empty for no early bird pricing"
 msgstr "Lämna tomt om du inte vill ha early bird-pris"
@@ -2126,6 +2132,7 @@ msgid "Payment Receipt"
 msgstr "Betalningskvitto"
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:120
+#: lib/bibtime_web/live/admin/race_live/new.ex:196
 #, elixir-autogen, elixir-format
 msgid "Payment Settings"
 msgstr "Betalningsinställningar"
@@ -2195,6 +2202,7 @@ msgid "Register & Pay %{amount}"
 msgstr "Anmäl & betala %{amount}"
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:127
+#: lib/bibtime_web/live/admin/race_live/new.ex:203
 #, elixir-autogen, elixir-format
 msgid "Require payment for registration"
 msgstr "Kräv betalning vid registrering"
@@ -2674,11 +2682,13 @@ msgid "All available spots have been taken. Check back later in case spots open 
 msgstr "Alla platser är fyllda. Kolla tillbaka senare ifall platser öppnas upp."
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:91
+#: lib/bibtime_web/live/admin/race_live/new.ex:167
 #, elixir-autogen, elixir-format
 msgid "Leave empty for unlimited registrations"
 msgstr "Lämna tomt för obegränsat antal anmälningar"
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:86
+#: lib/bibtime_web/live/admin/race_live/new.ex:162
 #, elixir-autogen, elixir-format
 msgid "Participant limit"
 msgstr "Deltagartak"
@@ -2689,6 +2699,7 @@ msgid "Registration Full"
 msgstr "Anmälan full"
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:78
+#: lib/bibtime_web/live/admin/race_live/new.ex:154
 #, elixir-autogen, elixir-format
 msgid "Registration Settings"
 msgstr "Anmälningsinställningar"
@@ -2704,6 +2715,7 @@ msgid "Registration is full. No more spots are available."
 msgstr "Anmälan är full. Inga fler platser finns tillgängliga."
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:87
+#: lib/bibtime_web/live/admin/race_live/new.ex:163
 #, elixir-autogen, elixir-format
 msgid "Unlimited"
 msgstr "Obegränsat"
@@ -2789,6 +2801,7 @@ msgid "If you are registered for this race, please log in with the email address
 msgstr "Om du är anmäld till det här loppet, logga in med e-postadressen du använde vid anmälan för att se bilderna."
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:100
+#: lib/bibtime_web/live/admin/race_live/new.ex:176
 #, elixir-autogen, elixir-format
 msgid "Photo Settings"
 msgstr "Bildinställningar"
@@ -2799,11 +2812,13 @@ msgid "Photos are only available to race participants"
 msgstr "Bilderna är endast tillgängliga för loppets deltagare"
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:107
+#: lib/bibtime_web/live/admin/race_live/new.ex:183
 #, elixir-autogen, elixir-format
 msgid "Photos visible to everyone"
 msgstr "Bilder synliga för alla"
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:110
+#: lib/bibtime_web/live/admin/race_live/new.ex:186
 #, elixir-autogen, elixir-format
 msgid "When unchecked, only logged-in race participants can view photos for this race."
 msgstr "Om detta inte är ikryssat kan endast inloggade deltagare se bilderna för det här loppet."

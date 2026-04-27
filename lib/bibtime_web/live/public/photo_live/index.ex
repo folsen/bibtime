@@ -7,7 +7,7 @@ defmodule BibtimeWeb.Public.PhotoLive.Index do
 
   @impl true
   def mount(%{"slug" => slug}, _session, socket) do
-    race = Races.get_race_by_slug!(slug)
+    race = Races.get_visible_race_by_slug!(slug, socket.assigns.current_scope)
     user = socket.assigns[:current_scope] && socket.assigns.current_scope.user
     can_view? = Photos.can_view?(race, user)
 

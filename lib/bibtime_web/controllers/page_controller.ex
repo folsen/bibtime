@@ -6,7 +6,7 @@ defmodule BibtimeWeb.PageController do
 
   def home(conn, _params) do
     render(conn, :home,
-      races: Races.list_races(),
+      races: Races.list_visible_races(conn.assigns.current_scope),
       cta: build_cta(conn.assigns.site_settings)
     )
   end

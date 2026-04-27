@@ -8,7 +8,7 @@ defmodule BibtimeWeb.ExportController do
   def results_pdf(conn, %{"slug" => slug}) do
     race =
       slug
-      |> Races.get_race_by_slug!()
+      |> Races.get_visible_race_by_slug!(conn.assigns.current_scope)
       |> Bibtime.Repo.preload([:splits, :categories, :auto_categories])
 
     results = Results.get_race_results(race.id)
@@ -36,7 +36,7 @@ defmodule BibtimeWeb.ExportController do
   def results_csv(conn, %{"slug" => slug}) do
     race =
       slug
-      |> Races.get_race_by_slug!()
+      |> Races.get_visible_race_by_slug!(conn.assigns.current_scope)
       |> Bibtime.Repo.preload([:splits, :categories, :auto_categories])
 
     results = Results.get_race_results(race.id)
