@@ -20,7 +20,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.9\n"
 
-#: lib/bibtime_web/live/public/race_live/show.ex:88
+#: lib/bibtime_web/live/public/race_live/show.ex:89
 #, elixir-autogen, elixir-format
 msgid "%{count} Registered"
 msgid_plural "%{count} Registered"
@@ -32,7 +32,7 @@ msgstr[1] "%{count} anmälda"
 msgid "%{count} finished"
 msgstr "%{count} i mål"
 
-#: lib/bibtime_web/live/public/race_live/show.ex:320
+#: lib/bibtime_web/live/public/race_live/show.ex:321
 #: lib/bibtime_web/live/public/results_live/index.ex:473
 #, elixir-autogen, elixir-format
 msgid "%{count} participant"
@@ -57,8 +57,8 @@ msgstr "(för könstyp)"
 
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:148
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:164
-#: lib/bibtime_web/live/public/registration_live/new.ex:323
-#: lib/bibtime_web/live/public/registration_live/new.ex:346
+#: lib/bibtime_web/live/public/registration_live/new.ex:334
+#: lib/bibtime_web/live/public/registration_live/new.ex:357
 #, elixir-autogen, elixir-format
 msgid "(optional)"
 msgstr "(valfritt)"
@@ -73,7 +73,7 @@ msgstr "Ett bekräftelsemail har skickats till %{email}"
 msgid "A link to confirm your email change has been sent to the new address."
 msgstr "En länk för att bekräfta din e-poständring har skickats till den nya adressen."
 
-#: lib/bibtime_web/live/public/race_live/show.ex:154
+#: lib/bibtime_web/live/public/race_live/show.ex:155
 #, elixir-autogen, elixir-format
 msgid "About this race"
 msgstr "Om detta lopp"
@@ -142,7 +142,7 @@ msgstr "Lägg till split"
 msgid "Add Standard Age Groups"
 msgstr "Lägg till standardåldersgrupper"
 
-#: lib/bibtime_web/live/admin/participant_live/index.ex:541
+#: lib/bibtime_web/live/admin/participant_live/index.ex:545
 #, elixir-autogen, elixir-format
 msgid "Add your first participant to get started."
 msgstr "Lägg till din första deltagare för att komma igång."
@@ -208,8 +208,8 @@ msgstr "Är du säker på att du vill ta bort denna kategori?"
 msgid "Are you sure you want to delete this split?"
 msgstr "Är du säker på att du vill ta bort denna split?"
 
-#: lib/bibtime_web/components/layouts.ex:124
-#: lib/bibtime_web/components/layouts.ex:136
+#: lib/bibtime_web/components/layouts.ex:168
+#: lib/bibtime_web/components/layouts.ex:180
 #, elixir-autogen, elixir-format
 msgid "Attempting to reconnect"
 msgstr "Försöker återansluta"
@@ -242,12 +242,12 @@ msgstr "Tillbaka till deltagare"
 
 #: lib/bibtime_web/live/admin/race_live/edit.ex:200
 #: lib/bibtime_web/live/public/registration_live/my_registration.ex:78
-#: lib/bibtime_web/live/public/registration_live/new.ex:159
+#: lib/bibtime_web/live/public/registration_live/new.ex:170
 #, elixir-autogen, elixir-format
 msgid "Back to race"
 msgstr "Tillbaka till loppet"
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:288
+#: lib/bibtime_web/live/public/registration_live/new.ex:299
 #, elixir-autogen, elixir-format
 msgid "Back to race page"
 msgstr "Tillbaka till loppsidan"
@@ -263,7 +263,7 @@ msgstr "Tillbaka till lopp"
 #: lib/bibtime_web/live/admin/participant_live/index.ex:402
 #: lib/bibtime_web/live/admin/timing_live/index.ex:393
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:215
-#: lib/bibtime_web/live/public/race_live/show.ex:329
+#: lib/bibtime_web/live/public/race_live/show.ex:330
 #: lib/bibtime_web/live/public/results_live/index.ex:247
 #, elixir-autogen, elixir-format
 msgid "Bib"
@@ -291,7 +291,7 @@ msgstr "Cykel"
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:75
 #: lib/bibtime_web/live/admin/participant_live/new.ex:76
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:155
-#: lib/bibtime_web/live/public/registration_live/new.ex:330
+#: lib/bibtime_web/live/public/registration_live/new.ex:341
 #, elixir-autogen, elixir-format
 msgid "Birth Date"
 msgstr "Födelsedatum"
@@ -312,20 +312,21 @@ msgid "Cancel"
 msgstr "Avbryt"
 
 #: lib/bibtime_web/live/admin/race_live/show.ex:193
-#: lib/bibtime_web/live/public/race_live/show.ex:301
+#: lib/bibtime_web/live/public/race_live/show.ex:302
 #, elixir-autogen, elixir-format
 msgid "Categories"
 msgstr "Kategorier"
 
 #: lib/bibtime/registration/registration_notifier.ex:58
+#: lib/bibtime/registration/registration_notifier.ex:125
 #: lib/bibtime/results/export.ex:56
 #: lib/bibtime/results/pdf_template.ex:85
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:89
 #: lib/bibtime_web/live/admin/participant_live/index.ex:424
 #: lib/bibtime_web/live/admin/participant_live/new.ex:90
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:136
-#: lib/bibtime_web/live/public/race_live/show.ex:341
-#: lib/bibtime_web/live/public/registration_live/new.ex:312
+#: lib/bibtime_web/live/public/race_live/show.ex:342
+#: lib/bibtime_web/live/public/registration_live/new.ex:323
 #: lib/bibtime_web/live/public/registration_live/show.ex:124
 #: lib/bibtime_web/live/public/results_live/index.ex:269
 #, elixir-autogen, elixir-format
@@ -353,7 +354,7 @@ msgstr "Ändra e-post"
 msgid "Changing..."
 msgstr "Ändrar..."
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:281
+#: lib/bibtime_web/live/public/registration_live/new.ex:292
 #, elixir-autogen, elixir-format
 msgid "Check back later or view the results page for updates."
 msgstr "Kolla tillbaka senare eller se resultatsidan för uppdateringar."
@@ -380,8 +381,8 @@ msgstr "Klona från lopp"
 #: lib/bibtime_web/live/admin/participant_live/index.ex:435
 #: lib/bibtime_web/live/admin/participant_live/new.ex:84
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:227
-#: lib/bibtime_web/live/public/race_live/show.ex:335
-#: lib/bibtime_web/live/public/registration_live/my_registration.ex:130
+#: lib/bibtime_web/live/public/race_live/show.ex:336
+#: lib/bibtime_web/live/public/registration_live/my_registration.ex:132
 #: lib/bibtime_web/live/public/registration_live/show.ex:130
 #: lib/bibtime_web/live/public/results_live/index.ex:261
 #, elixir-autogen, elixir-format
@@ -389,7 +390,7 @@ msgid "Club"
 msgstr "Klubb"
 
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:163
-#: lib/bibtime_web/live/public/registration_live/new.ex:345
+#: lib/bibtime_web/live/public/registration_live/new.ex:356
 #, elixir-autogen, elixir-format
 msgid "Club / Team"
 msgstr "Klubb / Lag"
@@ -399,7 +400,7 @@ msgstr "Klubb / Lag"
 msgid "Columns: bib_number, split_short_name, elapsed_time"
 msgstr "Kolumner: bib_number, split_short_name, elapsed_time"
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:361
+#: lib/bibtime_web/live/public/registration_live/new.ex:372
 #, elixir-autogen, elixir-format
 msgid "Complete Registration"
 msgstr "Slutför anmälan"
@@ -471,12 +472,13 @@ msgid "Dashboard"
 msgstr "Översikt"
 
 #: lib/bibtime/payments/payment_notifier.ex:56
+#: lib/bibtime/registration/registration_notifier.ex:162
 #: lib/bibtime_web/live/admin/payment_live/index.ex:113
 #: lib/bibtime_web/live/admin/race_live/edit.ex:50
 #: lib/bibtime_web/live/admin/race_live/index.ex:39
 #: lib/bibtime_web/live/admin/race_live/new.ex:126
 #: lib/bibtime_web/live/admin/race_live/show.ex:58
-#: lib/bibtime_web/live/public/race_live/show.ex:114
+#: lib/bibtime_web/live/public/race_live/show.ex:115
 #: lib/bibtime_web/live/public/registration_live/show.ex:108
 #, elixir-autogen, elixir-format
 msgid "Date"
@@ -533,10 +535,10 @@ msgstr "Klona inte"
 msgid "Draft"
 msgstr "Utkast"
 
-#: lib/bibtime_web/live/admin/participant_live/index.ex:489
+#: lib/bibtime_web/live/admin/participant_live/index.ex:493
 #: lib/bibtime_web/live/admin/race_live/index.ex:84
 #: lib/bibtime_web/live/admin/race_live/show.ex:511
-#: lib/bibtime_web/live/public/my_races_live/index.ex:96
+#: lib/bibtime_web/live/public/my_races_live/index.ex:98
 #, elixir-autogen, elixir-format
 msgid "Edit"
 msgstr "Redigera"
@@ -582,8 +584,8 @@ msgstr "Tid sedan start"
 #: lib/bibtime_web/live/admin/settings_live/edit.ex:193
 #: lib/bibtime_web/live/admin/user_live/index.ex:111
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:127
-#: lib/bibtime_web/live/public/registration_live/my_registration.ex:126
-#: lib/bibtime_web/live/public/registration_live/new.ex:306
+#: lib/bibtime_web/live/public/registration_live/my_registration.ex:128
+#: lib/bibtime_web/live/public/registration_live/new.ex:317
 #, elixir-autogen, elixir-format
 msgid "Email"
 msgstr "E-post"
@@ -655,7 +657,7 @@ msgstr "Avslutad"
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:72
 #: lib/bibtime_web/live/admin/participant_live/new.ex:73
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:112
-#: lib/bibtime_web/live/public/registration_live/new.ex:302
+#: lib/bibtime_web/live/public/registration_live/new.ex:313
 #, elixir-autogen, elixir-format
 msgid "First Name"
 msgstr "Förnamn"
@@ -665,7 +667,7 @@ msgstr "Förnamn"
 msgid "From Template"
 msgstr "Från mall"
 
-#: lib/bibtime_web/live/public/registration_live/my_registration.ex:180
+#: lib/bibtime_web/live/public/registration_live/my_registration.ex:182
 #, elixir-autogen, elixir-format
 msgid "Full Results"
 msgstr "Fullständiga resultat"
@@ -678,8 +680,8 @@ msgstr "Fullständiga resultat"
 #: lib/bibtime_web/live/admin/race_live/show.ex:374
 #: lib/bibtime_web/live/admin/race_live/show.ex:779
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:147
-#: lib/bibtime_web/live/public/registration_live/my_registration.ex:134
-#: lib/bibtime_web/live/public/registration_live/new.ex:322
+#: lib/bibtime_web/live/public/registration_live/my_registration.ex:136
+#: lib/bibtime_web/live/public/registration_live/new.ex:333
 #, elixir-autogen, elixir-format
 msgid "Gender"
 msgstr "Kön"
@@ -767,7 +769,7 @@ msgstr "Kioskvisning"
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:73
 #: lib/bibtime_web/live/admin/participant_live/new.ex:74
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:119
-#: lib/bibtime_web/live/public/registration_live/new.ex:303
+#: lib/bibtime_web/live/public/registration_live/new.ex:314
 #, elixir-autogen, elixir-format
 msgid "Last Name"
 msgstr "Efternamn"
@@ -777,7 +779,7 @@ msgstr "Efternamn"
 msgid "Last recorded"
 msgstr "Senast registrerad"
 
-#: lib/bibtime_web/live/public/profile_live/show.ex:117
+#: lib/bibtime_web/live/public/profile_live/show.ex:118
 #, elixir-autogen, elixir-format
 msgid "Leg Time"
 msgstr "Delsträcketid"
@@ -790,11 +792,12 @@ msgid "Leg Type"
 msgstr "Delsträcketyp"
 
 #: lib/bibtime/registration/registration_notifier.ex:72
+#: lib/bibtime/registration/registration_notifier.ex:152
 #: lib/bibtime_web/live/admin/race_live/edit.ex:51
 #: lib/bibtime_web/live/admin/race_live/index.ex:40
 #: lib/bibtime_web/live/admin/race_live/new.ex:127
 #: lib/bibtime_web/live/admin/race_live/show.ex:66
-#: lib/bibtime_web/live/public/race_live/show.ex:130
+#: lib/bibtime_web/live/public/race_live/show.ex:131
 #: lib/bibtime_web/live/public/registration_live/show.ex:114
 #, elixir-autogen, elixir-format
 msgid "Location"
@@ -925,7 +928,7 @@ msgstr "Min anmälan"
 #: lib/bibtime_web/live/admin/station_live/global_index.ex:153
 #: lib/bibtime_web/live/admin/timing_live/index.ex:394
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:221
-#: lib/bibtime_web/live/public/race_live/show.ex:332
+#: lib/bibtime_web/live/public/race_live/show.ex:333
 #: lib/bibtime_web/live/public/registration_live/show.ex:118
 #: lib/bibtime_web/live/public/results_live/index.ex:254
 #, elixir-autogen, elixir-format
@@ -965,7 +968,7 @@ msgstr "Inga kategorier ännu. Lägg till en nedan."
 msgid "No description provided."
 msgstr "Ingen beskrivning angiven."
 
-#: lib/bibtime_web/live/admin/participant_live/index.ex:536
+#: lib/bibtime_web/live/admin/participant_live/index.ex:540
 #, elixir-autogen, elixir-format
 msgid "No participants found"
 msgstr "Inga deltagare hittades"
@@ -1036,13 +1039,13 @@ msgstr "Annat"
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:574
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:595
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:612
-#: lib/bibtime_web/live/public/profile_live/show.ex:146
+#: lib/bibtime_web/live/public/profile_live/show.ex:147
 #: lib/bibtime_web/live/public/results_live/index.ex:155
 #, elixir-autogen, elixir-format
 msgid "Overall"
 msgstr "Totalt"
 
-#: lib/bibtime_web/live/public/registration_live/my_registration.ex:169
+#: lib/bibtime_web/live/public/registration_live/my_registration.ex:171
 #, elixir-autogen, elixir-format
 msgid "Overall rank:"
 msgstr "Total placering:"
@@ -1166,17 +1169,17 @@ msgstr "Senaste registreringar"
 msgid "Record"
 msgstr "Registrera"
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:47
+#: lib/bibtime_web/live/public/registration_live/new.ex:59
 #, elixir-autogen, elixir-format
 msgid "Register"
 msgstr "Anmäl"
 
-#: lib/bibtime_web/live/public/race_live/show.ex:268
+#: lib/bibtime_web/live/public/race_live/show.ex:269
 #, elixir-autogen, elixir-format
 msgid "Register Now"
 msgstr "Anmäl dig nu"
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:165
+#: lib/bibtime_web/live/public/registration_live/new.ex:176
 #, elixir-autogen, elixir-format
 msgid "Register for %{name}"
 msgstr "Anmäl dig till %{name}"
@@ -1192,7 +1195,7 @@ msgstr "Anmäl dig till ett lopp för att se dina resultat här."
 msgid "Registered"
 msgstr "Anmäld"
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:58
+#: lib/bibtime_web/live/public/registration_live/new.ex:70
 #, elixir-autogen, elixir-format
 msgid "Registration"
 msgstr "Anmälan"
@@ -1215,16 +1218,17 @@ msgstr "Anmälan bekräftad"
 msgid "Registration Open"
 msgstr "Anmälan öppen"
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:274
+#: lib/bibtime_web/live/public/registration_live/new.ex:285
 #, elixir-autogen, elixir-format
 msgid "Registration is closed"
 msgstr "Anmälan är stängd"
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:270
+#: lib/bibtime_web/live/public/registration_live/new.ex:281
 #, elixir-autogen, elixir-format
 msgid "Registration is not yet open"
 msgstr "Anmälan har inte öppnat ännu"
 
+#: lib/bibtime_web/controllers/checkout_controller.ex:21
 #: lib/bibtime_web/live/public/registration_live/my_registration.ex:43
 #, elixir-autogen, elixir-format
 msgid "Registration not found"
@@ -1235,7 +1239,7 @@ msgstr "Anmälan hittades inte"
 msgid "Registration updated"
 msgstr "Anmälan uppdaterad"
 
-#: lib/bibtime_web/live/public/my_races_live/index.ex:103
+#: lib/bibtime_web/live/public/my_races_live/index.ex:105
 #: lib/bibtime_web/live/public/photo_live/index.ex:212
 #: lib/bibtime_web/live/public/results_live/index.ex:39
 #, elixir-autogen, elixir-format
@@ -1281,7 +1285,7 @@ msgid "Search by name or bib..."
 msgstr "Sök på namn eller bib..."
 
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:137
-#: lib/bibtime_web/live/public/registration_live/new.ex:313
+#: lib/bibtime_web/live/public/registration_live/new.ex:324
 #, elixir-autogen, elixir-format
 msgid "Select a category"
 msgstr "Välj en kategori"
@@ -1294,7 +1298,7 @@ msgstr "Välj kategori"
 
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:80
 #: lib/bibtime_web/live/admin/participant_live/new.ex:81
-#: lib/bibtime_web/live/public/registration_live/new.ex:323
+#: lib/bibtime_web/live/public/registration_live/new.ex:334
 #, elixir-autogen, elixir-format
 msgid "Select gender"
 msgstr "Välj kön"
@@ -1324,24 +1328,24 @@ msgstr "Kortnamn"
 msgid "Slug"
 msgstr "Slug"
 
-#: lib/bibtime_web/components/layouts.ex:131
+#: lib/bibtime_web/components/layouts.ex:175
 #, elixir-autogen, elixir-format
 msgid "Something went wrong!"
 msgstr "Något gick fel!"
 
 #: lib/bibtime_web/live/admin/photo_live/index.ex:180
 #: lib/bibtime_web/live/admin/timing_live/index.ex:395
-#: lib/bibtime_web/live/public/profile_live/show.ex:116
+#: lib/bibtime_web/live/public/profile_live/show.ex:117
 #, elixir-autogen, elixir-format
 msgid "Split"
 msgstr "Split"
 
-#: lib/bibtime_web/live/public/profile_live/show.ex:110
+#: lib/bibtime_web/live/public/profile_live/show.ex:111
 #, elixir-autogen, elixir-format
 msgid "Split Breakdown"
 msgstr "Splitöversikt"
 
-#: lib/bibtime_web/live/public/registration_live/my_registration.ex:143
+#: lib/bibtime_web/live/public/registration_live/my_registration.ex:145
 #, elixir-autogen, elixir-format
 msgid "Split Times"
 msgstr "Splittider"
@@ -1366,7 +1370,7 @@ msgstr "Splittar"
 msgid "Splits and categories will be auto-created from the selected source."
 msgstr "Splittar och kategorier skapas automatiskt från den valda källan."
 
-#: lib/bibtime_web/live/public/race_live/show.ex:317
+#: lib/bibtime_web/live/public/race_live/show.ex:318
 #, elixir-autogen, elixir-format
 msgid "Start List"
 msgstr "Startlista"
@@ -1414,7 +1418,7 @@ msgstr "Simning"
 msgid "The link is invalid or it has expired."
 msgstr "Länken är ogiltig eller har gått ut."
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:272
+#: lib/bibtime_web/live/public/registration_live/new.ex:283
 #, elixir-autogen, elixir-format
 msgid "This race has already started"
 msgstr "Detta lopp har redan startat"
@@ -1448,13 +1452,13 @@ msgstr "För att se skickade e-postmeddelanden, besök"
 #: lib/bibtime/results/export.ex:72
 #: lib/bibtime/results/pdf_template.ex:111
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:240
-#: lib/bibtime_web/live/public/profile_live/show.ex:128
+#: lib/bibtime_web/live/public/profile_live/show.ex:129
 #: lib/bibtime_web/live/public/results_live/index.ex:292
 #, elixir-autogen, elixir-format
 msgid "Total"
 msgstr "Totalt"
 
-#: lib/bibtime_web/live/public/registration_live/my_registration.ex:162
+#: lib/bibtime_web/live/public/registration_live/my_registration.ex:164
 #, elixir-autogen, elixir-format
 msgid "Total Time"
 msgstr "Total tid"
@@ -1470,7 +1474,7 @@ msgstr "Växling"
 msgid "Triathlon"
 msgstr "Triathlon"
 
-#: lib/bibtime_web/live/admin/participant_live/index.ex:540
+#: lib/bibtime_web/live/admin/participant_live/index.ex:544
 #, elixir-autogen, elixir-format
 msgid "Try adjusting your search terms."
 msgstr "Försök att justera dina söktermer."
@@ -1478,7 +1482,7 @@ msgstr "Försök att justera dina söktermer."
 #: lib/bibtime_web/live/admin/race_live/index.ex:41
 #: lib/bibtime_web/live/admin/race_live/show.ex:296
 #: lib/bibtime_web/live/admin/race_live/show.ex:373
-#: lib/bibtime_web/live/public/race_live/show.ex:141
+#: lib/bibtime_web/live/public/race_live/show.ex:142
 #, elixir-autogen, elixir-format
 msgid "Type"
 msgstr "Typ"
@@ -1514,23 +1518,23 @@ msgid "User confirmed successfully."
 msgstr "Användare har bekräftats."
 
 #: lib/bibtime_web/live/admin/race_live/index.ex:78
-#: lib/bibtime_web/live/public/race_live/show.ex:252
-#: lib/bibtime_web/live/public/registration_live/new.ex:227
+#: lib/bibtime_web/live/public/race_live/show.ex:253
+#: lib/bibtime_web/live/public/registration_live/new.ex:238
 #, elixir-autogen, elixir-format
 msgid "View"
 msgstr "Visa"
 
-#: lib/bibtime_web/live/public/race_live/show.ex:287
+#: lib/bibtime_web/live/public/race_live/show.ex:288
 #, elixir-autogen, elixir-format
 msgid "View Results"
 msgstr "Visa resultat"
 
-#: lib/bibtime_web/live/public/profile_live/show.ex:245
+#: lib/bibtime_web/live/public/profile_live/show.ex:246
 #, elixir-autogen, elixir-format
 msgid "View full results"
 msgstr "Visa fullständiga resultat"
 
-#: lib/bibtime_web/components/layouts.ex:119
+#: lib/bibtime_web/components/layouts.ex:163
 #, elixir-autogen, elixir-format
 msgid "We can't find the internet"
 msgstr "Vi kan inte hitta internetanslutningen"
@@ -1588,7 +1592,7 @@ msgstr "Du måste logga in igen för att komma åt denna sida."
 msgid "You need to reauthenticate to perform sensitive actions on your account."
 msgstr "Du måste logga in igen för att utföra känsliga åtgärder på ditt konto."
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:339
+#: lib/bibtime_web/live/public/registration_live/new.ex:350
 #, elixir-autogen, elixir-format
 msgid "You'll be automatically placed in categories based on your info."
 msgstr "Du placeras automatiskt i kategorier baserat på dina uppgifter."
@@ -1598,7 +1602,8 @@ msgstr "Du placeras automatiskt i kategorier baserat på dina uppgifter."
 msgid "You're Registered!"
 msgstr "Du är anmäld!"
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:109
+#: lib/bibtime/registration/registration_notifier.ex:145
+#: lib/bibtime_web/live/public/registration_live/new.ex:120
 #, elixir-autogen, elixir-format
 msgid "You're registered!"
 msgstr "Du är anmäld!"
@@ -1754,7 +1759,7 @@ msgstr "Du kan inte ändra din egen roll."
 msgid "you"
 msgstr "du"
 
-#: lib/bibtime_web/live/public/profile_live/show.ex:269
+#: lib/bibtime_web/live/public/profile_live/show.ex:270
 #, elixir-autogen, elixir-format
 msgid "#%{rank} of %{total}"
 msgstr "#%{rank} av %{total}"
@@ -1795,7 +1800,7 @@ msgstr[0] "%{count} foto uppladdat."
 msgstr[1] "%{count} foton uppladdade."
 
 #: lib/bibtime_web/controllers/user_settings_html/edit.html.heex:9
-#: lib/bibtime_web/live/public/profile_live/show.ex:59
+#: lib/bibtime_web/live/public/profile_live/show.ex:60
 #, elixir-autogen, elixir-format
 msgid "Back to profile"
 msgstr "Tillbaka till profil"
@@ -1845,7 +1850,7 @@ msgstr "Filen är för stor (max 10MB)"
 msgid "Filter by bib number or name..."
 msgstr "Filtrera efter nummerlapp eller namn..."
 
-#: lib/bibtime_web/live/public/profile_live/show.ex:95
+#: lib/bibtime_web/live/public/profile_live/show.ex:96
 #, elixir-autogen, elixir-format
 msgid "Finished #%{rank}"
 msgstr "Slutade #%{rank}"
@@ -1855,12 +1860,12 @@ msgstr "Slutade #%{rank}"
 msgid "Invalid file type"
 msgstr "Ogiltig filtyp"
 
-#: lib/bibtime_web/live/public/profile_live/show.ex:38
+#: lib/bibtime_web/live/public/profile_live/show.ex:39
 #, elixir-autogen, elixir-format
 msgid "My Result"
 msgstr "Mitt resultat"
 
-#: lib/bibtime_web/live/public/profile_live/show.ex:209
+#: lib/bibtime_web/live/public/profile_live/show.ex:210
 #, elixir-autogen, elixir-format
 msgid "No photos available yet"
 msgstr "Inga foton tillgängliga ännu"
@@ -1911,18 +1916,18 @@ msgstr "Foton"
 msgid "Photos will appear here once they're uploaded."
 msgstr "Foton visas här när de har laddats upp."
 
-#: lib/bibtime_web/live/public/profile_live/show.ex:174
+#: lib/bibtime_web/live/public/profile_live/show.ex:175
 #, elixir-autogen, elixir-format
 msgid "Race Photos"
 msgstr "Tävlingsfoton"
 
-#: lib/bibtime_web/live/public/profile_live/show.ex:189
-#: lib/bibtime_web/live/public/profile_live/show.ex:231
+#: lib/bibtime_web/live/public/profile_live/show.ex:190
+#: lib/bibtime_web/live/public/profile_live/show.ex:232
 #, elixir-autogen, elixir-format
 msgid "Race photo"
 msgstr "Tävlingsfoto"
 
-#: lib/bibtime_web/live/public/profile_live/show.ex:141
+#: lib/bibtime_web/live/public/profile_live/show.ex:142
 #, elixir-autogen, elixir-format
 msgid "Rankings"
 msgstr "Placeringar"
@@ -1958,7 +1963,7 @@ msgstr "Ladda upp och tagga tävlingsfoton"
 msgid "Upload All"
 msgstr "Ladda upp alla"
 
-#: lib/bibtime_web/live/admin/participant_live/index.ex:607
+#: lib/bibtime_web/live/admin/participant_live/index.ex:611
 #: lib/bibtime_web/live/admin/photo_live/index.ex:360
 #: lib/bibtime_web/live/admin/timing_live/index.ex:664
 #, elixir-autogen, elixir-format
@@ -1975,17 +1980,17 @@ msgstr "Ladda upp tävlingsfoton och tagga dem med nummerlapp."
 msgid "Uploaded Photos"
 msgstr "Uppladdade foton"
 
-#: lib/bibtime_web/live/public/race_live/show.ex:295
+#: lib/bibtime_web/live/public/race_live/show.ex:296
 #, elixir-autogen, elixir-format
 msgid "View Photos"
 msgstr "Visa foton"
 
-#: lib/bibtime_web/live/public/profile_live/show.ex:200
+#: lib/bibtime_web/live/public/profile_live/show.ex:201
 #, elixir-autogen, elixir-format
 msgid "View all race photos"
 msgstr "Visa alla tävlingsfoton"
 
-#: lib/bibtime_web/live/public/profile_live/show.ex:44
+#: lib/bibtime_web/live/public/profile_live/show.ex:45
 #, elixir-autogen, elixir-format
 msgid "You don't have access to this result."
 msgstr "Du har inte åtkomst till detta resultat."
@@ -2011,6 +2016,7 @@ msgid "All Payments"
 msgstr "Alla betalningar"
 
 #: lib/bibtime/payments/payment_notifier.ex:55
+#: lib/bibtime/registration/registration_notifier.ex:161
 #: lib/bibtime_web/live/admin/payment_live/index.ex:111
 #, elixir-autogen, elixir-format
 msgid "Amount"
@@ -2023,6 +2029,7 @@ msgstr "Inväntar betalning"
 
 #: lib/bibtime/payments/payment_notifier.ex:59
 #: lib/bibtime/registration/registration_notifier.ex:73
+#: lib/bibtime/registration/registration_notifier.ex:153
 #, elixir-autogen, elixir-format
 msgid "Bib number"
 msgstr "Bibnummer"
@@ -2063,7 +2070,7 @@ msgstr "Early bird-deadline"
 msgid "Early bird fee (optional)"
 msgstr "Early bird-avgift (valfritt)"
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:252
+#: lib/bibtime_web/live/public/registration_live/new.ex:263
 #, elixir-autogen, elixir-format
 msgid "Early bird pricing until %{date}"
 msgstr "Early bird-pris till %{date}"
@@ -2073,7 +2080,7 @@ msgstr "Early bird-pris till %{date}"
 msgid "Entry Fee"
 msgstr "Startavgift"
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:243
+#: lib/bibtime_web/live/public/registration_live/new.ex:254
 #, elixir-autogen, elixir-format
 msgid "Entry fee"
 msgstr "Startavgift"
@@ -2091,7 +2098,8 @@ msgstr "Misslyckades"
 
 #: lib/bibtime/payments/payment_notifier.ex:50
 #: lib/bibtime/registration/registration_notifier.ex:67
-#: lib/bibtime/registration/registration_notifier.ex:109
+#: lib/bibtime/registration/registration_notifier.ex:147
+#: lib/bibtime/registration/registration_notifier.ex:193
 #, elixir-autogen, elixir-format
 msgid "Hi %{name},"
 msgstr "Hej %{name},"
@@ -2142,7 +2150,7 @@ msgstr "Betalningsöversikt & återbetalningar"
 msgid "Payment refunded successfully."
 msgstr "Betalningen har återbetalats."
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:101
+#: lib/bibtime_web/controllers/checkout_controller.ex:36
 #: lib/bibtime_web/live/public/registration_live/show.ex:186
 #, elixir-autogen, elixir-format
 msgid "Payment setup failed: %{reason}"
@@ -2157,7 +2165,7 @@ msgstr "Betalningar"
 
 #: lib/bibtime_web/live/admin/payment_live/index.ex:58
 #: lib/bibtime_web/live/admin/payment_live/index.ex:319
-#: lib/bibtime_web/live/public/race_live/show.ex:194
+#: lib/bibtime_web/live/public/race_live/show.ex:195
 #: lib/bibtime_web/live/public/registration_live/show.ex:191
 #, elixir-autogen, elixir-format
 msgid "Pending"
@@ -2169,6 +2177,7 @@ msgid "Pending Payment"
 msgstr "Inväntar betalning"
 
 #: lib/bibtime/payments/payment_notifier.ex:57
+#: lib/bibtime/registration/registration_notifier.ex:163
 #, elixir-autogen, elixir-format
 msgid "Reference"
 msgstr "Referens"
@@ -2190,7 +2199,7 @@ msgstr "Återbetalning misslyckades: %{reason}"
 msgid "Refunded"
 msgstr "Återbetald"
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:356
+#: lib/bibtime_web/live/public/registration_live/new.ex:367
 #, elixir-autogen, elixir-format
 msgid "Register & Pay %{amount}"
 msgstr "Anmäl & betala %{amount}"
@@ -2202,6 +2211,7 @@ msgstr "Kräv betalning vid registrering"
 
 #: lib/bibtime/payments/payment_notifier.ex:61
 #: lib/bibtime/registration/registration_notifier.ex:82
+#: lib/bibtime/registration/registration_notifier.ex:165
 #, elixir-autogen, elixir-format
 msgid "See you at the start line!"
 msgstr "Vi ses vid startlinjen!"
@@ -2612,6 +2622,7 @@ msgid "Token"
 msgstr "Token"
 
 #: lib/bibtime/registration/registration_notifier.ex:56
+#: lib/bibtime/registration/registration_notifier.ex:123
 #: lib/bibtime_web/live/admin/station_live/global_index.ex:231
 #, elixir-autogen, elixir-format
 msgid "Unassigned"
@@ -2662,12 +2673,12 @@ msgstr "Läsaren frånkopplad"
 msgid "Up: %{t}"
 msgstr "Upptid: %{t}"
 
-#: lib/bibtime_web/live/public/race_live/show.ex:83
+#: lib/bibtime_web/live/public/race_live/show.ex:84
 #, elixir-autogen, elixir-format
 msgid "%{count} / %{limit} Registered"
 msgstr "%{count} / %{limit} anmälda"
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:279
+#: lib/bibtime_web/live/public/registration_live/new.ex:290
 #, elixir-autogen, elixir-format
 msgid "All available spots have been taken. Check back later in case spots open up."
 msgstr "Alla platser är fyllda. Kolla tillbaka senare ifall platser öppnas upp."
@@ -2682,7 +2693,7 @@ msgstr "Lämna tomt för obegränsat antal anmälningar"
 msgid "Participant limit"
 msgstr "Deltagartak"
 
-#: lib/bibtime_web/live/public/race_live/show.ex:96
+#: lib/bibtime_web/live/public/race_live/show.ex:97
 #, elixir-autogen, elixir-format
 msgid "Registration Full"
 msgstr "Anmälan full"
@@ -2692,12 +2703,12 @@ msgstr "Anmälan full"
 msgid "Registration Settings"
 msgstr "Anmälningsinställningar"
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:268
+#: lib/bibtime_web/live/public/registration_live/new.ex:279
 #, elixir-autogen, elixir-format
 msgid "Registration is full"
 msgstr "Anmälan är full"
 
-#: lib/bibtime_web/live/public/race_live/show.ex:166
+#: lib/bibtime_web/live/public/race_live/show.ex:167
 #, elixir-autogen, elixir-format
 msgid "Registration is full. No more spots are available."
 msgstr "Anmälan är full. Inga fler platser finns tillgängliga."
@@ -2730,7 +2741,7 @@ msgstr "Kolumner: startnummer, namn, e-post (valfritt), kategori (valfritt), klu
 msgid "Drag a CSV file here or click to browse"
 msgstr "Dra en CSV-fil hit eller klicka för att välja"
 
-#: lib/bibtime_web/live/admin/participant_live/index.ex:604
+#: lib/bibtime_web/live/admin/participant_live/index.ex:608
 #: lib/bibtime_web/live/admin/timing_live/index.ex:661
 #, elixir-autogen, elixir-format
 msgid "File is too large (max 5MB)"
@@ -2759,7 +2770,7 @@ msgid_plural "Imported %{count} participants."
 msgstr[0] "Importerade %{count} deltagare."
 msgstr[1] "Importerade %{count} deltagare."
 
-#: lib/bibtime_web/live/admin/participant_live/index.ex:606
+#: lib/bibtime_web/live/admin/participant_live/index.ex:610
 #: lib/bibtime_web/live/admin/timing_live/index.ex:663
 #, elixir-autogen, elixir-format
 msgid "Must be a .csv file"
@@ -2771,7 +2782,7 @@ msgstr "Måste vara en .csv-fil"
 msgid "No file selected. Please choose a CSV file."
 msgstr "Ingen fil vald. Välj en CSV-fil."
 
-#: lib/bibtime_web/live/admin/participant_live/index.ex:605
+#: lib/bibtime_web/live/admin/participant_live/index.ex:609
 #: lib/bibtime_web/live/admin/timing_live/index.ex:662
 #, elixir-autogen, elixir-format
 msgid "Only one file allowed"
@@ -2904,7 +2915,7 @@ msgstr "Länken går till loppets anmälningssida när anmälan är öppen, anna
 msgid "Organizer contact (optional)"
 msgstr "Arrangörskontakt (valfritt)"
 
-#: lib/bibtime_web/components/layouts.ex:57
+#: lib/bibtime_web/components/layouts.ex:101
 #: lib/bibtime_web/components/layouts/admin.html.heex:104
 #, elixir-autogen, elixir-format
 msgid "Powered by"
@@ -2987,6 +2998,7 @@ msgid "Default language"
 msgstr "Standardspråk"
 
 #: lib/bibtime/payments/payment_notifier.ex:43
+#: lib/bibtime/registration/registration_notifier.ex:138
 #, elixir-autogen, elixir-format
 msgid "N/A"
 msgstr "Ej tillgänglig"
@@ -2997,12 +3009,15 @@ msgid "Or view your registration directly:"
 msgstr "Eller visa din anmälan direkt:"
 
 #: lib/bibtime/registration/registration_notifier.ex:71
+#: lib/bibtime/registration/registration_notifier.ex:151
 #, elixir-autogen, elixir-format
 msgid "Race date"
 msgstr "Loppdatum"
 
 #: lib/bibtime/registration/registration_notifier.ex:47
 #: lib/bibtime/registration/registration_notifier.ex:49
+#: lib/bibtime/registration/registration_notifier.ex:114
+#: lib/bibtime/registration/registration_notifier.ex:116
 #, elixir-autogen, elixir-format
 msgid "TBD"
 msgstr "Meddelas senare"
@@ -3013,6 +3028,7 @@ msgid "Used for first-time visitors and email notifications to users who have no
 msgstr "Används för nya besökare och e-postmeddelanden till användare som inte har valt ett språk."
 
 #: lib/bibtime/registration/registration_notifier.ex:69
+#: lib/bibtime/registration/registration_notifier.ex:149
 #, elixir-autogen, elixir-format
 msgid "You are registered for %{race}!"
 msgstr "Du är anmäld till %{race}!"
@@ -3047,36 +3063,36 @@ msgstr "Alla lopp"
 msgid "View Race"
 msgstr "Visa lopp"
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:182
+#: lib/bibtime_web/live/public/registration_live/new.ex:193
 #, elixir-autogen, elixir-format
 msgid "%{name} (%{email}) is already registered for this race."
 msgstr "%{name} (%{email}) är redan anmäld till det här loppet."
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:210
+#: lib/bibtime_web/live/public/registration_live/new.ex:221
 #, elixir-autogen, elixir-format
 msgid "Only continue if you're registering someone else."
 msgstr "Fortsätt bara om du anmäler någon annan."
 
-#: lib/bibtime_web/live/public/race_live/show.ex:280
+#: lib/bibtime_web/live/public/race_live/show.ex:281
 #, elixir-autogen, elixir-format
 msgid "Register another person"
 msgstr "Anmäl en till"
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:202
+#: lib/bibtime_web/live/public/registration_live/new.ex:213
 #, elixir-autogen, elixir-format
 msgid "You already have a registration for this race."
 msgid_plural "You already have %{count} registrations for this race."
 msgstr[0] "Du har redan en anmälan till det här loppet."
 msgstr[1] "Du har redan %{count} anmälningar till det här loppet."
 
-#: lib/bibtime_web/live/public/race_live/show.ex:219
+#: lib/bibtime_web/live/public/race_live/show.ex:220
 #, elixir-autogen, elixir-format
 msgid "You're registered for this race"
 msgid_plural "You have %{count} registrations for this race"
 msgstr[0] "Du är anmäld till det här loppet"
 msgstr[1] "Du har %{count} anmälningar till det här loppet"
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:188
+#: lib/bibtime_web/live/public/registration_live/new.ex:199
 #, elixir-autogen, elixir-format
 msgid "If you're registering a different person, change the name or email."
 msgstr "Om du anmäler en annan person, ändra namnet eller e-postadressen."
@@ -3121,43 +3137,68 @@ msgstr "Markerad som betald. Bekräftelsemejl skickat."
 msgid "Continue to Payment"
 msgstr "Fortsätt till betalning"
 
-#: lib/bibtime_web/live/public/race_live/show.ex:204
+#: lib/bibtime_web/live/public/race_live/show.ex:205
 #, elixir-autogen, elixir-format
 msgid "Finish Payment"
 msgstr "Slutför betalning"
 
-#: lib/bibtime/registration/registration_notifier.ex:115
+#: lib/bibtime/registration/registration_notifier.ex:199
 #, elixir-autogen, elixir-format
 msgid "Race page:"
 msgstr "Loppsida:"
 
-#: lib/bibtime/registration/registration_notifier.ex:107
+#: lib/bibtime/registration/registration_notifier.ex:191
 #, elixir-autogen, elixir-format
 msgid "Registration could not be completed"
 msgstr "Anmälan kunde inte slutföras"
 
-#: lib/bibtime/registration/registration_notifier.ex:113
+#: lib/bibtime/registration/registration_notifier.ex:197
 #, elixir-autogen, elixir-format
 msgid "The refund should appear on your statement within a few business days. We're sorry for the inconvenience."
 msgstr "Återbetalningen syns på ditt kontoutdrag inom några bankdagar. Vi beklagar besväret."
 
-#: lib/bibtime_web/live/public/registration_live/new.ex:121
+#: lib/bibtime_web/live/public/registration_live/new.ex:132
 #, elixir-autogen, elixir-format
 msgid "This race filled up while your hold was expired. Your previous payment attempt can't be resumed."
 msgstr "Loppet blev fullbokat medan din reservation hade gått ut. Ditt tidigare betalförsök kan inte återupptas."
 
-#: lib/bibtime/registration/registration_notifier.ex:111
+#: lib/bibtime/registration/registration_notifier.ex:195
 #, elixir-autogen, elixir-format
 msgid "Unfortunately %{race} filled up before your payment was processed, so your payment has been automatically refunded."
 msgstr "Tyvärr blev %{race} fullbokat innan din betalning gick igenom, så din betalning har återbetalats automatiskt."
 
-#: lib/bibtime_web/live/public/race_live/show.ex:182
+#: lib/bibtime_web/live/public/race_live/show.ex:183
 #: lib/bibtime_web/live/public/registration_live/show.ex:98
 #, elixir-autogen, elixir-format
 msgid "Your bib will be assigned once payment is received."
 msgstr "Ditt nummer tilldelas när betalningen har registrerats."
 
-#: lib/bibtime_web/live/public/race_live/show.ex:179
+#: lib/bibtime_web/live/public/race_live/show.ex:180
 #, elixir-autogen, elixir-format
 msgid "Your spot is held — finish payment to confirm"
 msgstr "Din plats är reserverad — slutför betalningen för att bekräfta"
+
+#: lib/bibtime_web/components/layouts.ex:79
+#, elixir-autogen, elixir-format
+msgid "Finish payment"
+msgstr "Slutför betalning"
+
+#: lib/bibtime/registration/registration_notifier.ex:160
+#, elixir-autogen, elixir-format
+msgid "Payment receipt"
+msgstr "Betalningskvitto"
+
+#: lib/bibtime/registration/registration_notifier.ex:155
+#, elixir-autogen, elixir-format
+msgid "View your registration:"
+msgstr "Visa din anmälan:"
+
+#: lib/bibtime_web/components/layouts.ex:69
+#, elixir-autogen, elixir-format
+msgid "You have %{count} pending payments — finish them to save your spots."
+msgstr "Du har %{count} obetalda anmälningar — slutför betalningarna för att behålla dina platser."
+
+#: lib/bibtime_web/components/layouts.ex:64
+#, elixir-autogen, elixir-format
+msgid "You have a pending payment for %{race} — finish payment to save your spot."
+msgstr "Du har en obetald anmälan till %{race} — slutför betalningen för att behålla din plats."

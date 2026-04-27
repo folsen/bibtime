@@ -354,16 +354,17 @@ defmodule Bibtime.Payments do
 
       require Logger
 
+      # One combined email: registration confirmation + receipt + bib number.
+      # The user already received an account-creation email at form submit
+      # time; sending a separate receipt would put them at three.
       try do
-        Bibtime.Registration.RegistrationNotifier.deliver_confirmation(participant, race)
+        Bibtime.Registration.RegistrationNotifier.deliver_paid_confirmation(
+          payment,
+          participant,
+          race
+        )
       rescue
-        e -> Logger.error("Registration confirmation email failed: #{inspect(e)}")
-      end
-
-      try do
-        Bibtime.Payments.PaymentNotifier.deliver_receipt(payment, participant, race)
-      rescue
-        e -> Logger.error("Payment receipt email failed: #{inspect(e)}")
+        e -> Logger.error("Paid-registration confirmation email failed: #{inspect(e)}")
       end
     end)
 

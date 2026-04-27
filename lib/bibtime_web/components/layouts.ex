@@ -43,6 +43,50 @@ defmodule BibtimeWeb.Layouts do
   end
 
   @doc """
+  Compact "you have a pending payment" banner for logged-in users with an
+  in-flight paid registration. Rendered globally from the root layout so a
+  user who bails on Stripe and lands on any page (home, my-races, profile)
+  has a one-click path back to finish.
+  """
+  attr :current_scope, :map, default: nil
+
+  def pending_payment_banner(%{current_scope: %{user: %{id: id}}} = assigns)
+      when not is_nil(id) do
+    pending = Bibtime.Participants.list_active_pending_for_user(id)
+    assigns = Phoenix.Component.assign(assigns, :pending, pending)
+
+    ~H"""
+    <div :if={@pending != []} class="bg-warning/10 border-b border-warning/30">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex flex-wrap items-center gap-3 text-sm">
+        <.icon name="hero-clock" class="size-4 text-warning shrink-0" />
+        <span class="text-base-content/80 flex-1 min-w-0">
+          <%= if length(@pending) == 1 do %>
+            {gettext(
+              "You have a pending payment for %{race} — finish payment to save your spot.",
+              race: hd(@pending).race.name
+            )}
+          <% else %>
+            {gettext("You have %{count} pending payments — finish them to save your spots.",
+              count: length(@pending)
+            )}
+          <% end %>
+        </span>
+        <a
+          :for={p <- @pending}
+          href={"/races/#{p.race.slug}/register/confirmation/#{p.id}"}
+          class="btn btn-warning btn-xs gap-1 shrink-0"
+        >
+          {if length(@pending) == 1, do: gettext("Finish payment"), else: p.race.name}
+          <.icon name="hero-arrow-right" class="size-3" />
+        </a>
+      </div>
+    </div>
+    """
+  end
+
+  def pending_payment_banner(assigns), do: ~H""
+
+  @doc """
   Subtle footer with "Powered by BibTime" link and optional organizer contact.
 
   Rendered globally by root.html.heex (skipped by the kiosk root layout).

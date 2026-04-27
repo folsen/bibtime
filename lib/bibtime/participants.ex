@@ -213,6 +213,26 @@ defmodule Bibtime.Participants do
   end
 
   @doc """
+  Returns a user's pending-payment participants whose hold is still valid,
+  preloaded with `:race`. Used to render a global "finish payment" banner
+  for logged-in users with an in-flight registration.
+  """
+  def list_active_pending_for_user(nil), do: []
+
+  def list_active_pending_for_user(user_id) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    Participant
+    |> where(
+      [p],
+      p.user_id == ^user_id and p.status == :pending_payment and p.hold_expires_at > ^now
+    )
+    |> preload(:race)
+    |> order_by([p], desc: p.inserted_at)
+    |> Repo.all()
+  end
+
+  @doc """
   Gets a participant by confirmation token.
   """
   def get_participant_by_token(token) do

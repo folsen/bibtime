@@ -40,8 +40,8 @@ defmodule Bibtime.Mailer.Previews do
       },
       %{
         key: "registration_confirmation",
-        title: "Registration confirmation",
-        description: "Sent after a participant registers for a race.",
+        title: "Free-race registration confirmation",
+        description: "Sent after a participant registers for a free race.",
         build: fn locale ->
           RegistrationNotifier.email_confirmation(
             sample_participant(locale),
@@ -50,9 +50,21 @@ defmodule Bibtime.Mailer.Previews do
         end
       },
       %{
+        key: "paid_confirmation",
+        title: "Paid-race registration confirmation + receipt",
+        description: "Combined email sent after a successful Stripe payment.",
+        build: fn locale ->
+          RegistrationNotifier.email_paid_confirmation(
+            sample_payment(),
+            sample_participant(locale),
+            sample_race()
+          )
+        end
+      },
+      %{
         key: "payment_receipt",
-        title: "Payment receipt",
-        description: "Sent after a successful Stripe payment.",
+        title: "Standalone payment receipt (unused on happy path)",
+        description: "Kept for admin-triggered receipts; not sent on the happy path.",
         build: fn locale ->
           PaymentNotifier.email_receipt(
             sample_payment(),

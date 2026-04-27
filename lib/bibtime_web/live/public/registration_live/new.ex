@@ -8,7 +8,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
   alias Bibtime.Participants.Participant
 
   @impl true
-  def mount(%{"slug" => slug}, _session, socket) do
+  def mount(%{"slug" => slug}, session, socket) do
     race =
       slug
       |> Races.get_race_by_slug!()
@@ -28,7 +28,19 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
         require_birth_date: requires_birth_date
       ]
 
-      prefill_attrs = prefill_attrs_for_user(socket.assigns.current_scope)
+      # Prefill order:
+      #   1. A pending-payment participant the user just submitted but
+      #      bailed on at Stripe (carried by `:pending_participant_id`
+      #      session cookie set by CheckoutController). This is the "back
+      #      button after Stripe" case — same race, same form.
+      #   2. The current user's most recent registration (cross-race
+      #      defaults, eg. name + birth date). Existing behavior.
+      prefill_attrs =
+        case prefill_attrs_for_pending_participant(session, race.id) do
+          %{} = attrs when map_size(attrs) > 0 -> attrs
+          _ -> prefill_attrs_for_user(socket.assigns.current_scope)
+        end
+
       changeset = Registration.change_registration(%Participant{}, prefill_attrs, reg_opts)
 
       fee_cents = Payments.effective_fee_cents(race)
@@ -61,7 +73,20 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
   end
 
   defp user_registrations(%{user: %{id: user_id}}, race_id) when not is_nil(user_id) do
-    Participants.list_user_participants_in_race(user_id, race_id)
+    now = DateTime.utc_now()
+
+    user_id
+    |> Participants.list_user_participants_in_race(race_id)
+    |> Enum.filter(fn p ->
+      # Show the "you already have a registration" banner only for rows
+      # the user can actually act on right now: a confirmed registration
+      # with a bib, or a still-active hold. A pending row with no bib and
+      # an expired hold is effectively abandoned — re-submitting the form
+      # will refresh it via the resume path, no need to warn them.
+      not is_nil(p.bib_number) or
+        (p.status == :pending_payment and p.hold_expires_at &&
+           DateTime.compare(p.hold_expires_at, now) == :gt)
+    end)
   end
 
   defp user_registrations(_, _), do: []
@@ -83,26 +108,12 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
     case Registration.register_participant(race, params) do
       {:ok, participant} ->
         if race.payment_required do
-          # Redirect to Stripe Checkout for paid races
-          base_url = BibtimeWeb.Endpoint.url()
-
-          success_url =
-            base_url <> ~p"/races/#{race.slug}/register/confirmation/#{participant.id}"
-
-          cancel_url = base_url <> ~p"/races/#{race.slug}/register"
-
-          case Payments.create_checkout_session(participant, race, success_url, cancel_url) do
-            {:ok, checkout_url} ->
-              {:noreply, redirect(socket, external: checkout_url)}
-
-            {:error, reason} ->
-              {:noreply,
-               socket
-               |> put_flash(:error, gettext("Payment setup failed: %{reason}", reason: reason))
-               |> push_navigate(
-                 to: ~p"/races/#{race.slug}/register/confirmation/#{participant.id}"
-               )}
-          end
+          # Full HTTP redirect through CheckoutController so the session
+          # cookie can be written before the user lands on Stripe — that
+          # cookie is what lets the form pre-fill itself if the user hits
+          # the browser back button after abandoning checkout.
+          {:noreply,
+           redirect(socket, to: ~p"/races/#{race.slug}/checkout/#{participant.id}")}
         else
           {:noreply,
            socket
@@ -371,6 +382,35 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
   defp duplicate_display_name(%Participant{first_name: first, last_name: last}) do
     String.trim("#{first} #{last || ""}")
   end
+
+  # Hits when CheckoutController set `:pending_participant_id` on the way to
+  # Stripe and the user is now back on the form (typically via browser back).
+  # We only honour the cookie if the participant belongs to *this* race and
+  # is still in :pending_payment — otherwise it's stale and we ignore it.
+  defp prefill_attrs_for_pending_participant(%{"pending_participant_id" => id}, race_id)
+       when is_integer(id) do
+    case Participants.get_participant!(id) do
+      %Participant{race_id: ^race_id, status: :pending_payment} = p ->
+        %{
+          "first_name" => p.first_name,
+          "last_name" => p.last_name,
+          "email" => p.email,
+          "gender" => if(p.gender, do: Atom.to_string(p.gender)),
+          "birth_date" => if(p.birth_date, do: Date.to_iso8601(p.birth_date)),
+          "club" => p.club,
+          "race_category_id" => p.race_category_id
+        }
+        |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+        |> Map.new()
+
+      _ ->
+        %{}
+    end
+  rescue
+    Ecto.NoResultsError -> %{}
+  end
+
+  defp prefill_attrs_for_pending_participant(_session, _race_id), do: %{}
 
   defp prefill_attrs_for_user(%{user: nil}), do: %{}
   defp prefill_attrs_for_user(nil), do: %{}
