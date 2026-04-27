@@ -3,10 +3,16 @@ defmodule BibtimeWeb.Public.MyRacesLive.Index do
 
   alias Bibtime.Participants
 
+  @concluded_race_statuses [:finished, :archived]
+
   @impl true
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
-    participants = Participants.list_participants_for_user(user.id)
+
+    participants =
+      user.id
+      |> Participants.list_participants_for_user()
+      |> Enum.sort_by(& &1.race.date, &sort_dates_desc/2)
 
     {:ok,
      assign(socket,
@@ -14,6 +20,14 @@ defmodule BibtimeWeb.Public.MyRacesLive.Index do
        page_title: gettext("My Races")
      )}
   end
+
+  # Sort by race date descending; nil dates go to the bottom.
+  defp sort_dates_desc(nil, nil), do: true
+  defp sort_dates_desc(nil, _), do: false
+  defp sort_dates_desc(_, nil), do: true
+  defp sort_dates_desc(a, b), do: Date.compare(a, b) != :lt
+
+  defp race_concluded?(race), do: race.status in @concluded_race_statuses
 
   @impl true
   def render(assigns) do
@@ -100,11 +114,20 @@ defmodule BibtimeWeb.Public.MyRacesLive.Index do
                 {gettext("Edit")}
               </.link>
               <.link
+                :if={race_concluded?(participant.race)}
                 navigate={~p"/races/#{participant.race.slug}/results"}
                 class="btn btn-outline btn-primary btn-sm gap-1.5 flex-1 sm:flex-none"
               >
                 <.icon name="hero-trophy" class="size-4" />
                 {gettext("Results")}
+              </.link>
+              <.link
+                :if={!race_concluded?(participant.race)}
+                navigate={~p"/races/#{participant.race.slug}"}
+                class="btn btn-outline btn-primary btn-sm gap-1.5 flex-1 sm:flex-none"
+              >
+                <.icon name="hero-list-bullet" class="size-4" />
+                {gettext("Start List")}
               </.link>
             </div>
           </div>

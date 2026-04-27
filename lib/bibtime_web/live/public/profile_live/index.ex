@@ -4,38 +4,43 @@ defmodule BibtimeWeb.Public.ProfileLive.Index do
   alias Bibtime.Results
   alias Bibtime.Results.Calculator
 
+  @concluded_statuses [:finished, :dns, :dnf, :dsq]
+
   @impl true
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
     race_results = Results.get_user_race_results(user.id)
 
-    stats = compute_stats(race_results)
+    {concluded, upcoming} = Enum.split_with(race_results, &concluded?/1)
+    upcoming = Enum.sort_by(upcoming, & &1.race.date, Date)
+
+    stats = compute_stats(concluded)
 
     {:ok,
      assign(socket,
-       race_results: race_results,
+       concluded: concluded,
+       upcoming: upcoming,
        stats: stats,
        page_title: gettext("My Profile")
      )}
   end
 
-  defp compute_stats(race_results) do
-    total = length(race_results)
+  defp concluded?(%{result: %{status: status}}) when status in @concluded_statuses, do: true
+  defp concluded?(_), do: false
 
-    finished =
-      Enum.count(race_results, fn entry ->
-        entry.result && entry.result.status == :finished
-      end)
+  defp compute_stats(concluded) do
+    total = length(concluded)
+
+    finished = Enum.count(concluded, fn e -> e.result.status == :finished end)
 
     podiums =
-      Enum.count(race_results, fn entry ->
-        entry.result && entry.result.status == :finished && entry.result.rank != nil &&
-          entry.result.rank <= 3
+      Enum.count(concluded, fn e ->
+        e.result.status == :finished && e.result.rank != nil && e.result.rank <= 3
       end)
 
-    dns = Enum.count(race_results, fn e -> e.result && e.result.status == :dns end)
-    dnf = Enum.count(race_results, fn e -> e.result && e.result.status == :dnf end)
-    dsq = Enum.count(race_results, fn e -> e.result && e.result.status == :dsq end)
+    dns = Enum.count(concluded, fn e -> e.result.status == :dns end)
+    dnf = Enum.count(concluded, fn e -> e.result.status == :dnf end)
+    dsq = Enum.count(concluded, fn e -> e.result.status == :dsq end)
 
     %{
       total: total,
@@ -86,19 +91,23 @@ defmodule BibtimeWeb.Public.ProfileLive.Index do
       <h2 class="text-xl font-semibold text-base-content mb-4">{gettext("Race History")}</h2>
 
       <div
-        :if={@race_results == []}
+        :if={@concluded == []}
         class="rounded-xl bg-base-200/60 border border-base-300/50 px-8 py-12 text-center"
       >
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-base-300/50 mb-4">
           <.icon name="hero-clock" class="size-8 text-base-content/30" />
         </div>
-        <h3 class="text-xl font-semibold text-base-content mb-2">{gettext("No races yet")}</h3>
-        <p class="text-base-content/50">{gettext("Register for a race to see your results here.")}</p>
+        <h3 class="text-xl font-semibold text-base-content mb-2">
+          {gettext("No finished races yet")}
+        </h3>
+        <p class="text-base-content/50">
+          {gettext("Your past race results will appear here.")}
+        </p>
       </div>
 
-      <div :if={@race_results != []} class="space-y-3">
+      <div :if={@concluded != []} class="space-y-3">
         <div
-          :for={entry <- @race_results}
+          :for={entry <- @concluded}
           class="rounded-xl bg-base-100 border border-base-300/50 shadow-sm overflow-hidden"
         >
           <.link
@@ -145,9 +154,66 @@ defmodule BibtimeWeb.Public.ProfileLive.Index do
           </.link>
         </div>
       </div>
+
+      <%!-- Upcoming races --%>
+      <div :if={@upcoming != []} class="mt-10">
+        <h2 class="text-xl font-semibold text-base-content mb-4">{gettext("Upcoming Races")}</h2>
+        <div class="space-y-3">
+          <div
+            :for={entry <- @upcoming}
+            class="rounded-xl bg-base-100 border border-base-300/50 shadow-sm overflow-hidden"
+          >
+            <.link
+              navigate={~p"/races/#{entry.race.slug}"}
+              class="w-full px-5 py-4 flex items-center gap-4 hover:bg-base-200/40 transition-colors text-left block"
+            >
+              <div class={[
+                "flex items-center justify-center w-12 h-12 rounded-2xl shrink-0 border",
+                upcoming_badge_class(entry.participant.status)
+              ]}>
+                <span
+                  :if={entry.participant.bib_number}
+                  class="text-lg font-bold font-mono"
+                >
+                  {entry.participant.bib_number}
+                </span>
+                <.icon
+                  :if={is_nil(entry.participant.bib_number)}
+                  name="hero-clock"
+                  class="size-5"
+                />
+              </div>
+
+              <div class="flex-1 min-w-0">
+                <h3 class="font-semibold text-base-content truncate">{entry.race.name}</h3>
+                <div class="flex flex-wrap items-center gap-2 mt-0.5">
+                  <span :if={entry.race.date} class="text-sm text-base-content/50">
+                    {format_date(entry.race.date)}
+                  </span>
+                  <span
+                    :if={entry.participant.race_category}
+                    class="inline-flex items-center rounded-full bg-primary/8 text-primary/80 px-2 py-0.5 text-xs font-medium"
+                  >
+                    {entry.participant.race_category.name}
+                  </span>
+                  <span class="inline-flex items-center rounded-full bg-base-content/10 text-base-content/60 px-2 py-0.5 text-xs font-semibold">
+                    {format_participant_status(entry.participant.status)}
+                  </span>
+                </div>
+              </div>
+
+              <.icon name="hero-chevron-right" class="size-5 text-base-content/30 shrink-0" />
+            </.link>
+          </div>
+        </div>
+      </div>
     </div>
     """
   end
+
+  defp upcoming_badge_class(:racing), do: "bg-info/10 border-info/20 text-info"
+  defp upcoming_badge_class(:checked_in), do: "bg-success/10 border-success/20 text-success"
+  defp upcoming_badge_class(_), do: "bg-primary/10 border-primary/20 text-primary"
 
   defp stat_card(assigns) do
     ~H"""
