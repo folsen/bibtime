@@ -44,62 +44,64 @@ defmodule BibtimeWeb.Public.MyRacesLive.Index do
           :for={participant <- @participants}
           class="rounded-xl bg-base-100 border border-base-300/50 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
         >
-          <div class="px-6 py-5 flex items-center gap-4">
-            <div class={[
-              "flex items-center justify-center w-14 h-14 rounded-2xl border shrink-0",
-              if(participant.bib_number,
-                do: "bg-primary/10 border-primary/20",
-                else: "bg-warning/10 border-warning/20"
-              )
-            ]}>
-              <span
-                :if={participant.bib_number}
-                class="text-xl font-bold font-mono text-primary"
-              >
-                {participant.bib_number}
-              </span>
-              <.icon
-                :if={is_nil(participant.bib_number)}
-                name="hero-clock"
-                class="size-6 text-warning"
-              />
-            </div>
-
-            <div class="flex-1 min-w-0">
-              <h2 class="text-lg font-semibold text-base-content truncate">
-                {participant.race.name}
-              </h2>
-              <div class="flex flex-wrap items-center gap-2 mt-1">
-                <span :if={participant.race.date} class="text-sm text-base-content/50">
-                  {format_date(participant.race.date)}
-                </span>
+          <div class="px-4 sm:px-6 py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+              <div class={[
+                "flex items-center justify-center w-14 h-14 rounded-2xl border shrink-0",
+                if(participant.bib_number,
+                  do: "bg-primary/10 border-primary/20",
+                  else: "bg-warning/10 border-warning/20"
+                )
+              ]}>
                 <span
-                  :if={participant.race_category}
-                  class="inline-flex items-center rounded-full bg-primary/8 text-primary/80 px-2 py-0.5 text-xs font-medium"
+                  :if={participant.bib_number}
+                  class="text-xl font-bold font-mono text-primary"
                 >
-                  {participant.race_category.name}
+                  {participant.bib_number}
                 </span>
-                <span class={[
-                  "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold",
-                  status_class(participant.status)
-                ]}>
-                  {format_participant_status(participant.status)}
-                </span>
+                <.icon
+                  :if={is_nil(participant.bib_number)}
+                  name="hero-clock"
+                  class="size-6 text-warning"
+                />
+              </div>
+
+              <div class="flex-1 min-w-0">
+                <h2 class="text-lg font-semibold text-base-content truncate">
+                  {participant.race.name}
+                </h2>
+                <div class="flex flex-wrap items-center gap-2 mt-1">
+                  <span :if={participant.race.date} class="text-sm text-base-content/50">
+                    {format_date(participant.race.date)}
+                  </span>
+                  <span
+                    :if={participant.race_category}
+                    class="inline-flex items-center rounded-full bg-primary/8 text-primary/80 px-2 py-0.5 text-xs font-medium"
+                  >
+                    {participant.race_category.name}
+                  </span>
+                  <span class={[
+                    "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold",
+                    status_class(participant.status)
+                  ]}>
+                    {format_participant_status(participant.status)}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div class="flex items-center gap-2 shrink-0">
+            <div class="flex items-center gap-2 sm:shrink-0">
               <.link
                 :if={participant.race.status in [:registration_open, :registration_closed]}
                 navigate={~p"/my-races/#{participant.id}/edit"}
-                class="btn btn-outline btn-sm gap-1.5"
+                class="btn btn-outline btn-sm gap-1.5 flex-1 sm:flex-none"
               >
                 <.icon name="hero-pencil-square" class="size-4" />
                 {gettext("Edit")}
               </.link>
               <.link
                 navigate={~p"/races/#{participant.race.slug}/results"}
-                class="btn btn-outline btn-primary btn-sm gap-1.5"
+                class="btn btn-outline btn-primary btn-sm gap-1.5 flex-1 sm:flex-none"
               >
                 <.icon name="hero-trophy" class="size-4" />
                 {gettext("Results")}
