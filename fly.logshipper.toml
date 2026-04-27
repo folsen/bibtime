@@ -1,0 +1,33 @@
+# Fly.io configuration for the BibTime log shipper.
+#
+# This is a sidecar app that consumes Fly's org-wide NATS log feed and
+# forwards it to Better Stack. It runs the official superfly/fly-log-shipper
+# image (Vector under the hood) and has no application code of its own.
+#
+# Secrets (set via `fly secrets set -a bibtime-log-shipper`):
+#   ORG                          Fly org slug
+#   ACCESS_TOKEN                 readonly Fly token (`fly tokens create readonly $ORG`)
+#   BETTER_STACK_SOURCE_TOKEN    from Better Stack source setup page
+#   BETTER_STACK_INGESTING_HOST  e.g. s12345.eu-nbg-2.betterstackdata.com
+#
+# Deploy: fly deploy -c fly.logshipper.toml
+# See DEPLOY.md → "Log aggregation (Better Stack)" for the full setup.
+app = "bibtime-log-shipper"
+primary_region = "arn"
+
+[build]
+  image = "flyio/log-shipper:latest"
+
+# The shipper is a long-running NATS consumer with no inbound HTTP, so
+# we deliberately omit [http_service]. With an HTTP service Fly schedules
+# the machine in demand-start mode and immediately stops it when no
+# request arrives — auto_stop_machines = "off" only blocks the idle
+# autostop, not the deploy-time scheduler. Without [http_service], Fly
+# treats this as a worker and keeps the machine running.
+[[restart]]
+  policy = "always"
+
+[[vm]]
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1

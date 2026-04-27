@@ -157,41 +157,36 @@ AI agents can query through `scripts/logs.sh`.
    the **ingesting host** (e.g. `s12345.eu-nbg-2.betterstackdata.com`)
    from the source's setup page.
 
-2. **Launch a log-shipper Fly app** in a *separate working directory* —
-   `fly launch` generates a `fly.toml` in the cwd and would otherwise
-   clobber this repo's `fly.toml`:
+2. **Create the shipper app on Fly** (no `fly launch` — we ship a
+   committed config at `fly.logshipper.toml`, so the app just needs to
+   exist on Fly's side first):
 
    ```sh
-   mkdir -p ~/code/bibtime-log-shipper && cd ~/code/bibtime-log-shipper
-   fly launch --no-deploy --image flyio/log-shipper:latest \
-     --name bibtime-log-shipper          # repeat with -staging suffix
-   ```
-
-   Edit the generated `fly.toml` for the shipper to expose the internal
-   metrics port:
-
-   ```toml
-   [[services]]
-     internal_port = 8686
+   fly apps create bibtime-log-shipper
    ```
 
 3. **Set secrets on the shipper app:**
 
    ```sh
-   ORG=personal   # your Fly org slug
+   ORG=personal   # your Fly org slug — `fly orgs list`
    fly secrets set -a bibtime-log-shipper \
      ORG=$ORG \
      ACCESS_TOKEN=$(fly tokens create readonly $ORG | cut -d' ' -f2) \
      BETTER_STACK_SOURCE_TOKEN=<source token> \
      BETTER_STACK_INGESTING_HOST=<ingesting host without https://>
 
-   fly deploy -a bibtime-log-shipper
+   fly deploy -c fly.logshipper.toml
    ```
 
-   Repeat with `-a bibtime-log-shipper-staging` and the staging source's
-   token/host. The shipper consumes Fly's NATS log feed for the entire
-   org, so a single shipper app covers all your apps; create separate
-   shippers per env only if you want logs split by Better Stack source.
+   The shipper consumes Fly's NATS log feed for the entire org, so one
+   shipper covers prod and staging. Create a second shipper (and a
+   second Better Stack source) only if you want logs split per env.
+
+   **Why a separate config file:** the shipper's `app =` differs from
+   the Phoenix app, and it runs a pre-built image with no `[build]`
+   context from this repo. Keeping it in `fly.logshipper.toml` lets the
+   config live alongside `fly.toml` / `fly.staging.toml` without the
+   risk of `fly launch` clobbering the production config.
 
 4. **Verify** logs land in Better Stack — open the source's Live Tail.
    You should see `bibtime`'s Phoenix output within a few seconds.

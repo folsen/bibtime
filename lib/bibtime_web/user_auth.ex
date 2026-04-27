@@ -4,6 +4,8 @@ defmodule BibtimeWeb.UserAuth do
   import Plug.Conn
   import Phoenix.Controller
 
+  require Logger
+
   use Gettext, backend: BibtimeWeb.Gettext
 
   alias Bibtime.Accounts
@@ -68,15 +70,29 @@ defmodule BibtimeWeb.UserAuth do
   Will reissue the session token if it is older than the configured age.
   """
   def fetch_current_scope_for_user(conn, _opts) do
-    with {token, conn} <- ensure_user_token(conn),
-         {user, token_inserted_at} <- Accounts.get_user_by_session_token(token) do
-      conn
-      |> assign(:current_scope, Scope.for_user(user))
-      |> maybe_reissue_user_session_token(user, token_inserted_at)
-    else
-      nil -> assign(conn, :current_scope, Scope.for_user(nil))
-    end
+    conn =
+      with {token, conn} <- ensure_user_token(conn),
+           {user, token_inserted_at} <- Accounts.get_user_by_session_token(token) do
+        conn
+        |> assign(:current_scope, Scope.for_user(user))
+        |> maybe_reissue_user_session_token(user, token_inserted_at)
+      else
+        nil -> assign(conn, :current_scope, Scope.for_user(nil))
+      end
+
+    put_user_id_in_logger(conn.assigns.current_scope)
+    conn
   end
+
+  # Tag the current process's Logger metadata with the authenticated user
+  # so every log line from that request (HTTP plug or LiveView) carries
+  # `user_id=<id>`. Anonymous traffic gets no tag at all rather than
+  # `user_id=nil`. Picked up by Better Stack via the prod metadata list
+  # in config/prod.exs.
+  defp put_user_id_in_logger(%Scope{user: %User{id: id}}),
+    do: Logger.metadata(user_id: id)
+
+  defp put_user_id_in_logger(_), do: :ok
 
   defp ensure_user_token(conn) do
     if token = get_session(conn, :user_token) do
@@ -255,6 +271,7 @@ defmodule BibtimeWeb.UserAuth do
   """
   def on_mount(:assign_current_scope, _params, session, socket) do
     socket = mount_current_scope(socket, session)
+    put_user_id_in_logger(socket.assigns.current_scope)
     set_locale_from_session(session)
     socket = assign_site_settings(socket)
     {:cont, socket}
@@ -262,6 +279,7 @@ defmodule BibtimeWeb.UserAuth do
 
   def on_mount(:require_authenticated_user, _params, session, socket) do
     socket = mount_current_scope(socket, session)
+    put_user_id_in_logger(socket.assigns.current_scope)
     set_locale_from_session(session)
     socket = assign_site_settings(socket)
 

@@ -11,7 +11,10 @@
 #   scripts/logs.sh search <text> [N]       rows containing <text> (case-insensitive)
 #   scripts/logs.sh recent <minutes> [N]    rows from the last <minutes> minutes
 #   scripts/logs.sh request <request_id>    rows for a specific Phoenix request_id
+#   scripts/logs.sh schema                  list columns available on the source table
 #   scripts/logs.sh sql "<SQL>"             run a raw ClickHouse query
+#
+# Set BETTERSTACK_DEBUG=1 to echo the SQL to stderr before each request.
 #
 # Env vars (load from .env or export before running):
 #   BETTERSTACK_QUERY_HOST       e.g. eu-nbg-2-connect.betterstackdata.com
@@ -54,12 +57,26 @@ usage() {
 
 run_sql() {
   local sql="$1"
-  curl -fsS \
+  if [ "${BETTERSTACK_DEBUG:-}" = "1" ]; then
+    echo "SQL: $sql" >&2
+  fi
+  # No -f: we want to see ClickHouse's error body on 4xx/5xx, not just exit code.
+  local response status
+  response=$(curl -sS -w '\n__HTTP_STATUS__%{http_code}' \
     -u "${BETTERSTACK_QUERY_USERNAME}:${BETTERSTACK_QUERY_PASSWORD}" \
     -H 'Content-type: text/plain' \
     -X POST \
     "https://${BETTERSTACK_QUERY_HOST}/?output_format_pretty_row_numbers=0" \
-    --data-binary "$sql"
+    --data-binary "$sql")
+  status="${response##*__HTTP_STATUS__}"
+  body="${response%__HTTP_STATUS__*}"
+  printf '%s' "$body"
+  if [ "$status" -ge 400 ]; then
+    echo "" >&2
+    echo "HTTP $status from ${BETTERSTACK_QUERY_HOST}" >&2
+    echo "SQL: $sql" >&2
+    return 1
+  fi
 }
 
 cmd="${1:-}"
@@ -67,12 +84,12 @@ case "$cmd" in
   tail)
     require_env
     n="${2:-50}"
-    run_sql "SELECT dt, level, raw FROM remote(${BETTERSTACK_QUERY_TABLE}) ORDER BY dt DESC LIMIT ${n} FORMAT JSONEachRow"
+    run_sql "SELECT dt, raw FROM remote(${BETTERSTACK_QUERY_TABLE}) ORDER BY dt DESC LIMIT ${n} FORMAT JSONEachRow"
     ;;
   errors)
     require_env
     n="${2:-50}"
-    run_sql "SELECT dt, level, raw FROM remote(${BETTERSTACK_QUERY_TABLE}) WHERE level IN ('error','critical','alert','emergency') OR raw ILIKE '%[error]%' OR raw ILIKE '%** (%' ORDER BY dt DESC LIMIT ${n} FORMAT JSONEachRow"
+    run_sql "SELECT dt, raw FROM remote(${BETTERSTACK_QUERY_TABLE}) WHERE raw ILIKE '%[error]%' OR raw ILIKE '%** (%' OR raw ILIKE '%exception%' ORDER BY dt DESC LIMIT ${n} FORMAT JSONEachRow"
     ;;
   search)
     require_env
@@ -80,20 +97,24 @@ case "$cmd" in
     needle="$2"
     n="${3:-50}"
     safe_needle="${needle//\'/\'\'}"
-    run_sql "SELECT dt, level, raw FROM remote(${BETTERSTACK_QUERY_TABLE}) WHERE raw ILIKE '%${safe_needle}%' ORDER BY dt DESC LIMIT ${n} FORMAT JSONEachRow"
+    run_sql "SELECT dt, raw FROM remote(${BETTERSTACK_QUERY_TABLE}) WHERE raw ILIKE '%${safe_needle}%' ORDER BY dt DESC LIMIT ${n} FORMAT JSONEachRow"
     ;;
   recent)
     require_env
     [ -n "${2:-}" ] || usage
     minutes="$2"
     n="${3:-200}"
-    run_sql "SELECT dt, level, raw FROM remote(${BETTERSTACK_QUERY_TABLE}) WHERE dt >= now() - INTERVAL ${minutes} MINUTE ORDER BY dt DESC LIMIT ${n} FORMAT JSONEachRow"
+    run_sql "SELECT dt, raw FROM remote(${BETTERSTACK_QUERY_TABLE}) WHERE dt >= now() - INTERVAL ${minutes} MINUTE ORDER BY dt DESC LIMIT ${n} FORMAT JSONEachRow"
     ;;
   request)
     require_env
     [ -n "${2:-}" ] || usage
     rid="${2//\'/\'\'}"
-    run_sql "SELECT dt, level, raw FROM remote(${BETTERSTACK_QUERY_TABLE}) WHERE raw ILIKE '%request_id=${rid}%' ORDER BY dt ASC LIMIT 500 FORMAT JSONEachRow"
+    run_sql "SELECT dt, raw FROM remote(${BETTERSTACK_QUERY_TABLE}) WHERE raw ILIKE '%request_id=${rid}%' ORDER BY dt ASC LIMIT 500 FORMAT JSONEachRow"
+    ;;
+  schema)
+    require_env
+    run_sql "DESCRIBE TABLE remote(${BETTERSTACK_QUERY_TABLE}) FORMAT JSONEachRow"
     ;;
   sql)
     require_env
