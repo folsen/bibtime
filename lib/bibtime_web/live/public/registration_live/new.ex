@@ -376,6 +376,12 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
                 {gettext("Complete Registration")}
               <% end %>
             </button>
+            <p
+              :if={@race.payment_required}
+              class="mt-2 text-xs text-base-content/50 text-center"
+            >
+              {gettext("Your spot is held for 30 minutes. Finish payment within that time or it's released.")}
+            </p>
           </div>
         </.form>
       </div>

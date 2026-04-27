@@ -3198,3 +3198,8 @@ msgstr ""
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Log in here:"
 msgstr ""
+
+#: lib/bibtime_web/live/public/registration_live/new.ex:383
+#, elixir-autogen, elixir-format
+msgid "Your spot is held for 30 minutes. Finish payment within that time or it's released."
+msgstr ""

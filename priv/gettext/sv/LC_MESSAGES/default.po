@@ -3207,3 +3207,8 @@ msgstr "Ett konto har skapats åt dig på bibtime. Med kontot kan du se dina anm
 #, elixir-autogen, elixir-format
 msgid "Log in here:"
 msgstr "Logga in här:"
+
+#: lib/bibtime_web/live/public/registration_live/new.ex:383
+#, elixir-autogen, elixir-format
+msgid "Your spot is held for 30 minutes. Finish payment within that time or it's released."
+msgstr "Din plats är reserverad i 30 minuter. Slutför betalningen inom den tiden, annars släpps platsen."
