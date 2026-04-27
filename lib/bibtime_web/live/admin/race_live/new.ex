@@ -110,7 +110,7 @@ defmodule BibtimeWeb.Admin.RaceLive.New do
               type="text"
               label={gettext("Name")}
               required
-              phx-debounce="300"
+              phx-debounce="blur"
             />
             <.input
               field={@form[:slug]}
