@@ -12,11 +12,14 @@ defmodule BibtimeWeb.CheckoutController do
 
   alias Bibtime.{Participants, Payments, Races}
 
-  def start(conn, %{"slug" => slug, "participant_id" => participant_id}) do
+  def start(conn, %{"slug" => slug, "token" => token}) do
     race = Races.get_visible_race_by_slug!(slug, conn.assigns.current_scope)
-    participant = Participants.get_participant!(participant_id)
+    participant = Participants.get_participant_by_token(token)
 
-    if participant.race_id != race.id do
+    # Address the participant by the unguessable confirmation token so the
+    # endpoint can't be enumerated to spin up Stripe sessions for arbitrary
+    # registrations.
+    if is_nil(participant) or participant.race_id != race.id do
       conn
       |> put_flash(:error, gettext("Registration not found"))
       |> redirect(to: ~p"/races/#{race.slug}/register")

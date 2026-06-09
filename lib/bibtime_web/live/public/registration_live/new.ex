@@ -116,7 +116,10 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
           # cookie can be written before the user lands on Stripe — that
           # cookie is what lets the form pre-fill itself if the user hits
           # the browser back button after abandoning checkout.
-          {:noreply, redirect(socket, to: ~p"/races/#{race.slug}/checkout/#{participant.id}")}
+          {:noreply,
+           redirect(socket,
+             to: ~p"/races/#{race.slug}/checkout/#{participant.confirmation_token}"
+           )}
         else
           {:noreply,
            socket
