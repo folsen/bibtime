@@ -120,7 +120,9 @@ defmodule BibtimeWeb.Admin.PaymentLive.Index do
               <div class="font-medium text-sm">
                 {payment.participant.first_name} {payment.participant.last_name}
               </div>
-              <div class="text-xs text-base-content/40">{payment.participant.email}</div>
+              <div :if={payment.participant.user} class="text-xs text-base-content/40">
+                {payment.participant.user.email}
+              </div>
             </td>
             <td class="py-3 font-mono text-sm">
               {Payments.format_amount(payment.amount_cents, payment.currency)}

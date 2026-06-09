@@ -49,7 +49,7 @@ defmodule Bibtime.Payments do
   defp do_create_checkout_session(participant, race, success_url, cancel_url) do
     amount = effective_fee_cents(race)
     currency = String.downcase(race.currency || "sek")
-    participant = Repo.preload(participant, :race_category)
+    participant = Repo.preload(participant, [:race_category, :user])
 
     existing = get_pending_payment_for_participant(participant.id)
 
@@ -128,7 +128,7 @@ defmodule Bibtime.Payments do
           quantity: 1
         }
       ],
-      customer_email: participant.email,
+      customer_email: participant_email(participant),
       metadata: %{
         "participant_id" => to_string(participant.id),
         "race_id" => to_string(race.id)
@@ -486,7 +486,7 @@ defmodule Bibtime.Payments do
       from p in Payment,
         where: p.race_id == ^race_id,
         order_by: [desc: p.inserted_at],
-        preload: [:participant]
+        preload: [participant: :user]
     )
   end
 
@@ -525,6 +525,13 @@ defmodule Bibtime.Payments do
       refunded_count: refunded_count,
       currency: currency
     }
+  end
+
+  defp participant_email(participant) do
+    case participant.user do
+      %{email: email} when is_binary(email) and email != "" -> email
+      _ -> nil
+    end
   end
 
   @doc """

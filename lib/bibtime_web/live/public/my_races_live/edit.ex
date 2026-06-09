@@ -2,7 +2,6 @@ defmodule BibtimeWeb.Public.MyRacesLive.Edit do
   use BibtimeWeb, :live_view
 
   alias Bibtime.Participants
-  alias Bibtime.Participants.Participant
 
   @impl true
   def mount(%{"participant_id" => participant_id}, _session, socket) do
@@ -10,7 +9,7 @@ defmodule BibtimeWeb.Public.MyRacesLive.Edit do
 
     participant =
       Participants.get_participant!(participant_id)
-      |> Bibtime.Repo.preload([:race, :race_category])
+      |> Bibtime.Repo.preload([:race, :race_category, :user])
 
     # Ensure the participant belongs to this user
     if participant.user_id != user.id do
@@ -22,9 +21,12 @@ defmodule BibtimeWeb.Public.MyRacesLive.Edit do
       race = participant.race |> Bibtime.Repo.preload(:categories)
 
       # Only allow editing before/during registration
-      editable? = race.status in [:registration_open, :registration_closed]
+      editable? = editable_status?(race)
 
-      changeset = Participant.registration_changeset(participant, %{})
+      changeset =
+        Participants.change_participant_self_edit(participant, %{},
+          require_category: race.categories != []
+        )
 
       {:ok,
        assign(socket,
@@ -41,7 +43,9 @@ defmodule BibtimeWeb.Public.MyRacesLive.Edit do
   def handle_event("validate", %{"participant" => params}, socket) do
     changeset =
       socket.assigns.participant
-      |> Participant.registration_changeset(params)
+      |> Participants.change_participant_self_edit(params,
+        require_category: socket.assigns.race.categories != []
+      )
       |> Map.put(:action, :validate)
 
     {:noreply, assign(socket, form: to_form(changeset))}
@@ -49,21 +53,36 @@ defmodule BibtimeWeb.Public.MyRacesLive.Edit do
 
   @impl true
   def handle_event("save", %{"participant" => params}, socket) do
-    participant = socket.assigns.participant
+    # Re-check editability against the current race status, not just the value
+    # assigned at mount — the race may have started while the form was open.
+    race = Bibtime.Races.get_race!(socket.assigns.race.id)
 
-    changeset = Participant.registration_changeset(participant, params)
+    if editable_status?(race) do
+      case Participants.update_participant_self_edit(socket.assigns.participant, params,
+             require_category: socket.assigns.race.categories != []
+           ) do
+        {:ok, _participant} ->
+          {:noreply,
+           socket
+           |> put_flash(:info, gettext("Registration updated"))
+           |> push_navigate(to: ~p"/my-races")}
 
-    case Bibtime.Repo.update(changeset) do
-      {:ok, _participant} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, gettext("Registration updated"))
-         |> push_navigate(to: ~p"/my-races")}
-
-      {:error, changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
+        {:error, changeset} ->
+          {:noreply, assign(socket, form: to_form(changeset))}
+      end
+    else
+      {:noreply,
+       socket
+       |> assign(:editable?, false)
+       |> put_flash(
+         :error,
+         gettext("This race is already in progress. Your registration can no longer be changed.")
+       )}
     end
   end
+
+  # Registrations are only editable before the race goes in progress.
+  defp editable_status?(race), do: race.status in [:registration_open, :registration_closed]
 
   @impl true
   def render(assigns) do
@@ -121,13 +140,21 @@ defmodule BibtimeWeb.Public.MyRacesLive.Edit do
             />
           </div>
 
-          <.input
-            field={@form[:email]}
-            type="email"
-            label={gettext("Email")}
-            required
-            disabled={!@editable?}
-          />
+          <%!-- Email lives on the user account, not the participant. To change
+                it, the user updates it via account settings. --%>
+          <div :if={@participant.user} class="form-control">
+            <label class="label">
+              <span class="label-text">{gettext("Email")}</span>
+            </label>
+            <div class="text-sm text-base-content/70 px-3 py-2 bg-base-200/40 rounded">
+              {@participant.user.email}
+            </div>
+            <p class="text-xs text-base-content/50 mt-1">
+              <.link navigate={~p"/users/settings"} class="link">
+                {gettext("Change in account settings")}
+              </.link>
+            </p>
+          </div>
 
           <.input
             :if={@race.categories != []}

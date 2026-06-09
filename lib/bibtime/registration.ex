@@ -130,7 +130,7 @@ defmodule Bibtime.Registration do
       |> Ecto.Changeset.put_change(:hold_expires_at, fresh_hold_expiry())
       |> Repo.update()
       |> case do
-        {:ok, updated} -> {:ok, Repo.preload(updated, :race_category)}
+        {:ok, updated} -> {:ok, Repo.preload(updated, [:race_category, :user])}
         {:error, _} = err -> err
       end
     end
@@ -147,42 +147,66 @@ defmodule Bibtime.Registration do
   end
 
   defp insert_registration(race, changeset, email) do
-    case Repo.insert(changeset) do
-      {:ok, participant} ->
-        # For paid races, bib assignment happens at payment. For free races,
-        # pick a bib now so the confirmation email can render it.
-        participant =
-          if race.payment_required do
-            participant
-          else
-            bib = Participants.next_bib_number(participant.race_id)
+    if changeset.valid? do
+      # Resolve the user and insert the participant atomically: a failed
+      # insert rolls back any user just created, and we never persist a
+      # participant whose email couldn't be turned into a contactable user.
+      txn =
+        Repo.transaction(fn ->
+          case resolve_registration_user(email) do
+            {:ok, user, user_was_new?} ->
+              changeset
+              |> Ecto.Changeset.put_change(:user_id, user.id)
+              |> Repo.insert()
+              |> case do
+                {:ok, participant} -> {participant, user, user_was_new?}
+                {:error, failed} -> Repo.rollback({:changeset, failed})
+              end
 
-            participant
-            |> Ecto.Changeset.change(%{bib_number: bib})
-            |> Repo.update!()
+            :error ->
+              Repo.rollback(:user_resolution_failed)
+          end
+        end)
+
+      case txn do
+        {:ok, {participant, user, user_was_new?}} ->
+          # For paid races, bib assignment happens at payment. For free races,
+          # pick a bib now so the confirmation email can render it.
+          participant = assign_free_bib(participant, race)
+
+          if user_was_new?, do: Accounts.deliver_login_instructions(user)
+
+          participant = Repo.preload(participant, [:race_category, :user])
+
+          unless race.payment_required do
+            RegistrationNotifier.deliver_confirmation(participant, race)
           end
 
-        {user, user_was_new?} = find_or_create_user(email)
+          {:ok, participant}
 
-        if user do
-          participant
-          |> Ecto.Changeset.change(%{user_id: user.id})
-          |> Repo.update!()
-        end
+        {:error, {:changeset, failed}} ->
+          {:error, failed}
 
-        if user_was_new?, do: Accounts.deliver_login_instructions(user)
-
-        participant = Repo.preload(participant, :race_category)
-
-        unless race.payment_required do
-          RegistrationNotifier.deliver_confirmation(participant, race)
-        end
-
-        {:ok, participant}
-
-      {:error, changeset} ->
-        {:error, changeset}
+        {:error, :user_resolution_failed} ->
+          {:error,
+           changeset
+           |> Ecto.Changeset.add_error(:email, "must be a valid email address")
+           |> Map.put(:action, :insert)}
+      end
+    else
+      # Surface validation errors without attempting any writes.
+      Repo.insert(changeset)
     end
+  end
+
+  defp assign_free_bib(participant, %{payment_required: true}), do: participant
+
+  defp assign_free_bib(participant, _race) do
+    bib = Participants.next_bib_number(participant.race_id)
+
+    participant
+    |> Ecto.Changeset.change(%{bib_number: bib})
+    |> Repo.update!()
   end
 
   @doc """
@@ -203,17 +227,27 @@ defmodule Bibtime.Registration do
     ]
   end
 
-  defp find_or_create_user(nil), do: {nil, false}
-
-  defp find_or_create_user(email) do
+  # Finds the user for this email, creating one if needed. Returns
+  # `{:ok, user, was_new?}`, or `:error` when the email can't be resolved to
+  # a user at all — letting the caller fail the registration instead of
+  # silently creating a participant nobody can be contacted through.
+  defp resolve_registration_user(email) do
     case Accounts.get_user_by_email(email) do
       %{} = user ->
-        {user, false}
+        {:ok, user, false}
 
       nil ->
         case Accounts.register_user(%{email: email}) do
-          {:ok, user} -> {user, true}
-          {:error, _} -> {nil, false}
+          {:ok, user} ->
+            {:ok, user, true}
+
+          {:error, _} ->
+            # Lost a race to a concurrent insert with the same email, or the
+            # address is invalid. Re-check before giving up.
+            case Accounts.get_user_by_email(email) do
+              %{} = user -> {:ok, user, false}
+              nil -> :error
+            end
         end
     end
   end

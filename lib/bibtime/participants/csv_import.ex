@@ -158,7 +158,10 @@ defmodule Bibtime.Participants.CSVImport do
          {:ok, validated} <- validate(rows, race_id) do
       Repo.transaction(fn ->
         Enum.each(validated, fn attrs ->
-          case Participants.create_participant(attrs) do
+          # Historic imports are a read-only record of past races, not account
+          # holders: link to an existing user if the email matches one, but
+          # never create accounts for people who never signed up.
+          case Participants.create_participant(attrs, create_user: false) do
             {:ok, _p} -> :ok
             {:error, changeset} -> Repo.rollback({:insert_failed, changeset})
           end

@@ -33,7 +33,7 @@ defmodule BibtimeWeb.Admin.ParticipantLive.New do
   def handle_event("save", %{"participant" => participant_params}, socket) do
     participant_params = Map.put(participant_params, "race_id", socket.assigns.race.id)
 
-    case Participants.create_participant(participant_params) do
+    case Participants.create_participant(participant_params, require_user: true) do
       {:ok, participant} ->
         AuditLog.log(
           socket.assigns.current_scope.user,

@@ -8,7 +8,10 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Edit do
   @impl true
   def mount(%{"id" => race_id, "participant_id" => participant_id}, _session, socket) do
     race = Races.get_race!(race_id, preload: [:categories])
-    participant = Participants.get_participant!(participant_id)
+
+    participant =
+      Participants.get_participant!(participant_id) |> Bibtime.Repo.preload(:user)
+
     changeset = Participants.change_participant(participant)
     category_options = Enum.map(race.categories, fn c -> {c.name, c.id} end)
 
@@ -71,7 +74,19 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Edit do
       <.input field={@form[:bib_number]} type="text" label={gettext("Bib Number")} />
       <.input field={@form[:first_name]} type="text" label={gettext("First Name")} />
       <.input field={@form[:last_name]} type="text" label={gettext("Last Name")} />
-      <.input field={@form[:email]} type="email" label={gettext("Email")} />
+
+      <%!-- Email is read-only here. It lives on the user account, not the
+            participant — to change it, the user updates it via account
+            settings (or an admin can edit via the user admin screen). --%>
+      <div :if={@participant.user} class="form-control mb-3">
+        <label class="label">
+          <span class="label-text">{gettext("Email")}</span>
+        </label>
+        <div class="text-sm text-base-content/70 px-3 py-2 bg-base-200/40 rounded">
+          {@participant.user.email}
+        </div>
+      </div>
+
       <.input field={@form[:birth_date]} type="date" label={gettext("Birth Date")} />
       <.input
         field={@form[:gender]}

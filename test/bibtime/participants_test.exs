@@ -89,6 +89,112 @@ defmodule Bibtime.ParticipantsTest do
                  race_id: race2.id
                })
     end
+
+    test "creates and links a user by default when an email is given" do
+      race = create_race!()
+
+      assert {:ok, participant} =
+               Participants.create_participant(%{
+                 bib_number: "1",
+                 first_name: "Alice",
+                 race_id: race.id,
+                 email: "new@example.com"
+               })
+
+      user = Bibtime.Accounts.get_user_by_email("new@example.com")
+      assert user
+      assert participant.user_id == user.id
+    end
+
+    test "create_user: false links an existing user but never creates one" do
+      race = create_race!()
+      {:ok, existing} = Bibtime.Accounts.register_user(%{email: "existing@example.com"})
+
+      assert {:ok, linked} =
+               Participants.create_participant(
+                 %{
+                   bib_number: "1",
+                   first_name: "A",
+                   race_id: race.id,
+                   email: "existing@example.com"
+                 },
+                 create_user: false
+               )
+
+      assert linked.user_id == existing.id
+
+      assert {:ok, userless} =
+               Participants.create_participant(
+                 %{
+                   bib_number: "2",
+                   first_name: "B",
+                   race_id: race.id,
+                   email: "nobody@example.com"
+                 },
+                 create_user: false
+               )
+
+      assert userless.user_id == nil
+      refute Bibtime.Accounts.get_user_by_email("nobody@example.com")
+    end
+
+    test "does not leave an orphan user when the participant insert fails" do
+      race = create_race!()
+      create_participant!(race, %{bib_number: "7"})
+
+      assert {:error, _changeset} =
+               Participants.create_participant(%{
+                 bib_number: "7",
+                 first_name: "Dup",
+                 race_id: race.id,
+                 email: "fresh@example.com"
+               })
+
+      # The user we would have created for the failed insert is rolled back
+      # with it, rather than orphaned.
+      refute Bibtime.Accounts.get_user_by_email("fresh@example.com")
+    end
+  end
+
+  describe "update_participant_self_edit/3" do
+    test "updates allowed display fields" do
+      race = create_race!()
+      participant = create_participant!(race, %{bib_number: "5", first_name: "Orig", club: nil})
+
+      assert {:ok, updated} =
+               Participants.update_participant_self_edit(participant, %{
+                 "first_name" => "Changed",
+                 "club" => "New Club"
+               })
+
+      assert updated.first_name == "Changed"
+      assert updated.club == "New Club"
+    end
+
+    test "ignores privileged fields a self-editing user must not control" do
+      race = create_race!()
+      other_race = create_race!()
+
+      participant =
+        create_participant!(race, %{bib_number: "5", first_name: "Orig", status: :registered})
+
+      assert {:ok, updated} =
+               Participants.update_participant_self_edit(participant, %{
+                 "first_name" => "Changed",
+                 "status" => "finished",
+                 "bib_number" => "999",
+                 "chip_id" => "HACKED",
+                 "race_id" => other_race.id,
+                 "checked_in_at" => "2026-01-01T00:00:00Z"
+               })
+
+      assert updated.first_name == "Changed"
+      assert updated.status == :registered
+      assert updated.bib_number == "5"
+      assert updated.chip_id == nil
+      assert updated.race_id == race.id
+      assert updated.checked_in_at == nil
+    end
   end
 
   describe "list_participants/1" do

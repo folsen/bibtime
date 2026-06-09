@@ -195,7 +195,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
           <p class="text-sm font-semibold text-base-content">
             {gettext("%{name} (%{email}) is already registered for this race.",
               name: duplicate_display_name(@duplicate_error),
-              email: @duplicate_error.email
+              email: duplicate_email(@duplicate_error)
             )}
           </p>
           <p class="text-xs text-base-content/60 mt-1">
@@ -394,6 +394,9 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
     String.trim("#{first} #{last || ""}")
   end
 
+  defp duplicate_email(%Participant{user: %{email: email}}) when is_binary(email), do: email
+  defp duplicate_email(_), do: ""
+
   # Hits when CheckoutController set `:pending_participant_id` on the way to
   # Stripe and the user is now back on the form (typically via browser back).
   # We only honour the cookie if the participant belongs to *this* race, is
@@ -407,13 +410,13 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
          current_scope
        )
        when is_integer(id) do
-    case Participants.get_participant!(id) do
+    case Participants.get_participant!(id) |> Bibtime.Repo.preload(:user) do
       %Participant{race_id: ^race_id, status: :pending_payment} = p ->
         if owner_consistent_with_scope?(p, current_scope) do
           %{
             "first_name" => p.first_name,
             "last_name" => p.last_name,
-            "email" => p.email,
+            "email" => p.user && p.user.email,
             "gender" => if(p.gender, do: Atom.to_string(p.gender)),
             "birth_date" => if(p.birth_date, do: Date.to_iso8601(p.birth_date)),
             "club" => p.club,
@@ -454,7 +457,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
         %{
           "first_name" => p.first_name,
           "last_name" => p.last_name,
-          "email" => p.email || user.email,
+          "email" => user.email,
           "gender" => if(p.gender, do: Atom.to_string(p.gender)),
           "birth_date" => if(p.birth_date, do: Date.to_iso8601(p.birth_date)),
           "club" => p.club

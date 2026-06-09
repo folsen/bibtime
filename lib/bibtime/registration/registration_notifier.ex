@@ -11,6 +11,15 @@ defmodule Bibtime.Registration.RegistrationNotifier do
   alias Bibtime.SiteSettings
   alias BibtimeWeb.LocaleHelpers
 
+  defp recipient_email(participant) do
+    participant = Bibtime.Repo.preload(participant, :user)
+
+    case participant.user do
+      %{email: email} when is_binary(email) and email != "" -> email
+      _ -> nil
+    end
+  end
+
   defp from_address do
     Application.get_env(:bibtime, :mailer_from_address, "contact@example.com")
   end
@@ -61,7 +70,7 @@ defmodule Bibtime.Registration.RegistrationNotifier do
         end
 
       build_email(
-        participant.email,
+        recipient_email(participant),
         gettext("Registration Confirmed") <> " — #{race.name}",
         """
         #{gettext("Hi %{name},", name: participant.first_name)}
@@ -90,7 +99,7 @@ defmodule Bibtime.Registration.RegistrationNotifier do
   Includes login instructions so they can manage their registration.
   """
   def deliver_confirmation(participant, race) do
-    if participant.email do
+    if recipient_email(participant) do
       participant |> email_confirmation(race) |> deliver()
     end
   end
@@ -141,7 +150,7 @@ defmodule Bibtime.Registration.RegistrationNotifier do
       reference = payment.stripe_payment_intent_id || payment.stripe_checkout_session_id
 
       build_email(
-        participant.email,
+        recipient_email(participant),
         gettext("You're registered!") <> " — #{race.name}",
         """
         #{gettext("Hi %{name},", name: participant.first_name)}
@@ -174,7 +183,7 @@ defmodule Bibtime.Registration.RegistrationNotifier do
   for paid registrations.
   """
   def deliver_paid_confirmation(payment, participant, race) do
-    if participant.email do
+    if recipient_email(participant) do
       payment |> email_paid_confirmation(participant, race) |> deliver()
     end
   end
@@ -187,7 +196,7 @@ defmodule Bibtime.Registration.RegistrationNotifier do
 
     Gettext.with_locale(BibtimeWeb.Gettext, locale, fn ->
       build_email(
-        participant.email,
+        recipient_email(participant),
         gettext("Registration could not be completed") <> " — #{race.name}",
         """
         #{gettext("Hi %{name},", name: participant.first_name)}
@@ -207,7 +216,7 @@ defmodule Bibtime.Registration.RegistrationNotifier do
   race filled up before their (lapsed) hold could be renewed at payment.
   """
   def deliver_race_filled_notice(participant, race) do
-    if participant.email do
+    if recipient_email(participant) do
       participant |> email_race_filled(race) |> deliver()
     end
   end

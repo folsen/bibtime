@@ -6,6 +6,7 @@ defmodule Bibtime.Participants do
   import Ecto.Query, warn: false
   alias Bibtime.Repo
 
+  alias Bibtime.Accounts
   alias Bibtime.Participants.Participant
 
   @doc """
@@ -16,7 +17,7 @@ defmodule Bibtime.Participants do
     Participant
     |> where([p], p.race_id == ^race_id)
     |> order_by([p], asc: fragment("LENGTH(?)", p.bib_number), asc: p.bib_number)
-    |> preload(:race_category)
+    |> preload([:race_category, :user])
     |> Repo.all()
   end
 
@@ -47,12 +48,99 @@ defmodule Bibtime.Participants do
 
   @doc """
   Creates a participant.
+
+  Options:
+    * `:require_user` — when `true`, an email must be supplied and a user
+      must be successfully found-or-created; otherwise the call returns
+      `{:error, changeset}` with an email error. Used by the admin
+      "Add Participant" form. Defaults to `false`.
+    * `:create_user` — when `false`, an existing user is linked by email
+      but a missing one is **not** created (the participant stays
+      user-less). Used by CSV import of historic public records, which are
+      a read-only record of past races, not account holders. Defaults to
+      `true`.
+
+  When a user is found or created, the participant is linked via `user_id`.
+  Email is never stored on the participant — the user record is the single
+  source of truth.
+
+  User resolution and the participant insert run in one transaction, so a
+  failed insert (e.g. a duplicate bib) rolls back any user that was just
+  created rather than leaving an orphan account behind.
   """
-  def create_participant(attrs \\ %{}) do
-    %Participant{}
-    |> Participant.changeset(attrs)
-    |> Repo.insert()
+  def create_participant(attrs \\ %{}, opts \\ []) do
+    require_user = Keyword.get(opts, :require_user, false)
+    create_user? = Keyword.get(opts, :create_user, true)
+    email = pop_email(attrs)
+    changeset = Participant.changeset(%Participant{}, attrs)
+
+    Repo.transaction(fn ->
+      case resolve_user_id(email, require_user, create_user?) do
+        {:ok, user_id} ->
+          changeset
+          |> maybe_put_user_id(user_id)
+          |> Repo.insert()
+          |> case do
+            {:ok, participant} -> participant
+            {:error, failed} -> Repo.rollback(failed)
+          end
+
+        {:error, reason} ->
+          Repo.rollback(Ecto.Changeset.add_error(changeset, :email, email_error_message(reason)))
+      end
+    end)
+    |> case do
+      {:ok, participant} -> {:ok, participant}
+      {:error, %Ecto.Changeset{} = failed} -> {:error, %{failed | action: :insert}}
+    end
   end
+
+  defp pop_email(attrs) when is_map(attrs) do
+    Map.get(attrs, "email") || Map.get(attrs, :email)
+  end
+
+  defp resolve_user_id(email, require_user, create_user?) do
+    trimmed = if is_binary(email), do: String.trim(email), else: ""
+
+    cond do
+      trimmed == "" and require_user -> {:error, :blank}
+      trimmed == "" -> {:ok, nil}
+      true -> find_or_link_user(trimmed, require_user, create_user?)
+    end
+  end
+
+  defp find_or_link_user(email, require_user, create_user?) do
+    case Accounts.get_user_by_email(email) do
+      %_{} = user ->
+        {:ok, user.id}
+
+      nil when not create_user? ->
+        {:ok, nil}
+
+      nil ->
+        case Accounts.register_user(%{email: email}) do
+          {:ok, user} ->
+            {:ok, user.id}
+
+          {:error, _} ->
+            # Lost a race to a concurrent insert with the same email, or the
+            # address is invalid. Re-check before deciding it failed.
+            case Accounts.get_user_by_email(email) do
+              %_{} = user -> {:ok, user.id}
+              nil when require_user -> {:error, :invalid}
+              nil -> {:ok, nil}
+            end
+        end
+    end
+  end
+
+  defp maybe_put_user_id(changeset, nil), do: changeset
+
+  defp maybe_put_user_id(changeset, user_id),
+    do: Ecto.Changeset.put_change(changeset, :user_id, user_id)
+
+  defp email_error_message(:blank), do: "can't be blank"
+  defp email_error_message(:invalid), do: "must be a valid email address"
 
   @doc """
   Updates a participant.
@@ -136,6 +224,28 @@ defmodule Bibtime.Participants do
   """
   def change_participant(%Participant{} = participant, attrs \\ %{}) do
     Participant.changeset(participant, attrs)
+  end
+
+  @doc """
+  Changeset for the public self-service registration edit form.
+
+  Uses `Participant.self_edit_changeset/3`, which only allows the display
+  fields an end user may change about their own registration.
+  """
+  def change_participant_self_edit(%Participant{} = participant, attrs \\ %{}, opts \\ []) do
+    Participant.self_edit_changeset(participant, attrs, opts)
+  end
+
+  @doc """
+  Updates a participant from the public self-service edit form.
+
+  Restricted to the narrow `self_edit_changeset` so an end user can never
+  change status, bib, chip, race assignment, or hold via a crafted form.
+  """
+  def update_participant_self_edit(%Participant{} = participant, attrs, opts \\ []) do
+    participant
+    |> Participant.self_edit_changeset(attrs, opts)
+    |> Repo.update()
   end
 
   @doc """
@@ -307,14 +417,20 @@ defmodule Bibtime.Participants do
     if target_first == "" or target_email == "" do
       nil
     else
-      Participant
-      |> where([p], p.race_id == ^race_id)
-      |> Repo.all()
-      |> Enum.find(fn p ->
-        normalize_registration_field(p.first_name) == target_first and
-          normalize_registration_field(p.last_name) == target_last and
-          normalize_registration_field(p.email) == target_email
-      end)
+      case Accounts.get_user_by_email(target_email) do
+        nil ->
+          nil
+
+        user ->
+          Participant
+          |> where([p], p.race_id == ^race_id and p.user_id == ^user.id)
+          |> preload(:user)
+          |> Repo.all()
+          |> Enum.find(fn p ->
+            normalize_registration_field(p.first_name) == target_first and
+              normalize_registration_field(p.last_name) == target_last
+          end)
+      end
     end
   end
 

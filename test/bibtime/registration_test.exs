@@ -123,7 +123,7 @@ defmodule Bibtime.RegistrationTest do
 
       assert participant.first_name == "Alice"
       assert participant.last_name == "Smith"
-      assert participant.email == "alice@example.com"
+      assert participant.user.email == "alice@example.com"
       assert participant.race_id == race.id
       assert participant.race_category_id == category.id
       assert participant.status == :registered

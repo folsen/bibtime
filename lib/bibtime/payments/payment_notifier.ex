@@ -7,6 +7,15 @@ defmodule Bibtime.Payments.PaymentNotifier do
   alias Bibtime.SiteSettings
   alias BibtimeWeb.LocaleHelpers
 
+  defp recipient_email(participant) do
+    participant = Bibtime.Repo.preload(participant, :user)
+
+    case participant.user do
+      %{email: email} when is_binary(email) and email != "" -> email
+      _ -> nil
+    end
+  end
+
   defp from_address do
     Application.get_env(:bibtime, :mailer_from_address, "contact@example.com")
   end
@@ -44,7 +53,7 @@ defmodule Bibtime.Payments.PaymentNotifier do
         end
 
       build_email(
-        participant.email,
+        recipient_email(participant),
         gettext("Payment Receipt") <> " — #{race.name}",
         """
         #{gettext("Hi %{name},", name: participant.first_name)}
@@ -68,7 +77,7 @@ defmodule Bibtime.Payments.PaymentNotifier do
   Sends a payment receipt email after successful payment.
   """
   def deliver_receipt(payment, participant, race) do
-    if participant.email do
+    if recipient_email(participant) do
       payment |> email_receipt(participant, race) |> deliver()
     end
   end

@@ -10,7 +10,8 @@ defmodule BibtimeWeb.Public.RegistrationLive.Show do
     race = Races.get_race_by_slug!(slug)
 
     participant =
-      Participants.get_participant!(participant_id) |> Bibtime.Repo.preload(:race_category)
+      Participants.get_participant!(participant_id)
+      |> Bibtime.Repo.preload([:race_category, :user])
 
     payment = Payments.get_payment_for_participant(participant.id)
 
@@ -23,7 +24,7 @@ defmodule BibtimeWeb.Public.RegistrationLive.Show do
               # Re-fetch participant since status may have changed
               updated_participant =
                 Participants.get_participant!(participant_id)
-                |> Bibtime.Repo.preload(:race_category)
+                |> Bibtime.Repo.preload([:race_category, :user])
 
               {updated_participant, updated_payment}
 
@@ -58,8 +59,10 @@ defmodule BibtimeWeb.Public.RegistrationLive.Show do
             <.icon name="hero-check-circle" class="size-8 text-success" />
           </div>
           <h1 class="text-2xl font-bold text-base-content mb-1">{gettext("You're Registered!")}</h1>
-          <p class="text-base-content/60 text-sm">
-            {gettext("A confirmation email has been sent to %{email}", email: @participant.email)}
+          <p :if={@participant.user && @participant.user.email} class="text-base-content/60 text-sm">
+            {gettext("A confirmation email has been sent to %{email}",
+              email: @participant.user.email
+            )}
           </p>
         </div>
 

@@ -13,7 +13,13 @@ defmodule BibtimeWeb.Public.RegistrationLive.MyRegistration do
       |> Races.get_race_by_slug!()
       |> Bibtime.Repo.preload([:categories, :splits])
 
-    participant = Participants.get_participant_by_token(token)
+    participant =
+      token
+      |> Participants.get_participant_by_token()
+      |> case do
+        nil -> nil
+        p -> Bibtime.Repo.preload(p, :user)
+      end
 
     if participant && participant.race_id == race.id do
       splits = Races.list_splits(race.id)
@@ -124,9 +130,9 @@ defmodule BibtimeWeb.Public.RegistrationLive.MyRegistration do
         <%!-- Details --%>
         <div class="px-8 py-5">
           <div class="divide-y divide-base-300/30">
-            <div :if={@participant.email} class="flex justify-between py-3">
+            <div :if={@participant.user && @participant.user.email} class="flex justify-between py-3">
               <span class="text-sm text-base-content/50">{gettext("Email")}</span>
-              <span class="text-sm text-base-content">{@participant.email}</span>
+              <span class="text-sm text-base-content">{@participant.user.email}</span>
             </div>
             <div :if={@participant.club} class="flex justify-between py-3">
               <span class="text-sm text-base-content/50">{gettext("Club")}</span>

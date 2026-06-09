@@ -471,7 +471,7 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
             <td class="py-3 font-medium">
               {participant.first_name} {participant.last_name}
             </td>
-            <td class="py-3 text-sm text-base-content/70">{participant.email || "-"}</td>
+            <td class="py-3 text-sm text-base-content/70">{participant_email(participant) || "-"}</td>
             <td :if={@race.categories != []} class="py-3 text-sm text-base-content/70">
               {if participant.race_category, do: participant.race_category.name, else: "-"}
             </td>
@@ -582,7 +582,7 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
 
         "email" ->
           Enum.sort_by(participants, fn p ->
-            String.downcase(p.email || "zzz")
+            String.downcase(participant_email(p) || "zzz")
           end)
 
         "category" ->
@@ -604,6 +604,9 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
 
     if sort_dir == :desc, do: Enum.reverse(sorted), else: sorted
   end
+
+  defp participant_email(%{user: %{email: email}}) when is_binary(email), do: email
+  defp participant_email(_), do: nil
 
   defp upload_error_message(:too_large), do: gettext("File is too large (max 5MB)")
   defp upload_error_message(:too_many_files), do: gettext("Only one file allowed")
