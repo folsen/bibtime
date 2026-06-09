@@ -61,7 +61,7 @@ defmodule BibtimeWeb.Router do
       live "/races/:slug/photos", Public.PhotoLive.Index, :index
       live "/races/:slug/register", Public.RegistrationLive.New, :new
 
-      live "/races/:slug/register/confirmation/:participant_id",
+      live "/races/:slug/register/confirmation/:token",
            Public.RegistrationLive.Show,
            :show
 

@@ -199,7 +199,7 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
               </span>
             </div>
             <.link
-              navigate={~p"/races/#{@race.slug}/register/confirmation/#{p.id}"}
+              navigate={~p"/races/#{@race.slug}/register/confirmation/#{p.confirmation_token}"}
               class="btn btn-warning btn-sm gap-1 shrink-0"
             >
               {gettext("Finish Payment")} <.icon name="hero-arrow-right" class="size-4" />

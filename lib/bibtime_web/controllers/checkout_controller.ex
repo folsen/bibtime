@@ -22,8 +22,12 @@ defmodule BibtimeWeb.CheckoutController do
       |> redirect(to: ~p"/races/#{race.slug}/register")
     else
       base_url = BibtimeWeb.Endpoint.url()
-      success_url = base_url <> ~p"/races/#{race.slug}/register/confirmation/#{participant.id}"
-      cancel_url = base_url <> ~p"/races/#{race.slug}/register/confirmation/#{participant.id}"
+
+      confirmation_path =
+        ~p"/races/#{race.slug}/register/confirmation/#{participant.confirmation_token}"
+
+      success_url = base_url <> confirmation_path
+      cancel_url = base_url <> confirmation_path
 
       case Payments.create_checkout_session(participant, race, success_url, cancel_url) do
         {:ok, checkout_url} ->
@@ -34,7 +38,7 @@ defmodule BibtimeWeb.CheckoutController do
         {:error, reason} ->
           conn
           |> put_flash(:error, gettext("Payment setup failed: %{reason}", reason: reason))
-          |> redirect(to: ~p"/races/#{race.slug}/register/confirmation/#{participant.id}")
+          |> redirect(to: confirmation_path)
       end
     end
   end

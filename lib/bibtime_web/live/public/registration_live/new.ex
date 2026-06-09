@@ -121,7 +121,9 @@ defmodule BibtimeWeb.Public.RegistrationLive.New do
           {:noreply,
            socket
            |> put_flash(:info, gettext("You're registered!"))
-           |> push_navigate(to: ~p"/races/#{race.slug}/register/confirmation/#{participant.id}")}
+           |> push_navigate(
+             to: ~p"/races/#{race.slug}/register/confirmation/#{participant.confirmation_token}"
+           )}
         end
 
       {:error, :duplicate, existing} ->

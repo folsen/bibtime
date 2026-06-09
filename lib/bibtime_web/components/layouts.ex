@@ -73,7 +73,7 @@ defmodule BibtimeWeb.Layouts do
         </span>
         <a
           :for={p <- @pending}
-          href={"/races/#{p.race.slug}/register/confirmation/#{p.id}"}
+          href={~p"/races/#{p.race.slug}/register/confirmation/#{p.confirmation_token}"}
           class="btn btn-warning btn-xs gap-1 shrink-0"
         >
           {if length(@pending) == 1, do: gettext("Finish payment"), else: p.race.name}

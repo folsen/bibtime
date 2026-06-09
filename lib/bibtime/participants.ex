@@ -344,11 +344,17 @@ defmodule Bibtime.Participants do
 
   @doc """
   Gets a participant by confirmation token.
+
+  Returns `nil` for a blank/missing token rather than matching one of the
+  many tokenless rows (CSV-imported / admin-added participants have no
+  confirmation token).
   """
-  def get_participant_by_token(token) do
+  def get_participant_by_token(token) when is_binary(token) and token != "" do
     Repo.get_by(Participant, confirmation_token: token)
     |> Repo.preload(:race_category)
   end
+
+  def get_participant_by_token(_token), do: nil
 
   @doc """
   Returns all participant entries for a user, preloaded with race and category.

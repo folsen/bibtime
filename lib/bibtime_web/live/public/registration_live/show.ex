@@ -6,43 +6,61 @@ defmodule BibtimeWeb.Public.RegistrationLive.Show do
   alias Bibtime.Payments
 
   @impl true
-  def mount(%{"slug" => slug, "participant_id" => participant_id}, _session, socket) do
+  def mount(%{"slug" => slug, "token" => token}, _session, socket) do
     race = Races.get_race_by_slug!(slug)
+    participant = load_participant(token)
 
-    participant =
-      Participants.get_participant!(participant_id)
-      |> Bibtime.Repo.preload([:race_category, :user])
+    # Address the page by the unguessable confirmation token (not the
+    # sequential id) and verify it belongs to this race, so participant PII
+    # and payment status can't be enumerated by walking integer ids.
+    if is_nil(participant) or participant.race_id != race.id do
+      {:ok,
+       socket
+       |> put_flash(:error, gettext("Registration not found"))
+       |> push_navigate(to: ~p"/races/#{slug}")}
+    else
+      {participant, payment} = sync_pending_payment(socket, participant)
 
+      {:ok,
+       assign(socket,
+         race: race,
+         participant: participant,
+         payment: payment,
+         page_title: gettext("Registration Confirmed") <> " — " <> race.name
+       )}
+    end
+  end
+
+  defp load_participant(token) do
+    case Participants.get_participant_by_token(token) do
+      nil -> nil
+      participant -> Bibtime.Repo.preload(participant, [:race_category, :user])
+    end
+  end
+
+  # Stripe is the source of truth for payment state; the webhook usually
+  # beats the user back here, but if not we reconcile as a fallback. Guarded
+  # by connected?/1 so the (possibly slow) Stripe call runs once on the live
+  # mount rather than also on the dead render.
+  defp sync_pending_payment(socket, participant) do
     payment = Payments.get_payment_for_participant(participant.id)
 
-    # If payment is pending, check Stripe directly (webhook fallback)
-    {participant, payment} =
-      case payment do
-        %{status: :pending} ->
-          case Payments.check_and_fulfill_payment(payment) do
-            {:ok, %{status: :completed} = updated_payment} ->
-              # Re-fetch participant since status may have changed
-              updated_participant =
-                Participants.get_participant!(participant_id)
-                |> Bibtime.Repo.preload([:race_category, :user])
+    if connected?(socket) and match?(%{status: :pending}, payment) do
+      case Payments.check_and_fulfill_payment(payment) do
+        {:ok, %{status: :completed} = updated_payment} ->
+          updated_participant =
+            participant.id
+            |> Participants.get_participant!()
+            |> Bibtime.Repo.preload([:race_category, :user])
 
-              {updated_participant, updated_payment}
-
-            _ ->
-              {participant, payment}
-          end
+          {updated_participant, updated_payment}
 
         _ ->
           {participant, payment}
       end
-
-    {:ok,
-     assign(socket,
-       race: race,
-       participant: participant,
-       payment: payment,
-       page_title: gettext("Registration Confirmed") <> " — " <> race.name
-     )}
+    else
+      {participant, payment}
+    end
   end
 
   @impl true
@@ -177,8 +195,12 @@ defmodule BibtimeWeb.Public.RegistrationLive.Show do
   def handle_event("resume_payment", _params, socket) do
     %{race: race, participant: participant} = socket.assigns
     base_url = BibtimeWeb.Endpoint.url()
-    success_url = base_url <> ~p"/races/#{race.slug}/register/confirmation/#{participant.id}"
-    cancel_url = base_url <> ~p"/races/#{race.slug}/register/confirmation/#{participant.id}"
+
+    success_url =
+      base_url <> ~p"/races/#{race.slug}/register/confirmation/#{participant.confirmation_token}"
+
+    cancel_url =
+      base_url <> ~p"/races/#{race.slug}/register/confirmation/#{participant.confirmation_token}"
 
     case Payments.create_checkout_session(participant, race, success_url, cancel_url) do
       {:ok, checkout_url} ->
