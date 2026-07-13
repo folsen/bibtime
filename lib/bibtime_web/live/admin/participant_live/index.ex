@@ -186,6 +186,41 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
     {:noreply, reload_participants(socket)}
   end
 
+  @impl true
+  def handle_event("remove", %{"id" => id}, socket) do
+    race_id = socket.assigns.race.id
+
+    case Participants.get_participant!(id) do
+      %{race_id: ^race_id} = participant ->
+        {:ok, _} = Participants.delete_participant(participant)
+
+        AuditLog.log(
+          socket.assigns.current_scope.user,
+          "participant.deleted",
+          "participant",
+          participant.id,
+          %{
+            "bib" => participant.bib_number,
+            "name" => "#{participant.first_name} #{participant.last_name}",
+            "race_id" => race_id
+          }
+        )
+
+        {:noreply,
+         socket
+         |> put_flash(
+           :info,
+           gettext("Removed %{name} from the race.",
+             name: "#{participant.first_name} #{participant.last_name}"
+           )
+         )
+         |> reload_participants()}
+
+      _other_race ->
+        {:noreply, socket}
+    end
+  end
+
   defp assign_filtered(socket, participants, sort_by, sort_dir) do
     filtered = sort_participants(participants, sort_by, sort_dir)
     assign_paginated(socket, filtered)
@@ -512,6 +547,21 @@ defmodule BibtimeWeb.Admin.ParticipantLive.Index do
                   class="rounded-full border border-error/30 bg-error/10 px-2 py-0.5 text-xs font-medium text-error hover:bg-error/20 transition-colors"
                 >
                   DSQ
+                </button>
+                <button
+                  phx-click="remove"
+                  phx-value-id={participant.id}
+                  data-confirm={
+                    gettext(
+                      "Remove %{name} from this race? This permanently deletes their registration, timing results, and payment records, and frees up their slot. If they have paid, handle any refund in Stripe first.",
+                      name: "#{participant.first_name} #{participant.last_name}"
+                    )
+                  }
+                  class="rounded-full border border-error/30 bg-error/10 px-2 py-0.5 text-xs font-medium text-error hover:bg-error/20 transition-colors"
+                  aria-label={gettext("Remove participant")}
+                  title={gettext("Remove participant")}
+                >
+                  <.icon name="hero-trash" class="size-3.5" />
                 </button>
               </div>
             </td>
