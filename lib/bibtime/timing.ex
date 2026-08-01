@@ -9,6 +9,7 @@ defmodule Bibtime.Timing do
   alias Bibtime.Timing.SplitTime
   alias Bibtime.Timing.RaceStart
   alias Bibtime.Timing.TimingStation
+  alias Bibtime.Timing.StationSplitAssignment
   alias Bibtime.Participants
   alias Bibtime.Participants.Participant
   alias Bibtime.Races.Split
@@ -104,6 +105,48 @@ defmodule Bibtime.Timing do
     |> order_by([_st, s], asc: s.sort_order)
     |> preload(:split)
     |> Repo.all()
+  end
+
+  @doc """
+  Returns all split times flagged for review in the given race, newest first.
+
+  Preloads `:participant` and `:split`.
+  """
+  def list_flagged_split_times(race_id) do
+    SplitTime
+    |> join(:inner, [st], p in Participant, on: st.participant_id == p.id)
+    |> where([st, p], p.race_id == ^race_id and st.needs_review == true)
+    |> order_by([st], desc: st.inserted_at)
+    |> preload([:participant, :split])
+    |> Repo.all()
+  end
+
+  @doc """
+  Sets or clears the review flag on a split time.
+
+  Broadcasts a `{:split_time_updated, split_time}` message on the
+  `"race:timing:<race_id>"` PubSub topic.
+  """
+  def set_split_time_review(%SplitTime{} = split_time, needs_review)
+      when is_boolean(needs_review) do
+    race_id = get_race_id_for_participant(split_time.participant_id)
+
+    split_time
+    |> SplitTime.changeset(%{needs_review: needs_review})
+    |> Repo.update()
+    |> case do
+      {:ok, updated} ->
+        Phoenix.PubSub.broadcast(
+          Bibtime.PubSub,
+          "race:timing:#{race_id}",
+          {:split_time_updated, updated}
+        )
+
+        {:ok, updated}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -299,52 +342,104 @@ defmodule Bibtime.Timing do
   end
 
   @doc """
-  Lists all timing stations, preloading their assigned split (and the split's
-  race).
+  Lists all timing stations, preloading their split assignments (with each
+  split and its race), ordered by split `sort_order`.
   """
   def list_all_stations do
     TimingStation
     |> order_by([s], asc: s.inserted_at)
-    |> preload(assigned_split: :race)
+    |> preload(split_assignments: ^assignment_preload_query())
     |> Repo.all()
   end
 
   @doc """
-  Lists timing stations currently assigned to splits belonging to the given
-  race, preloaded with their assigned split.
+  Lists timing stations currently assigned to at least one split of the given
+  race, preloaded with their split assignments.
   """
   def list_stations_for_race(race_id) do
     TimingStation
-    |> join(:inner, [ts], s in Split, on: ts.assigned_split_id == s.id)
-    |> where([_ts, s], s.race_id == ^race_id)
-    |> order_by([ts, _s], asc: ts.inserted_at)
-    |> preload(:assigned_split)
+    |> join(:inner, [ts], a in StationSplitAssignment, on: a.station_id == ts.id)
+    |> join(:inner, [_ts, a], s in Split, on: a.split_id == s.id)
+    |> where([_ts, _a, s], s.race_id == ^race_id)
+    |> distinct(true)
+    |> order_by([ts], asc: ts.inserted_at)
+    |> preload(split_assignments: ^assignment_preload_query())
+    |> Repo.all()
+  end
+
+  defp assignment_preload_query do
+    StationSplitAssignment
+    |> join(:inner, [a], s in assoc(a, :split))
+    |> order_by([_a, s], asc: s.sort_order)
+    |> preload([_a, s], split: {s, :race})
+  end
+
+  @doc """
+  Lists the splits a station is assigned to, ordered by `sort_order`.
+  """
+  def list_assigned_splits(station_id) do
+    Split
+    |> join(:inner, [s], a in StationSplitAssignment, on: a.split_id == s.id)
+    |> where([_s, a], a.station_id == ^station_id)
+    |> order_by([s], asc: s.sort_order)
     |> Repo.all()
   end
 
   @doc """
-  Assigns a timing station to a split. Unassigns any previous assignment.
+  Assigns a timing station to a split, in addition to any existing
+  assignments. All of a station's splits must belong to the same race.
+
+  Returns `{:ok, assignment}`, `{:error, :different_race}` when the split
+  belongs to another race than the station's existing assignments, or
+  `{:error, changeset}` (e.g. when the split already has a station).
   """
   def assign_station(%TimingStation{} = station, %Split{} = split) do
-    station
-    |> TimingStation.changeset(%{assigned_split_id: split.id})
-    |> Repo.update()
+    existing_race_id = get_race_id_for_station(station)
+
+    if existing_race_id != nil and existing_race_id != split.race_id do
+      {:error, :different_race}
+    else
+      %StationSplitAssignment{}
+      |> StationSplitAssignment.changeset(%{station_id: station.id, split_id: split.id})
+      |> Repo.insert()
+    end
   end
 
   @doc """
-  Removes the current split assignment from a timing station.
+  Removes the station's assignment to the given split. Other assignments of
+  the same station are left untouched.
   """
-  def unassign_station(%TimingStation{} = station) do
+  def unassign_station(%TimingStation{} = station, %Split{} = split) do
+    StationSplitAssignment
+    |> where([a], a.station_id == ^station.id and a.split_id == ^split.id)
+    |> Repo.delete_all()
+
+    :ok
+  end
+
+  @doc """
+  Updates station settings such as `pass_lockout_seconds`.
+  """
+  def update_station_settings(%TimingStation{} = station, attrs) do
     station
-    |> TimingStation.changeset(%{assigned_split_id: nil})
+    |> TimingStation.changeset(attrs)
     |> Repo.update()
   end
 
   @doc """
-  Deletes a timing station.
+  Deletes a timing station along with its split assignments.
   """
   def delete_timing_station(%TimingStation{} = station) do
-    Repo.delete(station)
+    Repo.transaction(fn ->
+      StationSplitAssignment
+      |> where([a], a.station_id == ^station.id)
+      |> Repo.delete_all()
+
+      case Repo.delete(station) do
+        {:ok, deleted} -> deleted
+        {:error, changeset} -> Repo.rollback(changeset)
+      end
+    end)
   end
 
   defp generate_station_token do
@@ -371,12 +466,14 @@ defmodule Bibtime.Timing do
     end)
   end
 
-  defp get_race_id_for_station(%TimingStation{assigned_split_id: nil}), do: nil
-
-  defp get_race_id_for_station(%TimingStation{assigned_split_id: split_id}) do
-    Split
-    |> where([s], s.id == ^split_id)
-    |> select([s], s.race_id)
+  # All of a station's splits belong to the same race (enforced by
+  # assign_station/2), so any assignment determines the race.
+  defp get_race_id_for_station(%TimingStation{id: station_id}) do
+    StationSplitAssignment
+    |> where([a], a.station_id == ^station_id)
+    |> join(:inner, [a], s in assoc(a, :split))
+    |> select([_a, s], s.race_id)
+    |> limit(1)
     |> Repo.one()
   end
 
@@ -384,16 +481,26 @@ defmodule Bibtime.Timing do
   # Chip-read ingestion
   # ---------------------------------------------------------------------------
 
+  @outlier_min_samples 5
+  @outlier_band 2
+
   @doc """
   Ingests a single raw chip read coming from a `TimingStation`.
 
+  A station may be assigned to several splits of the same race. The read is
+  credited to the lowest-`sort_order` assigned split the participant has no
+  time for yet. Reads within `pass_lockout_seconds` of the participant's
+  previous recorded time at this station count as re-reads of the same pass
+  and are reported as duplicates.
+
   Returns one of:
     * `{:ok, :recorded, participant, split_time}` — read saved as a split time
-    * `{:ok, :duplicate, participant}` — participant already has a split time
-      recorded for this station's split
+      (`split_time.needs_review` marks suspicious multi-split attributions)
+    * `{:ok, :duplicate, participant}` — the read is a re-read within the
+      lockout window, or all of the station's splits are already recorded
     * `{:ok, :unmatched}` — chip_id is not assigned to any participant in the
       station's race
-    * `{:error, :station_unassigned}` — station is not assigned to a split
+    * `{:error, :station_unassigned}` — station is not assigned to any split
     * `{:error, :race_not_started}` — no race start has been configured yet
     * `{:error, reason}` — any other error (e.g. changeset validation error)
 
@@ -401,68 +508,163 @@ defmodule Bibtime.Timing do
   `"race:stations:<race_id>"` for recorded and unmatched reads (but not for
   duplicates).
   """
-  def ingest_chip_read(%TimingStation{assigned_split_id: nil}, _raw) do
-    {:error, :station_unassigned}
-  end
-
   def ingest_chip_read(%TimingStation{} = station, %{"chip_id" => chip_id} = raw) do
-    race_id = get_race_id_for_station(station)
-    split_id = station.assigned_split_id
+    case list_assigned_splits(station.id) do
+      [] ->
+        {:error, :station_unassigned}
 
-    case Participants.get_participant_by_chip(race_id, chip_id) do
-      nil ->
-        broadcast_station_read(race_id, station.id, %{
-          status: :unmatched,
-          chip_id: chip_id
-        })
+      splits ->
+        race_id = hd(splits).race_id
 
-        {:ok, :unmatched}
+        case Participants.get_participant_by_chip(race_id, chip_id) do
+          nil ->
+            broadcast_station_read(race_id, station.id, %{
+              status: :unmatched,
+              chip_id: chip_id
+            })
 
-      %Participant{} = participant ->
-        if split_time_exists?(participant.id, split_id) do
-          {:ok, :duplicate, participant}
-        else
-          do_ingest(station, participant, raw)
+            {:ok, :unmatched}
+
+          %Participant{} = participant ->
+            do_ingest(station, splits, race_id, participant, raw)
         end
     end
   end
 
-  defp do_ingest(%TimingStation{} = station, %Participant{} = participant, raw) do
-    race_id = get_race_id_for_station(station)
-    split_id = station.assigned_split_id
+  defp do_ingest(%TimingStation{} = station, splits, race_id, %Participant{} = participant, raw) do
+    with {:ok, read_at} <- parse_read_at(Map.get(raw, "read_at")) do
+      existing = existing_split_entries(participant.id, race_id)
+      chosen = choose_split(splits, existing)
 
-    with {:ok, read_at} <- parse_read_at(Map.get(raw, "read_at")),
-         %RaceStart{} = race_start <- get_race_start(race_id),
-         elapsed_ms <- DateTime.diff(read_at, race_start.started_at, :millisecond),
-         {:ok, split_time} <-
-           record_split_time(%{
-             participant_id: participant.id,
-             split_id: split_id,
-             absolute_time: read_at,
-             elapsed_ms: elapsed_ms,
-             source: :chip,
-             raw_chip_data: Jason.encode!(raw)
-           }) do
-      broadcast_station_read(race_id, station.id, %{
-        status: :recorded,
-        chip_id: Map.get(raw, "chip_id"),
-        participant_id: participant.id,
-        bib_number: participant.bib_number,
-        split_id: split_id,
-        elapsed_ms: elapsed_ms
-      })
+      cond do
+        locked_out?(existing, splits, read_at, station.pass_lockout_seconds) ->
+          {:ok, :duplicate, participant}
 
-      {:ok, :recorded, participant, split_time}
-    else
-      nil -> {:error, :race_not_started}
-      {:error, reason} -> {:error, reason}
+        chosen == nil ->
+          {:ok, :duplicate, participant}
+
+        true ->
+          record_chip_read(station, splits, race_id, participant, chosen, existing, read_at, raw)
+      end
     end
   end
 
-  defp split_time_exists?(participant_id, split_id) do
+  defp record_chip_read(station, splits, race_id, participant, chosen, existing, read_at, raw) do
+    case get_race_start(race_id) do
+      nil ->
+        {:error, :race_not_started}
+
+      %RaceStart{} = race_start ->
+        elapsed_ms = DateTime.diff(read_at, race_start.started_at, :millisecond)
+
+        needs_review =
+          length(splits) > 1 and
+            flag_for_review?(chosen, existing, elapsed_ms, participant.id)
+
+        case record_split_time(%{
+               participant_id: participant.id,
+               split_id: chosen.id,
+               absolute_time: read_at,
+               elapsed_ms: elapsed_ms,
+               source: :chip,
+               raw_chip_data: Jason.encode!(raw),
+               needs_review: needs_review
+             }) do
+          {:ok, split_time} ->
+            split_time = %{split_time | split: chosen}
+
+            broadcast_station_read(race_id, station.id, %{
+              status: :recorded,
+              chip_id: Map.get(raw, "chip_id"),
+              participant_id: participant.id,
+              bib_number: participant.bib_number,
+              split_id: chosen.id,
+              split_name: chosen.name,
+              elapsed_ms: elapsed_ms,
+              needs_review: needs_review
+            })
+
+            {:ok, :recorded, participant, split_time}
+
+          {:error, changeset} ->
+            {:error, changeset}
+        end
+    end
+  end
+
+  # The participant's recorded times for this race, with each split's
+  # sort_order — one query feeding lockout, split selection and flagging.
+  defp existing_split_entries(participant_id, race_id) do
     SplitTime
-    |> where([st], st.participant_id == ^participant_id and st.split_id == ^split_id)
-    |> Repo.exists?()
+    |> join(:inner, [st], s in assoc(st, :split))
+    |> where([st, s], st.participant_id == ^participant_id and s.race_id == ^race_id)
+    |> select([st, s], %{
+      split_id: st.split_id,
+      sort_order: s.sort_order,
+      absolute_time: st.absolute_time
+    })
+    |> Repo.all()
+  end
+
+  # The lowest-sort_order assigned split the participant has no time for.
+  defp choose_split(splits, existing) do
+    existing_ids = MapSet.new(existing, & &1.split_id)
+    Enum.find(splits, fn split -> not MapSet.member?(existing_ids, split.id) end)
+  end
+
+  # A read close to the participant's previous recorded pass at this station
+  # is a re-read (lingering in the antenna zone), not the next pass. Compares
+  # against the device read_at so buffered/late uploads are judged by when
+  # the pass actually happened. Times without an absolute_time (CSV imports)
+  # can't participate.
+  defp locked_out?(_existing, _splits, _read_at, 0), do: false
+
+  defp locked_out?(existing, splits, read_at, lockout_seconds) do
+    station_split_ids = MapSet.new(splits, & &1.id)
+
+    Enum.any?(existing, fn entry ->
+      MapSet.member?(station_split_ids, entry.split_id) and
+        entry.absolute_time != nil and
+        abs(DateTime.diff(read_at, entry.absolute_time, :second)) < lockout_seconds
+    end)
+  end
+
+  # A multi-split attribution is suspicious when the elapsed time is
+  # non-positive, the participant already has a later split recorded
+  # (out-of-order backfill), or the elapsed time is far outside what the
+  # rest of the field posted for the same split — typically a missed
+  # earlier pass being credited to the wrong split.
+  defp flag_for_review?(chosen, existing, elapsed_ms, participant_id) do
+    elapsed_ms <= 0 or
+      Enum.any?(existing, fn entry -> entry.sort_order > chosen.sort_order end) or
+      outlier?(chosen.id, participant_id, elapsed_ms)
+  end
+
+  defp outlier?(split_id, participant_id, elapsed_ms) do
+    others =
+      SplitTime
+      |> where([st], st.split_id == ^split_id and st.participant_id != ^participant_id)
+      |> select([st], st.elapsed_ms)
+      |> Repo.all()
+
+    if length(others) >= @outlier_min_samples do
+      m = median(others)
+      elapsed_ms < div(m, @outlier_band) or elapsed_ms > m * @outlier_band
+    else
+      false
+    end
+  end
+
+  defp median(values) do
+    sorted = Enum.sort(values)
+    count = length(sorted)
+    mid = div(count, 2)
+
+    if rem(count, 2) == 1 do
+      Enum.at(sorted, mid)
+    else
+      div(Enum.at(sorted, mid - 1) + Enum.at(sorted, mid), 2)
+    end
   end
 
   defp parse_read_at(nil), do: {:ok, DateTime.utc_now()}

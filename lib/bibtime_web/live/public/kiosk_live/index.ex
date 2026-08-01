@@ -514,6 +514,12 @@ defmodule BibtimeWeb.Public.KioskLive.Index do
     {:noreply, recalculate_results(socket)}
   end
 
+  # Review-flag changes don't affect times, so no recompute is needed.
+  @impl true
+  def handle_info({:split_time_updated, _split_time}, socket) do
+    {:noreply, socket}
+  end
+
   @impl true
   def handle_info({:clear_highlight, participant_id}, socket) do
     recently_finished = MapSet.delete(socket.assigns.recently_finished, participant_id)

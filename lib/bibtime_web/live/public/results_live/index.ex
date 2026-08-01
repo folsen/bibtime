@@ -578,6 +578,12 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
     {:noreply, recalculate_results(socket)}
   end
 
+  # Review-flag changes don't affect times, so no recompute is needed.
+  @impl true
+  def handle_info({:split_time_updated, _split_time}, socket) do
+    {:noreply, socket}
+  end
+
   defp recalculate_results(socket) do
     race = socket.assigns.race
     results = Results.get_race_results(race.id)

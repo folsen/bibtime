@@ -13,8 +13,11 @@ defmodule Bibtime.Timing.TimingStation do
     field :last_seen_at, :utc_datetime
     field :firmware_version, :string
     field :metadata, :map, default: %{}
+    field :pass_lockout_seconds, :integer, default: 120
 
-    belongs_to :assigned_split, Bibtime.Races.Split
+    has_many :split_assignments, Bibtime.Timing.StationSplitAssignment, foreign_key: :station_id
+
+    has_many :assigned_splits, through: [:split_assignments, :split]
 
     timestamps()
   end
@@ -29,10 +32,10 @@ defmodule Bibtime.Timing.TimingStation do
       :last_seen_at,
       :firmware_version,
       :metadata,
-      :assigned_split_id
+      :pass_lockout_seconds
     ])
     |> validate_required([:name, :token])
+    |> validate_number(:pass_lockout_seconds, greater_than_or_equal_to: 0)
     |> unique_constraint(:token)
-    |> unique_constraint(:assigned_split_id)
   end
 end

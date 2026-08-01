@@ -3,15 +3,12 @@ defmodule BibtimeWeb.Admin.StationLive.Index do
 
   alias Bibtime.Races
   alias Bibtime.Timing
-  alias Bibtime.Timing.TimingStation
 
   @stale_threshold_seconds 20
 
   @impl true
   def mount(%{"id" => race_id}, _session, socket) do
     race = Races.get_race!(race_id, preload: [:splits])
-    stations = Timing.list_stations_for_race(race.id)
-    all_stations = Timing.list_all_stations()
 
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Bibtime.PubSub, "race:stations:#{race.id}")
@@ -20,21 +17,12 @@ defmodule BibtimeWeb.Admin.StationLive.Index do
 
     splits = Enum.sort_by(race.splits, & &1.sort_order)
 
-    assigned_map = Map.new(stations, fn s -> {s.assigned_split_id, s} end)
-
-    unassigned_stations =
-      Enum.filter(all_stations, fn s -> is_nil(s.assigned_split_id) end)
-
-    unassigned_options = Enum.map(unassigned_stations, fn s -> {s.name, s.id} end)
-
     {:ok,
      socket
      |> assign(:race, race)
      |> assign(:splits, splits)
-     |> assign(:assigned_map, assigned_map)
-     |> assign(:unassigned_options, unassigned_options)
      |> assign(:now, DateTime.utc_now())
-     |> stream(:stations, stations)}
+     |> refresh_assignments()}
   end
 
   @impl true
@@ -100,9 +88,13 @@ defmodule BibtimeWeb.Admin.StationLive.Index do
                 <div class="text-xs text-base-content/60 font-mono">
                   {station.firmware_version || "-"}
                 </div>
+                <div class="text-xs text-base-content/50 font-mono">
+                  {gettext("Lockout: %{n}s", n: station.pass_lockout_seconds)}
+                </div>
                 <button
                   phx-click="unassign"
                   phx-value-station-id={station.id}
+                  phx-value-split-id={split.id}
                   class="btn btn-xs btn-ghost text-error/70 hover:text-error"
                 >
                   {gettext("Unassign")}
@@ -118,7 +110,7 @@ defmodule BibtimeWeb.Admin.StationLive.Index do
                   <input type="hidden" name="split_id" value={split.id} />
                   <select name="station_id" class="select select-sm select-bordered">
                     <option value="">{gettext("Select a station...")}</option>
-                    <option :for={{name, id} <- @unassigned_options} value={id}>
+                    <option :for={{name, id} <- @available_options} value={id}>
                       {name}
                     </option>
                   </select>
@@ -142,11 +134,11 @@ defmodule BibtimeWeb.Admin.StationLive.Index do
       </div>
 
       <div
-        :if={@unassigned_options == [] and @splits != []}
+        :if={@available_options == [] and @splits != []}
         class="mt-4 rounded-xl border border-dashed border-base-300 bg-base-200/30 p-4 text-center"
       >
         <p class="text-sm text-base-content/60">
-          {gettext("No unassigned stations available.")}
+          {gettext("No stations available for this race.")}
           <.link navigate={~p"/admin/stations"} class="text-primary hover:underline">
             {gettext("Create a new station")}
           </.link>
@@ -170,34 +162,35 @@ defmodule BibtimeWeb.Admin.StationLive.Index do
     split = Enum.find(socket.assigns.splits, &(to_string(&1.id) == split_id))
 
     case Timing.assign_station(station, split) do
-      {:ok, updated} ->
-        updated = Bibtime.Repo.preload(updated, :assigned_split)
-
+      {:ok, _assignment} ->
         {:noreply,
          socket
          |> refresh_assignments()
-         |> stream_insert(:stations, updated)
          |> put_flash(:info, gettext("Station assigned to %{split}.", split: split.name))}
+
+      {:error, :different_race} ->
+        {:noreply,
+         put_flash(socket, :error, gettext("Station is already assigned to another race."))}
 
       {:error, _changeset} ->
         {:noreply, put_flash(socket, :error, gettext("Failed to assign station."))}
     end
   end
 
-  def handle_event("unassign", %{"station-id" => station_id}, socket) do
+  def handle_event(
+        "unassign",
+        %{"station-id" => station_id, "split-id" => split_id},
+        socket
+      ) do
     station = Timing.get_timing_station!(station_id)
+    split = Enum.find(socket.assigns.splits, &(to_string(&1.id) == split_id))
 
-    case Timing.unassign_station(station) do
-      {:ok, _updated} ->
-        {:noreply,
-         socket
-         |> refresh_assignments()
-         |> stream_delete(:stations, station)
-         |> put_flash(:info, gettext("Station unassigned."))}
+    :ok = Timing.unassign_station(station, split)
 
-      {:error, _changeset} ->
-        {:noreply, put_flash(socket, :error, gettext("Failed to unassign station."))}
-    end
+    {:noreply,
+     socket
+     |> refresh_assignments()
+     |> put_flash(:info, gettext("Station unassigned."))}
   end
 
   # ---------------------------------------------------------------------------
@@ -212,18 +205,12 @@ defmodule BibtimeWeb.Admin.StationLive.Index do
      |> refresh_assignments()}
   end
 
-  def handle_info({:station_heartbeat, station_id, _metadata}, socket) do
-    case safe_get_station(station_id) do
-      nil -> {:noreply, socket}
-      station -> {:noreply, socket |> stream_insert(:stations, station) |> refresh_assignments()}
-    end
+  def handle_info({:station_heartbeat, _station_id, _metadata}, socket) do
+    {:noreply, refresh_assignments(socket)}
   end
 
-  def handle_info({:station_read, station_id, _payload}, socket) do
-    case safe_get_station(station_id) do
-      nil -> {:noreply, socket}
-      station -> {:noreply, socket |> stream_insert(:stations, station) |> refresh_assignments()}
-    end
+  def handle_info({:station_read, _station_id, _payload}, socket) do
+    {:noreply, refresh_assignments(socket)}
   end
 
   # ---------------------------------------------------------------------------
@@ -235,21 +222,34 @@ defmodule BibtimeWeb.Admin.StationLive.Index do
     stations = Timing.list_stations_for_race(race.id)
     all_stations = Timing.list_all_stations()
 
-    assigned_map = Map.new(stations, fn s -> {s.assigned_split_id, s} end)
-
-    unassigned_stations = Enum.filter(all_stations, fn s -> is_nil(s.assigned_split_id) end)
-    unassigned_options = Enum.map(unassigned_stations, fn s -> {s.name, s.id} end)
+    assigned_map =
+      for station <- stations, assignment <- station.split_assignments, into: %{} do
+        {assignment.split_id, station}
+      end
 
     socket
     |> assign(:assigned_map, assigned_map)
-    |> assign(:unassigned_options, unassigned_options)
+    |> assign(:available_options, station_options(all_stations, race.id))
   end
 
-  defp safe_get_station(id) do
-    case Bibtime.Repo.get(TimingStation, id) do
-      nil -> nil
-      station -> Bibtime.Repo.preload(station, :assigned_split)
-    end
+  # Stations that can be assigned to a split of this race: unassigned ones,
+  # or ones whose assignments are all within this race (multi-split), labeled
+  # with their current splits.
+  defp station_options(all_stations, race_id) do
+    all_stations
+    |> Enum.filter(fn station ->
+      Enum.all?(station.split_assignments, fn a -> a.split.race_id == race_id end)
+    end)
+    |> Enum.map(fn station ->
+      case station.split_assignments do
+        [] ->
+          {station.name, station.id}
+
+        assignments ->
+          names = Enum.map_join(assignments, ", ", fn a -> a.split.short_name end)
+          {"#{station.name} (#{names})", station.id}
+      end
+    end)
   end
 
   defp get_metadata(%{metadata: metadata}, key, default) when is_map(metadata) do

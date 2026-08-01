@@ -228,4 +228,58 @@ defmodule BibtimeWeb.Admin.TimingLiveTest do
       end
     end
   end
+
+  describe "flagged entries" do
+    setup %{conn: conn} do
+      admin = admin_user_fixture()
+      conn = log_in_user(conn, admin)
+
+      {race, [swim, _bike, _run]} = triathlon_fixture()
+      start_race_fixture(race, ~U[2026-06-01 08:00:00Z])
+
+      participant =
+        participant_fixture(race, %{bib_number: "7", first_name: "Flag", last_name: "Test"})
+
+      split_time =
+        record_split_time!(participant, swim, 100_000, %{source: :chip, needs_review: true})
+
+      %{conn: conn, race: race, split_time: split_time}
+    end
+
+    test "shows flagged entries with a review section", %{conn: conn, race: race} do
+      {:ok, view, _html} = live(conn, ~p"/admin/races/#{race.id}/timing")
+      html = render_async(view)
+
+      assert html =~ "Flagged for review"
+      assert html =~ "Flag Test"
+      assert html =~ "Clear flag"
+    end
+
+    test "clearing the flag removes the entry from the review section", %{
+      conn: conn,
+      race: race,
+      split_time: split_time
+    } do
+      {:ok, view, _html} = live(conn, ~p"/admin/races/#{race.id}/timing")
+      _ = render_async(view)
+
+      render_click(view, "clear_flag", %{"id" => "#{split_time.id}"})
+
+      refute render(view) =~ "Flagged for review"
+      refute Bibtime.Timing.get_split_time!(split_time.id).needs_review
+    end
+
+    test "deleting a flagged entry removes it from the review section", %{
+      conn: conn,
+      race: race,
+      split_time: split_time
+    } do
+      {:ok, view, _html} = live(conn, ~p"/admin/races/#{race.id}/timing")
+      _ = render_async(view)
+
+      render_click(view, "delete_entry", %{"id" => "#{split_time.id}"})
+
+      refute render(view) =~ "Flagged for review"
+    end
+  end
 end

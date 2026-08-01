@@ -5,14 +5,16 @@ defmodule Bibtime.TimingFixtures do
 
   alias Bibtime.Timing
 
-  def record_split_time!(participant, split, elapsed_ms) do
+  def record_split_time!(participant, split, elapsed_ms, attrs \\ %{}) do
     {:ok, split_time} =
-      Timing.record_split_time(%{
+      %{
         elapsed_ms: elapsed_ms,
         source: :manual,
         participant_id: participant.id,
         split_id: split.id
-      })
+      }
+      |> Map.merge(attrs)
+      |> Timing.record_split_time()
 
     split_time
   end
@@ -31,6 +33,11 @@ defmodule Bibtime.TimingFixtures do
     attrs = Map.put_new(attrs, "name", "Test Station")
 
     {:ok, station} = Timing.create_timing_station(attrs)
+    station
+  end
+
+  def assign_station!(station, split) do
+    {:ok, _assignment} = Timing.assign_station(station, split)
     station
   end
 end

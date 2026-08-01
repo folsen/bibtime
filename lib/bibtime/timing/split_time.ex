@@ -7,6 +7,7 @@ defmodule Bibtime.Timing.SplitTime do
     field :elapsed_ms, :integer
     field :source, Ecto.Enum, values: [:chip, :manual, :import, :adjustment], default: :manual
     field :raw_chip_data, :string
+    field :needs_review, :boolean, default: false
 
     belongs_to :participant, Bibtime.Participants.Participant
     belongs_to :split, Bibtime.Races.Split
@@ -22,6 +23,7 @@ defmodule Bibtime.Timing.SplitTime do
       :elapsed_ms,
       :source,
       :raw_chip_data,
+      :needs_review,
       :participant_id,
       :split_id
     ])

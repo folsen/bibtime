@@ -22,9 +22,35 @@ defmodule Bibtime.Timing.IngestChipReadTest do
     end
 
     station = station_fixture(%{"name" => "Swim In"})
-    {:ok, station} = Timing.assign_station(station, swim)
+    station = assign_station!(station, swim)
 
     %{race: race, split: swim, station: station}
+  end
+
+  # A station covering both the bike and run splits of a triathlon that
+  # started long enough ago that offsets from the gun can be chosen freely.
+  defp setup_multi_station(station_attrs \\ %{}) do
+    {race, [swim, bike, run]} = triathlon_fixture()
+
+    started_at =
+      DateTime.utc_now()
+      |> DateTime.add(-4 * 3600, :second)
+      |> DateTime.truncate(:second)
+
+    start_race_fixture(race, started_at)
+
+    station =
+      station_attrs
+      |> Map.put_new("name", "Bike/Run")
+      |> station_fixture()
+      |> assign_station!(bike)
+      |> assign_station!(run)
+
+    %{race: race, swim: swim, bike: bike, run: run, station: station, started_at: started_at}
+  end
+
+  defp offset_iso(started_at, seconds) do
+    started_at |> DateTime.add(seconds, :second) |> DateTime.to_iso8601()
   end
 
   describe "ingest_chip_read/2" do
@@ -125,6 +151,210 @@ defmodule Bibtime.Timing.IngestChipReadTest do
                })
 
       assert_receive {:station_read, _station_id, %{status: :unmatched, chip_id: "E200NOPE"}}
+    end
+  end
+
+  describe "ingest_chip_read/2 with a multi-split station" do
+    test "credits the lowest missing split, then the next, then reports duplicate" do
+      %{race: race, bike: bike, run: run, station: station, started_at: started_at} =
+        setup_multi_station()
+
+      _ = participant_fixture(race, %{chip_id: "E200M1", bib_number: "50"})
+
+      assert {:ok, :recorded, _p, first} =
+               Timing.ingest_chip_read(station, %{
+                 "chip_id" => "E200M1",
+                 "read_at" => offset_iso(started_at, 600)
+               })
+
+      assert first.split_id == bike.id
+      refute first.needs_review
+
+      assert {:ok, :recorded, _p, second} =
+               Timing.ingest_chip_read(station, %{
+                 "chip_id" => "E200M1",
+                 "read_at" => offset_iso(started_at, 600 + 1800)
+               })
+
+      assert second.split_id == run.id
+      refute second.needs_review
+
+      assert {:ok, :duplicate, _p} =
+               Timing.ingest_chip_read(station, %{
+                 "chip_id" => "E200M1",
+                 "read_at" => offset_iso(started_at, 600 + 3600)
+               })
+    end
+
+    test "a re-read within the lockout window is a duplicate, not the next split" do
+      %{race: race, station: station, started_at: started_at} = setup_multi_station()
+
+      participant = participant_fixture(race, %{chip_id: "E200M2", bib_number: "51"})
+
+      assert {:ok, :recorded, _p, _st} =
+               Timing.ingest_chip_read(station, %{
+                 "chip_id" => "E200M2",
+                 "read_at" => offset_iso(started_at, 600)
+               })
+
+      # 60s later — inside the default 120s lockout
+      assert {:ok, :duplicate, _p} =
+               Timing.ingest_chip_read(station, %{
+                 "chip_id" => "E200M2",
+                 "read_at" => offset_iso(started_at, 660)
+               })
+
+      assert [only] = Timing.get_split_times_for_participant(participant.id)
+      assert only.split.short_name == "bike"
+    end
+
+    test "a lower pass_lockout_seconds allows faster consecutive passes" do
+      %{race: race, bike: bike, run: run, station: station, started_at: started_at} =
+        setup_multi_station(%{"pass_lockout_seconds" => 30})
+
+      _ = participant_fixture(race, %{chip_id: "E200M3", bib_number: "52"})
+
+      assert {:ok, :recorded, _p, first} =
+               Timing.ingest_chip_read(station, %{
+                 "chip_id" => "E200M3",
+                 "read_at" => offset_iso(started_at, 600)
+               })
+
+      assert first.split_id == bike.id
+
+      assert {:ok, :recorded, _p, second} =
+               Timing.ingest_chip_read(station, %{
+                 "chip_id" => "E200M3",
+                 "read_at" => offset_iso(started_at, 660)
+               })
+
+      assert second.split_id == run.id
+    end
+
+    test "lockout applies against manually recorded times with an absolute_time" do
+      %{race: race, bike: bike, station: station, started_at: started_at} =
+        setup_multi_station()
+
+      participant = participant_fixture(race, %{chip_id: "E200M4", bib_number: "53"})
+
+      manual_at = DateTime.add(started_at, 600, :second)
+      _ = record_split_time!(participant, bike, 600_000, %{absolute_time: manual_at})
+
+      assert {:ok, :duplicate, _p} =
+               Timing.ingest_chip_read(station, %{
+                 "chip_id" => "E200M4",
+                 "read_at" => offset_iso(started_at, 660)
+               })
+    end
+
+    test "flags an out-of-order backfill for review" do
+      %{race: race, bike: bike, run: run, station: station, started_at: started_at} =
+        setup_multi_station()
+
+      participant = participant_fixture(race, %{chip_id: "E200M5", bib_number: "54"})
+
+      # Run (a later split) is already recorded; the read backfills bike.
+      _ = record_split_time!(participant, run, 10_000_000)
+
+      assert {:ok, :recorded, _p, split_time} =
+               Timing.ingest_chip_read(station, %{
+                 "chip_id" => "E200M5",
+                 "read_at" => offset_iso(started_at, 600)
+               })
+
+      assert split_time.split_id == bike.id
+      assert split_time.needs_review
+    end
+
+    test "flags a statistical outlier against the field" do
+      %{race: race, bike: bike, station: station, started_at: started_at} =
+        setup_multi_station()
+
+      for n <- 1..5 do
+        other = participant_fixture(race, %{chip_id: "E200F#{n}", bib_number: "#{60 + n}"})
+        record_split_time!(other, bike, 3_600_000)
+      end
+
+      _ = participant_fixture(race, %{chip_id: "E200M6", bib_number: "55"})
+
+      # 9_000_000 ms elapsed — more than double the field median of 3_600_000
+      assert {:ok, :recorded, _p, split_time} =
+               Timing.ingest_chip_read(station, %{
+                 "chip_id" => "E200M6",
+                 "read_at" => offset_iso(started_at, 9_000)
+               })
+
+      assert split_time.split_id == bike.id
+      assert split_time.needs_review
+    end
+
+    test "does not flag typical times against the field" do
+      %{race: race, bike: bike, station: station, started_at: started_at} =
+        setup_multi_station()
+
+      for n <- 1..5 do
+        other = participant_fixture(race, %{chip_id: "E200G#{n}", bib_number: "#{70 + n}"})
+        record_split_time!(other, bike, 3_600_000)
+      end
+
+      _ = participant_fixture(race, %{chip_id: "E200M9", bib_number: "58"})
+
+      # 4_000_000 ms elapsed — comfortably inside [median/2, median*2]
+      assert {:ok, :recorded, _p, split_time} =
+               Timing.ingest_chip_read(station, %{
+                 "chip_id" => "E200M9",
+                 "read_at" => offset_iso(started_at, 4_000)
+               })
+
+      assert split_time.split_id == bike.id
+      refute split_time.needs_review
+    end
+
+    test "does not flag when fewer than five field samples exist" do
+      %{race: race, bike: bike, station: station, started_at: started_at} =
+        setup_multi_station()
+
+      for n <- 1..4 do
+        other = participant_fixture(race, %{chip_id: "E200H#{n}", bib_number: "#{80 + n}"})
+        record_split_time!(other, bike, 3_600_000)
+      end
+
+      _ = participant_fixture(race, %{chip_id: "E200M7", bib_number: "56"})
+
+      assert {:ok, :recorded, _p, split_time} =
+               Timing.ingest_chip_read(station, %{
+                 "chip_id" => "E200M7",
+                 "read_at" => offset_iso(started_at, 20_000)
+               })
+
+      refute split_time.needs_review
+    end
+
+    test "single-split stations never flag for review" do
+      {race, [swim, _bike, run]} = triathlon_fixture()
+
+      started_at =
+        DateTime.utc_now()
+        |> DateTime.add(-4 * 3600, :second)
+        |> DateTime.truncate(:second)
+
+      start_race_fixture(race, started_at)
+
+      station = station_fixture(%{"name" => "Swim Only"}) |> assign_station!(swim)
+
+      participant = participant_fixture(race, %{chip_id: "E200M8", bib_number: "57"})
+
+      # Even with a blatant out-of-order signal (run already recorded)...
+      _ = record_split_time!(participant, run, 10_000_000)
+
+      assert {:ok, :recorded, _p, split_time} =
+               Timing.ingest_chip_read(station, %{
+                 "chip_id" => "E200M8",
+                 "read_at" => offset_iso(started_at, 600)
+               })
+
+      assert split_time.split_id == swim.id
+      refute split_time.needs_review
     end
   end
 

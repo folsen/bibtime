@@ -18,7 +18,7 @@ defmodule BibtimeWeb.API.StationControllerTest do
     start_race_fixture(race, started_at)
 
     station = station_fixture(%{"name" => "Swim In"})
-    {:ok, station} = Timing.assign_station(station, swim)
+    station = assign_station!(station, swim)
 
     participant =
       participant_fixture(race, %{
@@ -46,10 +46,14 @@ defmodule BibtimeWeb.API.StationControllerTest do
                "status" => "recorded",
                "participant_bib" => "99",
                "participant_name" => "Anna Test",
-               "elapsed_ms" => ms
+               "elapsed_ms" => ms,
+               "split_name" => "Swim",
+               "split_id" => split_id,
+               "needs_review" => false
              } = json_response(conn, 200)
 
       assert is_integer(ms)
+      assert is_integer(split_id)
     end
 
     test "returns duplicate when split already recorded", %{

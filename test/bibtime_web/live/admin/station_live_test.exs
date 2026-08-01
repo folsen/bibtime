@@ -110,11 +110,86 @@ defmodule BibtimeWeb.Admin.StationLiveTest do
       # Verify assignment persisted
       [assigned] = Timing.list_stations_for_race(race.id)
       assert assigned.id == station.id
-      assert assigned.assigned_split_id == swim.id
+      assert [%{split_id: split_id}] = assigned.split_assignments
+      assert split_id == swim.id
 
       # Unassign
       view |> element("button", "Unassign") |> render_click()
       assert Timing.list_stations_for_race(race.id) == []
+    end
+
+    test "can assign the same station to multiple splits of the race", %{
+      conn: conn,
+      race: race,
+      swim: swim
+    } do
+      [_swim, bike, _run] = Bibtime.Races.list_splits(race.id)
+      station = station_fixture(%{"name" => "Double Duty"})
+      {:ok, view, _html} = live(conn, ~p"/admin/races/#{race.id}/stations")
+
+      view
+      |> form("#assign-split-#{swim.id}", %{station_id: station.id})
+      |> render_submit()
+
+      # The station stays available for other splits, labeled with its splits
+      html =
+        view
+        |> form("#assign-split-#{bike.id}", %{station_id: station.id})
+        |> render_submit()
+
+      assert html =~ "Double Duty"
+
+      [assigned] = Timing.list_stations_for_race(race.id)
+      assigned_split_ids = Enum.map(assigned.split_assignments, & &1.split_id)
+      assert assigned_split_ids == [swim.id, bike.id]
+    end
+
+    test "stations assigned to another race are not offered", %{conn: conn, race: race} do
+      {_other_race, [other_swim | _]} = triathlon_fixture()
+      _busy = station_fixture(%{"name" => "Elsewhere"}) |> assign_station!(other_swim)
+      _free = station_fixture(%{"name" => "Free Agent"})
+
+      {:ok, _view, html} = live(conn, ~p"/admin/races/#{race.id}/stations")
+
+      assert html =~ "Free Agent"
+      refute html =~ "Elsewhere"
+    end
+  end
+
+  describe "GlobalIndex — assignments and lockout" do
+    setup %{conn: conn} do
+      admin = admin_user_fixture()
+      {race, [swim, bike, _run]} = triathlon_fixture()
+      %{conn: log_in_user(conn, admin), race: race, swim: swim, bike: bike}
+    end
+
+    test "lists all splits a station is assigned to", %{
+      conn: conn,
+      race: race,
+      swim: swim,
+      bike: bike
+    } do
+      _station =
+        station_fixture(%{"name" => "Multi"})
+        |> assign_station!(swim)
+        |> assign_station!(bike)
+
+      {:ok, _view, html} = live(conn, ~p"/admin/stations")
+
+      assert html =~ "#{race.name} — Swim, Bike"
+    end
+
+    test "updates the pass lockout from the station list", %{conn: conn} do
+      station = station_fixture(%{"name" => "Tunable"})
+      {:ok, view, html} = live(conn, ~p"/admin/stations")
+
+      assert html =~ "120"
+
+      view
+      |> element("#stations form[phx-submit=update_lockout]")
+      |> render_submit(%{"station_id" => station.id, "pass_lockout_seconds" => "30"})
+
+      assert Timing.get_timing_station!(station.id).pass_lockout_seconds == 30
     end
   end
 end

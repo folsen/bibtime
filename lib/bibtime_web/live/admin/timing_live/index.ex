@@ -25,6 +25,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
       |> assign(:selected_split, List.first(splits))
       |> assign(:bib_input, "")
       |> assign(:recent_entries, [])
+      |> assign(:flagged_entries, [])
       |> assign(:next_up, [])
       |> assign(:timing_loading, true)
       |> assign(:error, nil)
@@ -46,6 +47,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
           start_async(socket, :load_timing_data, fn ->
             %{
               recent_entries: load_recent_entries(race_id),
+              flagged_entries: Timing.list_flagged_split_times(race_id),
               next_up: load_next_up(race_id)
             }
           end)
@@ -68,6 +70,7 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
     {:noreply,
      socket
      |> assign(:recent_entries, data.recent_entries)
+     |> assign(:flagged_entries, data.flagged_entries)
      |> assign(:next_up, data.next_up)
      |> assign(:timing_loading, false)}
   end
@@ -373,6 +376,68 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
         </div>
       </div>
 
+      <%!-- Flagged for review --%>
+      <div :if={@flagged_entries != []} class="mb-6">
+        <h3 class="text-xs font-semibold text-warning uppercase tracking-wider mb-3 flex items-center gap-1.5">
+          <.icon name="hero-exclamation-triangle" class="size-4" />
+          {gettext("Flagged for review")}
+        </h3>
+        <div class="overflow-x-auto rounded-xl border border-warning/40 bg-warning/5 shadow-sm">
+          <table class="table w-full">
+            <thead>
+              <tr class="border-b border-warning/30 text-xs uppercase tracking-wider text-base-content/50">
+                <th class="font-semibold">{gettext("Bib")}</th>
+                <th class="font-semibold hidden sm:table-cell">{gettext("Name")}</th>
+                <th class="font-semibold">{gettext("Split")}</th>
+                <th class="font-semibold">{gettext("Elapsed")}</th>
+                <th class="font-semibold"><span class="sr-only">{gettext("Actions")}</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                :for={entry <- @flagged_entries}
+                id={"flagged-#{entry.id}"}
+                class="border-b border-warning/20"
+              >
+                <td class="py-3">
+                  <span class="font-mono font-bold text-primary">
+                    {entry.participant.bib_number}
+                  </span>
+                </td>
+                <td class="py-3 text-sm hidden sm:table-cell">
+                  {entry.participant.first_name} {entry.participant.last_name}
+                </td>
+                <td class="py-3 text-sm text-base-content/70">
+                  {entry.split.name}
+                </td>
+                <td class="py-3">
+                  <span class="font-mono text-sm">{format_elapsed_ms(entry.elapsed_ms)}</span>
+                </td>
+                <td class="py-3">
+                  <div class="flex items-center gap-3">
+                    <button
+                      phx-click="clear_flag"
+                      phx-value-id={entry.id}
+                      class="text-sm font-medium text-success/80 hover:text-success transition-colors"
+                    >
+                      {gettext("Clear flag")}
+                    </button>
+                    <button
+                      phx-click="delete_entry"
+                      phx-value-id={entry.id}
+                      data-confirm={gettext("Delete this timing entry?")}
+                      class="text-sm font-medium text-error/70 hover:text-error transition-colors"
+                    >
+                      {gettext("Delete")}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <%!-- Recent Entries Table (shown for live timing or finished races) --%>
       <div :if={not is_nil(@race_start) or @race.status == :finished} class="mb-8">
         <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3">
@@ -412,7 +477,14 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
                   {entry.participant.first_name} {entry.participant.last_name}
                 </td>
                 <td class="py-3 text-sm text-base-content/70">
-                  {entry.split.name}
+                  <span class="inline-flex items-center gap-1.5">
+                    {entry.split.name}
+                    <.icon
+                      :if={entry.needs_review}
+                      name="hero-exclamation-triangle"
+                      class="size-4 text-warning"
+                    />
+                  </span>
                 </td>
                 <td class="py-3">
                   <span class="font-mono text-sm">{format_elapsed_ms(entry.elapsed_ms)}</span>
@@ -535,6 +607,18 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
     end
   end
 
+  def handle_event("clear_flag", %{"id" => id}, socket) do
+    split_time = Timing.get_split_time!(id)
+
+    case Timing.set_split_time_review(split_time, false) do
+      {:ok, _split_time} ->
+        {:noreply, socket}
+
+      {:error, _changeset} ->
+        {:noreply, assign(socket, :error, gettext("Failed to update entry."))}
+    end
+  end
+
   def handle_event("delete_entry", %{"id" => id}, socket) do
     split_time = Timing.get_split_time!(id)
 
@@ -631,9 +715,17 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
       [split_time | socket.assigns.recent_entries]
       |> Enum.take(10)
 
+    flagged =
+      if split_time.needs_review do
+        [split_time | socket.assigns.flagged_entries]
+      else
+        socket.assigns.flagged_entries
+      end
+
     {:noreply,
      socket
      |> assign(:recent_entries, recent)
+     |> assign(:flagged_entries, flagged)
      |> assign(:next_up, load_next_up(socket.assigns.race.id))}
   end
 
@@ -641,10 +733,40 @@ defmodule BibtimeWeb.Admin.TimingLive.Index do
     recent =
       Enum.reject(socket.assigns.recent_entries, &(&1.id == split_time.id))
 
+    flagged =
+      Enum.reject(socket.assigns.flagged_entries, &(&1.id == split_time.id))
+
     {:noreply,
      socket
      |> assign(:recent_entries, recent)
+     |> assign(:flagged_entries, flagged)
      |> assign(:next_up, load_next_up(socket.assigns.race.id))}
+  end
+
+  def handle_info({:split_time_updated, split_time}, socket) do
+    flagged =
+      if split_time.needs_review do
+        [
+          preload_split_time(split_time)
+          | Enum.reject(socket.assigns.flagged_entries, &(&1.id == split_time.id))
+        ]
+      else
+        Enum.reject(socket.assigns.flagged_entries, &(&1.id == split_time.id))
+      end
+
+    recent =
+      Enum.map(socket.assigns.recent_entries, fn entry ->
+        if entry.id == split_time.id do
+          %{entry | needs_review: split_time.needs_review}
+        else
+          entry
+        end
+      end)
+
+    {:noreply,
+     socket
+     |> assign(:recent_entries, recent)
+     |> assign(:flagged_entries, flagged)}
   end
 
   # --------------------------------------------------------------------------

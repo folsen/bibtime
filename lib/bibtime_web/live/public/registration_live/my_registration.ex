@@ -61,6 +61,12 @@ defmodule BibtimeWeb.Public.RegistrationLive.MyRegistration do
     {:noreply, recalculate_result(socket)}
   end
 
+  # Review-flag changes don't affect times, so no recompute is needed.
+  @impl true
+  def handle_info({:split_time_updated, _}, socket) do
+    {:noreply, socket}
+  end
+
   defp recalculate_result(socket) do
     race = socket.assigns.race
     participant = socket.assigns.participant

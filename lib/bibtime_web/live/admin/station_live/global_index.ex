@@ -75,6 +75,7 @@ defmodule BibtimeWeb.Admin.StationLive.GlobalIndex do
               <th class="font-semibold">{gettext("Name")}</th>
               <th class="font-semibold">{gettext("Assignment")}</th>
               <th class="font-semibold">{gettext("Status")}</th>
+              <th class="font-semibold">{gettext("Lockout (s)")}</th>
               <th class="font-semibold">{gettext("Firmware")}</th>
               <th class="font-semibold"><span class="sr-only">{gettext("Actions")}</span></th>
             </tr>
@@ -97,6 +98,21 @@ defmodule BibtimeWeb.Admin.StationLive.GlobalIndex do
                   <span class={["inline-block size-1.5 rounded-full", status_dot(station.status)]} />
                   {status_label(station.status)}
                 </span>
+              </td>
+              <td class="py-3">
+                <form phx-submit="update_lockout" class="flex items-center gap-1.5">
+                  <input type="hidden" name="station_id" value={station.id} />
+                  <input
+                    type="number"
+                    name="pass_lockout_seconds"
+                    value={station.pass_lockout_seconds}
+                    min="0"
+                    class="input input-sm input-bordered w-20 font-mono"
+                  />
+                  <button type="submit" class="btn btn-xs btn-ghost">
+                    {gettext("Save")}
+                  </button>
+                </form>
               </td>
               <td class="py-3 text-xs text-base-content/60 font-mono">
                 {station.firmware_version || "-"}
@@ -177,7 +193,7 @@ defmodule BibtimeWeb.Admin.StationLive.GlobalIndex do
   def handle_event("create", %{"station" => params}, socket) do
     case Timing.create_timing_station(params) do
       {:ok, station} ->
-        station = Bibtime.Repo.preload(station, assigned_split: :race)
+        station = Bibtime.Repo.preload(station, split_assignments: [split: :race])
 
         form =
           %TimingStation{}
@@ -210,6 +226,27 @@ defmodule BibtimeWeb.Admin.StationLive.GlobalIndex do
     {:noreply, assign(socket, :new_station, nil)}
   end
 
+  def handle_event(
+        "update_lockout",
+        %{"station_id" => id, "pass_lockout_seconds" => seconds},
+        socket
+      ) do
+    station = Timing.get_timing_station!(id)
+
+    case Timing.update_station_settings(station, %{pass_lockout_seconds: seconds}) do
+      {:ok, updated} ->
+        updated = Bibtime.Repo.preload(updated, split_assignments: [split: :race])
+
+        {:noreply,
+         socket
+         |> stream_insert(:stations, updated)
+         |> put_flash(:info, gettext("Lockout updated."))}
+
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to update lockout."))}
+    end
+  end
+
   def handle_event("delete", %{"id" => id}, socket) do
     station = Timing.get_timing_station!(id)
     {:ok, _} = Timing.delete_timing_station(station)
@@ -224,8 +261,9 @@ defmodule BibtimeWeb.Admin.StationLive.GlobalIndex do
   # Helpers
   # ---------------------------------------------------------------------------
 
-  defp assignment_label(%{assigned_split: %{name: split_name, race: %{name: race_name}}}) do
-    "#{race_name} — #{split_name}"
+  defp assignment_label(%{split_assignments: [%{split: %{race: race}} | _] = assignments}) do
+    split_names = Enum.map_join(assignments, ", ", fn a -> a.split.name end)
+    "#{race.name} — #{split_names}"
   end
 
   defp assignment_label(_), do: gettext("Unassigned")

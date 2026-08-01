@@ -34,16 +34,23 @@ defmodule BibtimeWeb.API.StationController do
     station = conn.assigns.station
 
     results =
-      Enum.map(reads, fn raw ->
-        case normalize_read(raw) do
-          {:ok, read} ->
-            result = Timing.ingest_chip_read(station, read)
-            read_result_to_json(result, read)
+      reads
+      |> Enum.with_index()
+      |> Enum.sort_by(&read_time_sort_key/1)
+      |> Enum.map(fn {raw, index} ->
+        result =
+          case normalize_read(raw) do
+            {:ok, read} ->
+              read_result_to_json(Timing.ingest_chip_read(station, read), read)
 
-          {:error, :invalid_payload} ->
-            %{status: "error", reason: "invalid_payload"}
-        end
+            {:error, :invalid_payload} ->
+              %{status: "error", reason: "invalid_payload"}
+          end
+
+        {result, index}
       end)
+      |> Enum.sort_by(fn {_result, index} -> index end)
+      |> Enum.map(fn {result, _index} -> result end)
 
     json(conn, %{results: results})
   end
@@ -99,12 +106,29 @@ defmodule BibtimeWeb.API.StationController do
 
   defp normalize_read(_), do: {:error, :invalid_payload}
 
+  # Ingest buffered reads oldest-first so a multi-split station credits
+  # splits in the order the passes actually happened. Reads without a
+  # parseable read_at sort last (nil > any integer in term ordering),
+  # matching ingestion treating a missing read_at as "now". Results are
+  # returned in the original request order regardless.
+  defp read_time_sort_key({raw, index}) do
+    with %{"read_at" => read_at} when is_binary(read_at) <- raw,
+         {:ok, dt, _offset} <- DateTime.from_iso8601(read_at) do
+      {DateTime.to_unix(dt, :millisecond), index}
+    else
+      _ -> {nil, index}
+    end
+  end
+
   defp read_result_to_json({:ok, :recorded, participant, split_time}, _raw) do
     %{
       status: "recorded",
       participant_bib: participant.bib_number,
       participant_name: full_name(participant),
-      elapsed_ms: split_time.elapsed_ms
+      elapsed_ms: split_time.elapsed_ms,
+      split_id: split_time.split_id,
+      split_name: split_time.split.name,
+      needs_review: split_time.needs_review
     }
   end
 
