@@ -138,6 +138,8 @@ defmodule Bibtime.Timing.IngestChipReadTest do
       assert station_id == station.id
       assert payload.status == :recorded
       assert payload.bib_number == "40"
+      assert is_binary(payload.participant_name)
+      assert %DateTime{} = payload.at
     end
 
     test "broadcasts a :station_read message for unmatched reads" do
@@ -197,6 +199,8 @@ defmodule Bibtime.Timing.IngestChipReadTest do
                  "read_at" => offset_iso(started_at, 600)
                })
 
+      Phoenix.PubSub.subscribe(Bibtime.PubSub, "race:stations:#{race.id}")
+
       # 60s later — inside the default 120s lockout
       assert {:ok, :duplicate, _p} =
                Timing.ingest_chip_read(station, %{
@@ -204,8 +208,35 @@ defmodule Bibtime.Timing.IngestChipReadTest do
                  "read_at" => offset_iso(started_at, 660)
                })
 
+      assert_receive {:station_read, _station_id, payload}
+      assert payload.status == :duplicate
+      assert payload.reason == :lockout
+      assert payload.seconds_since_last == 60
+      assert payload.bib_number == "51"
+
       assert [only] = Timing.get_split_times_for_participant(participant.id)
       assert only.split.short_name == "bike"
+    end
+
+    test "broadcasts an :all_recorded duplicate when every station split is done" do
+      %{race: race, bike: bike, run: run, station: station, started_at: started_at} =
+        setup_multi_station()
+
+      participant = participant_fixture(race, %{chip_id: "E200M10", bib_number: "59"})
+      _ = record_split_time!(participant, bike, 600_000)
+      _ = record_split_time!(participant, run, 2_400_000)
+
+      Phoenix.PubSub.subscribe(Bibtime.PubSub, "race:stations:#{race.id}")
+
+      assert {:ok, :duplicate, _p} =
+               Timing.ingest_chip_read(station, %{
+                 "chip_id" => "E200M10",
+                 "read_at" => offset_iso(started_at, 3_600)
+               })
+
+      assert_receive {:station_read, _station_id, payload}
+      assert payload.status == :duplicate
+      assert payload.reason == :all_recorded
     end
 
     test "a lower pass_lockout_seconds allows faster consecutive passes" do

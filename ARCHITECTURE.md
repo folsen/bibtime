@@ -57,6 +57,7 @@ SplitTime
   ├── elapsed_ms (milliseconds from race start), absolute_time
   ├── source: chip | manual | import | adjustment
   ├── raw_chip_data (JSON blob of the raw station payload for chip reads)
+  ├── needs_review (flags suspicious multi-split attributions for admin review)
   ├── belongs_to → Participant, Split
   └── unique_constraint on [participant_id, split_id]
 
@@ -64,8 +65,11 @@ TimingStation                            (app-level, not scoped to one race)
   ├── name, token (auth, unique)
   ├── status: offline | online | reading | error
   ├── last_seen_at, firmware_version
-  ├── metadata (reads_total, uptime_seconds, reader_connected, error_reason, …)
-  └── belongs_to → Split (assigned_split, nilify_on_delete, unique when set)
+  ├── pass_lockout_seconds (re-read window, default 120, 0 = disabled)
+  ├── metadata (reads_total, uptime_seconds, reader_connected, error_reason,
+  │             local_ip, tailscale_ip, tailscale_status, …)
+  └── has_many → StationSplitAssignment → Split (all splits must belong to
+                one race; unique per split — one station per split)
 
 Payment
   ├── Stripe Checkout integration
@@ -181,27 +185,35 @@ Auth is handled by `BibtimeWeb.API.StationAuth` — looks up the station by toke
 
 ### Chip-read ingestion (`Timing.ingest_chip_read/2`)
 
-The station sends raw `{chip_id, read_at, rssi}`. The server resolves that into a `SplitTime`:
+The station sends raw `{chip_id, read_at, rssi}`. The server resolves that into a `SplitTime`. A station may cover several splits of the same race (e.g. one mat reading both "bike start" and "bike exit"); the server decides which pass each read is:
 
 ```
 ingest_chip_read(station, raw)
-  1. station.assigned_split_id must be set          → {:error, :station_unassigned}
+  1. list_assigned_splits(station) — [] → {:error, :station_unassigned}
   2. Participants.get_participant_by_chip(race, chip_id)
      - nil                                          → broadcast :unmatched, {:ok, :unmatched}
-  3. If participant already has a SplitTime for this split → {:ok, :duplicate, participant}
-  4. parse_read_at (ISO8601 → UTC DateTime; nil → now)
-  5. get_race_start(race_id)                        → {:error, :race_not_started} if none
-  6. elapsed_ms = read_at − race_start.started_at
-  7. record_split_time(participant, split, elapsed_ms, absolute_time, source: :chip,
-                        raw_chip_data: JSON of raw payload)
+  3. parse_read_at (ISO8601 → UTC DateTime; nil → now)
+  4. LOCKOUT: participant's closest recorded pass at this station within
+     station.pass_lockout_seconds of read_at        → {:ok, :duplicate, participant}
+     (re-reads from lingering in the antenna zone must not credit the next split)
+  5. chosen = lowest-sort_order assigned split with no SplitTime yet
+     - none missing                                 → {:ok, :duplicate, participant}
+  6. get_race_start(race_id)                        → {:error, :race_not_started} if none
+  7. elapsed_ms = read_at − race_start.started_at
+  8. needs_review (multi-split stations only): out-of-order backfill,
+     non-positive elapsed, or elapsed outside [median/2, median*2] of the
+     field (≥5 samples) — recorded anyway, surfaced in the timing console
+  9. record_split_time(…, source: :chip, needs_review)
      → broadcasts {:split_time_recorded, st} on "race:timing:#{race_id}"
-     → broadcasts {:station_read, station_id, payload} on "race:stations:#{race_id}"
      → {:ok, :recorded, participant, split_time}
 ```
 
+Every read outcome broadcasts `{:station_read, station_id, payload}` on `"race:stations:#{race_id}"` — recorded, duplicate (payload carries `reason: :lockout | :all_recorded` and `seconds_since_last`), and unmatched — and emits a structured `chip_read …` log line (greppable locally and in Better Stack).
+
 Key invariants:
 
-- The station never knows the `split_id`. The server looks it up from `station.assigned_split_id`. Reassigning a station to a different split on the server takes effect on the next read without touching the station.
+- The station never knows the `split_id`. The server picks the split from the station's assignments and the participant's already-recorded passes. Reassigning a station on the server takes effect on the next read without touching the station.
+- Batch flushes are ingested oldest-`read_at`-first so buffered out-of-order reads credit splits in the order the passes happened.
 - Duplicates are not errors — they're a normal consequence of a participant passing the antenna multiple times or batch-flushing already-delivered reads.
 - Unmatched chips are also not errors — they're reported so the monitoring UI can surface rogue tags.
 
@@ -209,8 +221,9 @@ Key invariants:
 
 | LiveView | Route | Purpose |
 |----------|-------|---------|
-| `Admin.StationLive.GlobalIndex` | `/admin/stations` (admin only) | Create/manage stations app-wide, show tokens for provisioning |
-| `Admin.StationLive.Index` | `/admin/races/:id/stations` (timer/admin) | Per-race split×station assignment grid, live heartbeat/last-seen indicators, surfaces `reader_connected: false` and `error_reason` so field problems are visible from the venue |
+| `Admin.StationLive.GlobalIndex` | `/admin/stations` (admin only) | Create/manage stations app-wide, show tokens for provisioning, per-station lockout setting, Tailscale tunnel status + SSH command |
+| `Admin.StationLive.Index` | `/admin/races/:id/stations` (timer/admin) | Per-race split×station assignment (multi-assign within one race), live heartbeat/last-seen indicators, surfaces `reader_connected: false` and `error_reason` so field problems are visible from the venue |
+| `Admin.ReadLogLive.Index` | `/admin/races/:id/reads` (timer/admin) | Ephemeral live feed of every read event (recorded/duplicate/unmatched) with outcome filters — in-memory only, clears on refresh |
 
 Both subscribe to `"race:stations:#{race_id}"` for live updates from heartbeats and reads. A periodic `:tick` recomputes staleness (`last_seen_at > ~20 s` flags a station as stale on the dashboard).
 
@@ -255,9 +268,10 @@ Timing.record_split_time  ◄──── Timing.ingest_chip_read  ◄───�
 - `/admin/settings` — whitelabel site settings (SettingsLive.Edit)
 
 **Timer** (require_timer_or_admin_user):
-- `/admin/races/:id/timing` — TimingLive.Index (manual split-time recording, file-upload import of timing data)
+- `/admin/races/:id/timing` — TimingLive.Index (manual split-time recording, flagged-entry review, file-upload import of timing data)
 - `/admin/races/:id/check-in` — CheckInLive.Index (assign chips, mark checked-in)
 - `/admin/races/:id/stations` — StationLive.Index (per-race station dashboard)
+- `/admin/races/:id/reads` — ReadLogLive.Index (live chip-read event feed)
 
 **API** (token auth, no CSRF):
 - `POST /api/stations/:token/reads` — single chip read

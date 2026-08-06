@@ -126,6 +126,7 @@ defmodule BibtimeWeb.Router do
       live "/admin/races/:id/timing", Admin.TimingLive.Index, :index
       live "/admin/races/:id/check-in", Admin.CheckInLive.Index, :index
       live "/admin/races/:id/stations", Admin.StationLive.Index, :index
+      live "/admin/races/:id/reads", Admin.ReadLogLive.Index, :index
     end
   end
 

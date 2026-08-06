@@ -91,7 +91,7 @@ msgstr "Kontoinställningar"
 #: lib/bibtime_web/live/admin/race_live/show.ex:208
 #: lib/bibtime_web/live/admin/race_live/show.ex:299
 #: lib/bibtime_web/live/admin/race_live/show.ex:421
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:80
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:81
 #: lib/bibtime_web/live/admin/timing_live/index.ex:393
 #: lib/bibtime_web/live/admin/timing_live/index.ex:462
 #: lib/bibtime_web/live/admin/user_live/index.ex:114
@@ -486,7 +486,7 @@ msgstr "Datum"
 #: lib/bibtime_web/live/admin/race_live/show.ex:231
 #: lib/bibtime_web/live/admin/race_live/show.ex:323
 #: lib/bibtime_web/live/admin/race_live/show.ex:519
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:127
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:148
 #: lib/bibtime_web/live/admin/timing_live/index.ex:431
 #, elixir-autogen, elixir-format
 msgid "Delete"
@@ -928,7 +928,7 @@ msgstr "Min anmälan"
 #: lib/bibtime_web/live/admin/race_live/show.ex:438
 #: lib/bibtime_web/live/admin/race_live/show.ex:543
 #: lib/bibtime_web/live/admin/station_live/global_index.ex:75
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:169
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:190
 #: lib/bibtime_web/live/admin/timing_live/index.ex:390
 #: lib/bibtime_web/live/admin/timing_live/index.ex:459
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:221
@@ -1963,7 +1963,7 @@ msgstr "Ladda upp alla"
 
 #: lib/bibtime_web/live/admin/participant_live/index.ex:664
 #: lib/bibtime_web/live/admin/photo_live/index.ex:360
-#: lib/bibtime_web/live/admin/timing_live/index.ex:784
+#: lib/bibtime_web/live/admin/timing_live/index.ex:786
 #, elixir-autogen, elixir-format
 msgid "Upload error"
 msgstr "Uppladdningsfel"
@@ -2125,6 +2125,7 @@ msgid "Paid"
 msgstr "Betald"
 
 #: lib/bibtime_web/live/admin/payment_live/index.ex:110
+#: lib/bibtime_web/live/admin/read_log_live/index.ex:76
 #, elixir-autogen, elixir-format
 msgid "Participant"
 msgstr "Deltagare"
@@ -2340,7 +2341,7 @@ msgid "Fastest Woman Overall"
 msgstr "Snabbaste kvinna totalt"
 
 #: lib/bibtime_web/live/admin/race_live/show.ex:478
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:113
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:134
 #, elixir-autogen, elixir-format
 msgid "Save"
 msgstr "Spara"
@@ -2445,7 +2446,7 @@ msgid "Tag not assigned to any participant. Select one first."
 msgstr ""
 
 #: lib/bibtime_web/live/admin/check_in_live/index.ex:224
-#: lib/bibtime_web/live/admin/station_live/index.ex:100
+#: lib/bibtime_web/live/admin/station_live/index.ex:105
 #, elixir-autogen, elixir-format
 msgid "Unassign"
 msgstr "Ta bort tilldelning"
@@ -2455,27 +2456,27 @@ msgstr "Ta bort tilldelning"
 msgid "checked in"
 msgstr ""
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:323
+#: lib/bibtime_web/live/admin/station_live/index.ex:328
 #, elixir-autogen, elixir-format
 msgid "%{n}h ago"
 msgstr "%{n}h sedan"
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:322
+#: lib/bibtime_web/live/admin/station_live/index.ex:327
 #, elixir-autogen, elixir-format
 msgid "%{n}m ago"
 msgstr "%{n}m sedan"
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:321
+#: lib/bibtime_web/live/admin/station_live/index.ex:326
 #, elixir-autogen, elixir-format
 msgid "%{n}s ago"
 msgstr "%{n}s sedan"
 
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:139
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:160
 #, elixir-autogen, elixir-format
 msgid "Add Station"
 msgstr "Lägg till station"
 
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:181
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:202
 #, elixir-autogen, elixir-format
 msgid "Create"
 msgstr "Skapa"
@@ -2485,7 +2486,7 @@ msgstr "Skapa"
 msgid "Dismiss"
 msgstr "Stäng"
 
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:79
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:80
 #, elixir-autogen, elixir-format
 msgid "Firmware"
 msgstr "Firmware"
@@ -2495,12 +2496,12 @@ msgstr "Firmware"
 msgid "Station created — copy the token now"
 msgstr "Station skapad — kopiera token nu"
 
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:208
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:229
 #, elixir-autogen, elixir-format
 msgid "Station created."
 msgstr "Station skapad."
 
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:257
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:278
 #, elixir-autogen, elixir-format
 msgid "Station deleted."
 msgstr "Station borttagen."
@@ -2516,18 +2517,18 @@ msgstr "Denna token visas inte igen. Klistra in den i stationens firmware-konfig
 msgid "Timing Stations"
 msgstr "Tidtagningsstationer"
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:319
-#: lib/bibtime_web/live/admin/station_live/index.ex:320
+#: lib/bibtime_web/live/admin/station_live/index.ex:324
+#: lib/bibtime_web/live/admin/station_live/index.ex:325
 #, elixir-autogen, elixir-format
 msgid "just now"
 msgstr "just nu"
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:313
+#: lib/bibtime_web/live/admin/station_live/index.ex:318
 #, elixir-autogen, elixir-format
 msgid "never"
 msgstr "aldrig"
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:118
+#: lib/bibtime_web/live/admin/station_live/index.ex:123
 #, elixir-autogen, elixir-format
 msgid "Assign"
 msgstr "Tilldela"
@@ -2537,27 +2538,27 @@ msgstr "Tilldela"
 msgid "Assignment"
 msgstr "Tilldelning"
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:143
+#: lib/bibtime_web/live/admin/station_live/index.ex:148
 #, elixir-autogen, elixir-format
 msgid "Create a new station"
 msgstr "Skapa en ny station"
 
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:124
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:145
 #, elixir-autogen, elixir-format
 msgid "Delete this station? Any race assignments will be removed."
 msgstr "Radera denna station? Alla lopptilldelningar kommer att tas bort."
 
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:161
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:182
 #, elixir-autogen, elixir-format
 msgid "Enter token manually"
 msgstr "Ange token manuellt"
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:176
+#: lib/bibtime_web/live/admin/station_live/index.ex:181
 #, elixir-autogen, elixir-format
 msgid "Failed to assign station."
 msgstr "Kunde inte tilldela station."
 
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:151
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:172
 #, elixir-autogen, elixir-format
 msgid "Generate token"
 msgstr "Generera token"
@@ -2572,12 +2573,12 @@ msgstr "Hantera alla stationer"
 msgid "Manage physical timing stations. Assign them to race splits from each race's station page."
 msgstr "Hantera fysiska tidtagningsstationer. Tilldela dem till loppets splits från varje lopps stationssida."
 
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:179
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:200
 #, elixir-autogen, elixir-format
 msgid "Paste the token from the station label"
 msgstr "Klistra in token från stationens etikett"
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:157
+#: lib/bibtime_web/live/admin/station_live/index.ex:162
 #, elixir-autogen, elixir-format
 msgid "Please select a station."
 msgstr "Välj en station."
@@ -2587,17 +2588,17 @@ msgstr "Välj en station."
 msgid "Reads: %{n}"
 msgstr "Läsningar: %{n}"
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:112
+#: lib/bibtime_web/live/admin/station_live/index.ex:117
 #, elixir-autogen, elixir-format
 msgid "Select a station..."
 msgstr "Välj en station..."
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:169
+#: lib/bibtime_web/live/admin/station_live/index.ex:174
 #, elixir-autogen, elixir-format
 msgid "Station assigned to %{split}."
 msgstr "Station tilldelad till %{split}."
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:193
+#: lib/bibtime_web/live/admin/station_live/index.ex:198
 #, elixir-autogen, elixir-format
 msgid "Station unassigned."
 msgstr "Stationens tilldelning borttagen."
@@ -2608,59 +2609,59 @@ msgstr "Stationens tilldelning borttagen."
 msgid "Stations"
 msgstr "Stationer"
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:132
+#: lib/bibtime_web/live/admin/station_live/index.ex:137
 #, elixir-autogen, elixir-format
 msgid "This race has no splits yet. Add splits before assigning stations."
 msgstr "Detta lopp har inga splits ännu. Lägg till splits innan du tilldelar stationer."
 
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:177
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:198
 #, elixir-autogen, elixir-format
 msgid "Token"
 msgstr "Token"
 
 #: lib/bibtime/registration/registration_notifier.ex:65
 #: lib/bibtime/registration/registration_notifier.ex:132
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:269
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:290
 #, elixir-autogen, elixir-format
 msgid "Unassigned"
 msgstr "Ej tilldelad"
 
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:171
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:192
 #, elixir-autogen, elixir-format
 msgid "e.g. Finish Line Reader"
 msgstr "t.ex. Mållinjeläsare"
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:307
+#: lib/bibtime_web/live/admin/station_live/index.ex:312
 #, elixir-autogen, elixir-format
 msgid "%{d}d %{h}h"
 msgstr "%{d}d %{h}h"
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:304
+#: lib/bibtime_web/live/admin/station_live/index.ex:309
 #, elixir-autogen, elixir-format
 msgid "%{h}h %{m}m"
 msgstr "%{h}h %{m}m"
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:301
+#: lib/bibtime_web/live/admin/station_live/index.ex:306
 #, elixir-autogen, elixir-format
 msgid "%{n}m"
 msgstr "%{n}m"
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:298
+#: lib/bibtime_web/live/admin/station_live/index.ex:303
 #, elixir-autogen, elixir-format
 msgid "%{n}s"
 msgstr "%{n}s"
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:331
+#: lib/bibtime_web/live/admin/station_live/index.ex:347
 #, elixir-autogen, elixir-format
 msgid "Error"
 msgstr "Fel"
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:329
+#: lib/bibtime_web/live/admin/station_live/index.ex:345
 #, elixir-autogen, elixir-format
 msgid "Reader crashed"
 msgstr "Läsaren kraschade"
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:330
+#: lib/bibtime_web/live/admin/station_live/index.ex:346
 #, elixir-autogen, elixir-format
 msgid "Reader disconnected"
 msgstr "Läsaren frånkopplad"
@@ -2743,7 +2744,7 @@ msgid "Drag a CSV file here or click to browse"
 msgstr "Dra en CSV-fil hit eller klicka för att välja"
 
 #: lib/bibtime_web/live/admin/participant_live/index.ex:661
-#: lib/bibtime_web/live/admin/timing_live/index.ex:781
+#: lib/bibtime_web/live/admin/timing_live/index.ex:783
 #, elixir-autogen, elixir-format
 msgid "File is too large (max 5MB)"
 msgstr "Filen är för stor (max 5MB)"
@@ -2772,7 +2773,7 @@ msgstr[0] "Importerade %{count} deltagare."
 msgstr[1] "Importerade %{count} deltagare."
 
 #: lib/bibtime_web/live/admin/participant_live/index.ex:663
-#: lib/bibtime_web/live/admin/timing_live/index.ex:783
+#: lib/bibtime_web/live/admin/timing_live/index.ex:785
 #, elixir-autogen, elixir-format
 msgid "Must be a .csv file"
 msgstr "Måste vara en .csv-fil"
@@ -2784,7 +2785,7 @@ msgid "No file selected. Please choose a CSV file."
 msgstr "Ingen fil vald. Välj en CSV-fil."
 
 #: lib/bibtime_web/live/admin/participant_live/index.ex:662
-#: lib/bibtime_web/live/admin/timing_live/index.ex:782
+#: lib/bibtime_web/live/admin/timing_live/index.ex:784
 #, elixir-autogen, elixir-format
 msgid "Only one file allowed"
 msgstr "Endast en fil tillåten"
@@ -3101,22 +3102,22 @@ msgstr[1] "Du har %{count} anmälningar till det här loppet"
 msgid "If you're registering a different person, change the name or email."
 msgstr "Om du anmäler en annan person, ändra namnet eller e-postadressen."
 
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:283
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:304
 #, elixir-autogen, elixir-format
 msgid "error"
 msgstr "fel"
 
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:284
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:305
 #, elixir-autogen, elixir-format
 msgid "offline"
 msgstr "frånkopplad"
 
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:281
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:302
 #, elixir-autogen, elixir-format
 msgid "online"
 msgstr "ansluten"
 
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:282
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:303
 #, elixir-autogen, elixir-format
 msgid "reading"
 msgstr "läser"
@@ -3283,7 +3284,7 @@ msgstr "Rensa flagga"
 msgid "Failed to update entry."
 msgstr "Kunde inte uppdatera registreringen."
 
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:246
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:267
 #, elixir-autogen, elixir-format
 msgid "Failed to update lockout."
 msgstr "Kunde inte uppdatera spärrtiden."
@@ -3293,12 +3294,12 @@ msgstr "Kunde inte uppdatera spärrtiden."
 msgid "Flagged for review"
 msgstr "Flaggade för granskning"
 
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:78
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:79
 #, elixir-autogen, elixir-format
 msgid "Lockout (s)"
 msgstr "Spärrtid (s)"
 
-#: lib/bibtime_web/live/admin/station_live/global_index.ex:243
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:264
 #, elixir-autogen, elixir-format
 msgid "Lockout updated."
 msgstr "Spärrtid uppdaterad."
@@ -3308,12 +3309,140 @@ msgstr "Spärrtid uppdaterad."
 msgid "Lockout: %{n}s"
 msgstr "Spärrtid: %{n}s"
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:141
+#: lib/bibtime_web/live/admin/station_live/index.ex:146
 #, elixir-autogen, elixir-format
 msgid "No stations available for this race."
 msgstr "Inga stationer tillgängliga för detta lopp."
 
-#: lib/bibtime_web/live/admin/station_live/index.ex:173
+#: lib/bibtime_web/live/admin/station_live/index.ex:178
 #, elixir-autogen, elixir-format
 msgid "Station is already assigned to another race."
 msgstr "Stationen är redan tilldelad ett annat lopp."
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:78
+#, elixir-autogen, elixir-format
+msgid "Remote access"
+msgstr "Fjärråtkomst"
+
+#: lib/bibtime_web/live/admin/station_live/index.ex:341
+#, elixir-autogen, elixir-format
+msgid "Tailscale not installed"
+msgstr "Tailscale ej installerat"
+
+#: lib/bibtime_web/live/admin/station_live/index.ex:340
+#, elixir-autogen, elixir-format
+msgid "Tailscale tunnel offline"
+msgstr "Tailscale-tunnel frånkopplad"
+
+#: lib/bibtime_web/live/admin/station_live/index.ex:339
+#, elixir-autogen, elixir-format
+msgid "Tailscale tunnel online"
+msgstr "Tailscale-tunnel ansluten"
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:324
+#, elixir-autogen, elixir-format
+msgid "no tunnel"
+msgstr "ingen tunnel"
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:323
+#, elixir-autogen, elixir-format
+msgid "tunnel offline"
+msgstr "tunnel frånkopplad"
+
+#: lib/bibtime_web/live/admin/station_live/global_index.ex:322
+#, elixir-autogen, elixir-format
+msgid "tunnel online"
+msgstr "tunnel ansluten"
+
+#: lib/bibtime_web/live/admin/read_log_live/index.ex:223
+#, elixir-autogen, elixir-format
+msgid "All"
+msgstr "Alla"
+
+#: lib/bibtime_web/live/admin/read_log_live/index.ex:78
+#, elixir-autogen, elixir-format
+msgid "Chip"
+msgstr "Chip"
+
+#: lib/bibtime_web/live/admin/read_log_live/index.ex:77
+#, elixir-autogen, elixir-format
+msgid "Detail"
+msgstr "Detalj"
+
+#: lib/bibtime_web/live/admin/read_log_live/index.ex:258
+#, elixir-autogen, elixir-format
+msgid "Duplicate"
+msgstr "Dubblett"
+
+#: lib/bibtime_web/live/admin/read_log_live/index.ex:225
+#, elixir-autogen, elixir-format
+msgid "Duplicates"
+msgstr "Dubbletter"
+
+#: lib/bibtime_web/live/admin/read_log_live/index.ex:50
+#, elixir-autogen, elixir-format
+msgid "Live feed only — events are not stored and the list clears on refresh."
+msgstr "Endast liveflöde — händelser sparas inte och listan rensas vid omladdning."
+
+#: lib/bibtime_web/live/admin/read_log_live/index.ex:75
+#, elixir-autogen, elixir-format
+msgid "Outcome"
+msgstr "Utfall"
+
+#: lib/bibtime_web/components/layouts/admin.html.heex:162
+#: lib/bibtime_web/live/admin/read_log_live/index.ex:45
+#, elixir-autogen, elixir-format
+msgid "Read Log"
+msgstr "Läslogg"
+
+#: lib/bibtime_web/live/admin/read_log_live/index.ex:224
+#: lib/bibtime_web/live/admin/read_log_live/index.ex:257
+#, elixir-autogen, elixir-format
+msgid "Recorded"
+msgstr "Registrerad"
+
+#: lib/bibtime_web/live/admin/read_log_live/index.ex:74
+#, elixir-autogen, elixir-format
+msgid "Station"
+msgstr "Station"
+
+#: lib/bibtime_web/live/admin/read_log_live/index.ex:182
+#, elixir-autogen, elixir-format
+msgid "Station #%{id}"
+msgstr "Station #%{id}"
+
+#: lib/bibtime_web/live/admin/read_log_live/index.ex:73
+#, elixir-autogen, elixir-format
+msgid "Time (UTC)"
+msgstr "Tid (UTC)"
+
+#: lib/bibtime_web/live/admin/read_log_live/index.ex:226
+#: lib/bibtime_web/live/admin/read_log_live/index.ex:259
+#, elixir-autogen, elixir-format
+msgid "Unmatched"
+msgstr "Omatchade"
+
+#: lib/bibtime_web/live/admin/read_log_live/index.ex:125
+#, elixir-autogen, elixir-format
+msgid "Waiting for reads — events appear here as stations scan tags."
+msgstr "Väntar på läsningar — händelser visas här när stationerna skannar taggar."
+
+#: lib/bibtime_web/live/admin/read_log_live/index.ex:204
+#, elixir-autogen, elixir-format
+msgid "all splits already recorded"
+msgstr "alla splits redan registrerade"
+
+#: lib/bibtime_web/live/admin/read_log_live/index.ex:208
+#, elixir-autogen, elixir-format
+msgid "chip not assigned to any participant"
+msgstr "chippet är inte kopplat till någon deltagare"
+
+#: lib/bibtime_web/live/admin/read_log_live/index.ex:200
+#, elixir-autogen, elixir-format
+msgid "re-read %{s}s after last pass"
+msgstr "omläsning %{s}s efter senaste passering"
+
+#: lib/bibtime_web/live/admin/read_log_live/index.ex:193
+#, elixir-autogen, elixir-format
+msgid "→ %{split} at %{elapsed}"
+msgstr "→ %{split} vid %{elapsed}"

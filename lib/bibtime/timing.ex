@@ -4,6 +4,8 @@ defmodule Bibtime.Timing do
   """
 
   import Ecto.Query, warn: false
+  require Logger
+
   alias Bibtime.Repo
 
   alias Bibtime.Timing.SplitTime
@@ -505,12 +507,17 @@ defmodule Bibtime.Timing do
     * `{:error, reason}` — any other error (e.g. changeset validation error)
 
   Broadcasts `{:station_read, station_id, payload}` on
-  `"race:stations:<race_id>"` for recorded and unmatched reads (but not for
-  duplicates).
+  `"race:stations:<race_id>"` for every read outcome — recorded, duplicate
+  (with a `:reason` of `:lockout` or `:all_recorded`), and unmatched — and
+  logs a structured `chip_read …` line per read for post-hoc debugging.
   """
   def ingest_chip_read(%TimingStation{} = station, %{"chip_id" => chip_id} = raw) do
     case list_assigned_splits(station.id) do
       [] ->
+        Logger.warning(
+          "chip_read station=#{inspect(station.name)} outcome=error reason=station_unassigned chip=#{chip_id}"
+        )
+
         {:error, :station_unassigned}
 
       splits ->
@@ -518,11 +525,13 @@ defmodule Bibtime.Timing do
 
         case Participants.get_participant_by_chip(race_id, chip_id) do
           nil ->
-            broadcast_station_read(race_id, station.id, %{
-              status: :unmatched,
-              chip_id: chip_id
-            })
+            payload = %{status: :unmatched, chip_id: chip_id, at: DateTime.utc_now()}
 
+            Logger.info(
+              "chip_read station=#{inspect(station.name)} outcome=unmatched chip=#{chip_id}"
+            )
+
+            broadcast_station_read(race_id, station.id, payload)
             {:ok, :unmatched}
 
           %Participant{} = participant ->
@@ -535,18 +544,40 @@ defmodule Bibtime.Timing do
     with {:ok, read_at} <- parse_read_at(Map.get(raw, "read_at")) do
       existing = existing_split_entries(participant.id, race_id)
       chosen = choose_split(splits, existing)
+      gap = seconds_since_last_station_pass(existing, splits, read_at)
 
       cond do
-        locked_out?(existing, splits, read_at, station.pass_lockout_seconds) ->
-          {:ok, :duplicate, participant}
+        locked_out?(gap, station.pass_lockout_seconds) ->
+          duplicate_read(station, race_id, participant, raw, read_at, :lockout, gap)
 
         chosen == nil ->
-          {:ok, :duplicate, participant}
+          duplicate_read(station, race_id, participant, raw, read_at, :all_recorded, gap)
 
         true ->
           record_chip_read(station, splits, race_id, participant, chosen, existing, read_at, raw)
       end
     end
+  end
+
+  defp duplicate_read(station, race_id, participant, raw, read_at, reason, gap) do
+    payload = %{
+      status: :duplicate,
+      reason: reason,
+      chip_id: Map.get(raw, "chip_id"),
+      participant_id: participant.id,
+      bib_number: participant.bib_number,
+      participant_name: participant_name(participant),
+      seconds_since_last: gap,
+      at: read_at
+    }
+
+    Logger.info(
+      "chip_read station=#{inspect(station.name)} outcome=duplicate reason=#{reason} " <>
+        "chip=#{payload.chip_id} bib=#{participant.bib_number} seconds_since_last=#{gap || "-"}"
+    )
+
+    broadcast_station_read(race_id, station.id, payload)
+    {:ok, :duplicate, participant}
   end
 
   defp record_chip_read(station, splits, race_id, participant, chosen, existing, read_at, raw) do
@@ -573,15 +604,23 @@ defmodule Bibtime.Timing do
           {:ok, split_time} ->
             split_time = %{split_time | split: chosen}
 
+            Logger.info(
+              "chip_read station=#{inspect(station.name)} outcome=recorded " <>
+                "chip=#{Map.get(raw, "chip_id")} bib=#{participant.bib_number} " <>
+                "split=#{chosen.short_name} elapsed_ms=#{elapsed_ms} review=#{needs_review}"
+            )
+
             broadcast_station_read(race_id, station.id, %{
               status: :recorded,
               chip_id: Map.get(raw, "chip_id"),
               participant_id: participant.id,
               bib_number: participant.bib_number,
+              participant_name: participant_name(participant),
               split_id: chosen.id,
               split_name: chosen.name,
               elapsed_ms: elapsed_ms,
-              needs_review: needs_review
+              needs_review: needs_review,
+              at: read_at
             })
 
             {:ok, :recorded, participant, split_time}
@@ -612,21 +651,31 @@ defmodule Bibtime.Timing do
     Enum.find(splits, fn split -> not MapSet.member?(existing_ids, split.id) end)
   end
 
-  # A read close to the participant's previous recorded pass at this station
-  # is a re-read (lingering in the antenna zone), not the next pass. Compares
-  # against the device read_at so buffered/late uploads are judged by when
-  # the pass actually happened. Times without an absolute_time (CSV imports)
-  # can't participate.
-  defp locked_out?(_existing, _splits, _read_at, 0), do: false
-
-  defp locked_out?(existing, splits, read_at, lockout_seconds) do
+  # Seconds between this read and the participant's closest recorded pass at
+  # this station, or nil when none qualifies. Compares against the device
+  # read_at so buffered/late uploads are judged by when the pass actually
+  # happened. Times without an absolute_time (CSV imports) can't participate.
+  defp seconds_since_last_station_pass(existing, splits, read_at) do
     station_split_ids = MapSet.new(splits, & &1.id)
 
-    Enum.any?(existing, fn entry ->
-      MapSet.member?(station_split_ids, entry.split_id) and
-        entry.absolute_time != nil and
-        abs(DateTime.diff(read_at, entry.absolute_time, :second)) < lockout_seconds
+    existing
+    |> Enum.filter(fn entry ->
+      MapSet.member?(station_split_ids, entry.split_id) and entry.absolute_time != nil
     end)
+    |> Enum.map(fn entry -> abs(DateTime.diff(read_at, entry.absolute_time, :second)) end)
+    |> Enum.min(fn -> nil end)
+  end
+
+  # A read close to the participant's previous recorded pass at this station
+  # is a re-read (lingering in the antenna zone), not the next pass.
+  defp locked_out?(nil, _lockout_seconds), do: false
+  defp locked_out?(_gap, 0), do: false
+  defp locked_out?(gap, lockout_seconds), do: gap < lockout_seconds
+
+  defp participant_name(participant) do
+    [participant.first_name, participant.last_name]
+    |> Enum.filter(& &1)
+    |> Enum.join(" ")
   end
 
   # A multi-split attribution is suspicious when the elapsed time is
