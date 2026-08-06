@@ -91,6 +91,11 @@ defmodule BibtimeWeb.Admin.StationLive.Index do
                 <div class="text-xs text-base-content/50 font-mono">
                   {gettext("Lockout: %{n}s", n: station.pass_lockout_seconds)}
                 </div>
+                <span
+                  :if={tunnel_status(station)}
+                  class={["inline-block size-2 rounded-full", tunnel_dot(tunnel_status(station))]}
+                  title={tunnel_title(tunnel_status(station))}
+                />
                 <button
                   phx-click="unassign"
                   phx-value-station-id={station.id}
@@ -323,6 +328,17 @@ defmodule BibtimeWeb.Admin.StationLive.Index do
       true -> gettext("%{n}h ago", n: div(diff, 3600))
     end
   end
+
+  defp tunnel_status(%{metadata: %{"tailscale_status" => status}}), do: status
+  defp tunnel_status(_), do: nil
+
+  defp tunnel_dot("online"), do: "bg-success"
+  defp tunnel_dot("offline"), do: "bg-warning"
+  defp tunnel_dot(_), do: "bg-base-300"
+
+  defp tunnel_title("online"), do: gettext("Tailscale tunnel online")
+  defp tunnel_title("offline"), do: gettext("Tailscale tunnel offline")
+  defp tunnel_title(_), do: gettext("Tailscale not installed")
 
   defp format_error_reason(station) do
     case get_metadata(station, "error_reason", nil) do

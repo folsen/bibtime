@@ -10,7 +10,10 @@ defmodule BibtimeStation.Heartbeat do
         uptime_seconds: 1234,
         reads_total: 42,
         buffer_size: 0,
-        reader_connected: true
+        reader_connected: true,
+        local_ip: "192.168.1.42",
+        tailscale_ip: "100.64.0.10",
+        tailscale_status: "online"
       }
 
   Errors are logged and otherwise ignored — the next tick will retry.
@@ -36,6 +39,7 @@ defmodule BibtimeStation.Heartbeat do
         Application.get_env(:bibtime_station, :heartbeat_interval_ms, @default_interval_ms)
 
     client = Keyword.get(opts, :http_client, &__MODULE__.default_client/2)
+    network_info = Keyword.get(opts, :network_info, &BibtimeStation.NetworkInfo.info/0)
     started_at = System.monotonic_time(:millisecond)
     schedule? = Keyword.get(opts, :auto_tick?, true)
 
@@ -45,6 +49,7 @@ defmodule BibtimeStation.Heartbeat do
      %{
        interval_ms: interval,
        http_client: client,
+       network_info: network_info,
        started_at: started_at
      }}
   end
@@ -84,13 +89,15 @@ defmodule BibtimeStation.Heartbeat do
     now = System.monotonic_time(:millisecond)
     {reader_connected, error_reason} = reader_status()
 
-    payload = %{
-      firmware_version: firmware_version(),
-      uptime_seconds: div(now - state.started_at, 1000),
-      reads_total: safe_read_count(),
-      buffer_size: safe_buffer_size(),
-      reader_connected: reader_connected
-    }
+    payload =
+      %{
+        firmware_version: firmware_version(),
+        uptime_seconds: div(now - state.started_at, 1000),
+        reads_total: safe_read_count(),
+        buffer_size: safe_buffer_size(),
+        reader_connected: reader_connected
+      }
+      |> Map.merge(state.network_info.())
 
     case error_reason do
       nil -> Map.put(payload, :status, "online")

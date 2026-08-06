@@ -40,6 +40,31 @@ defmodule BibtimeStation.HeartbeatTest do
     assert payload.reader_connected == false
   end
 
+  test "tick/1 includes network info from the injected resolver" do
+    client = fn _url, _payload -> :ok end
+
+    network_info = fn ->
+      %{local_ip: "192.168.1.50", tailscale_ip: "100.64.0.10", tailscale_status: "online"}
+    end
+
+    name = :"heartbeat_#{System.unique_integer([:positive])}"
+
+    {:ok, _pid} =
+      Heartbeat.start_link(
+        name: name,
+        http_client: client,
+        network_info: network_info,
+        auto_tick?: false,
+        interval_ms: 10_000
+      )
+
+    payload = Heartbeat.tick(name)
+
+    assert payload.local_ip == "192.168.1.50"
+    assert payload.tailscale_ip == "100.64.0.10"
+    assert payload.tailscale_status == "online"
+  end
+
   test "auto-tick schedules heartbeat messages" do
     test_pid = self()
 

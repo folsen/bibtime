@@ -75,6 +75,7 @@ defmodule BibtimeWeb.Admin.StationLive.GlobalIndex do
               <th class="font-semibold">{gettext("Name")}</th>
               <th class="font-semibold">{gettext("Assignment")}</th>
               <th class="font-semibold">{gettext("Status")}</th>
+              <th class="font-semibold">{gettext("Remote access")}</th>
               <th class="font-semibold">{gettext("Lockout (s)")}</th>
               <th class="font-semibold">{gettext("Firmware")}</th>
               <th class="font-semibold"><span class="sr-only">{gettext("Actions")}</span></th>
@@ -98,6 +99,26 @@ defmodule BibtimeWeb.Admin.StationLive.GlobalIndex do
                   <span class={["inline-block size-1.5 rounded-full", status_dot(station.status)]} />
                   {status_label(station.status)}
                 </span>
+              </td>
+              <td class="py-3">
+                <div class="flex flex-col gap-1">
+                  <span class={[
+                    "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium w-fit",
+                    tunnel_badge(tunnel_status(station))
+                  ]}>
+                    <span class={[
+                      "inline-block size-1.5 rounded-full",
+                      tunnel_dot(tunnel_status(station))
+                    ]} />
+                    {tunnel_label(tunnel_status(station))}
+                  </span>
+                  <code
+                    :if={tailscale_ip(station)}
+                    class="text-xs font-mono select-all text-base-content/70"
+                  >
+                    ssh bibtime@{tailscale_ip(station)}
+                  </code>
+                </div>
               </td>
               <td class="py-3">
                 <form phx-submit="update_lockout" class="flex items-center gap-1.5">
@@ -283,4 +304,22 @@ defmodule BibtimeWeb.Admin.StationLive.GlobalIndex do
   defp status_label(:error), do: gettext("error")
   defp status_label(:offline), do: gettext("offline")
   defp status_label(other), do: to_string(other)
+
+  defp tunnel_status(%{metadata: %{"tailscale_status" => status}}), do: status
+  defp tunnel_status(_), do: nil
+
+  defp tailscale_ip(%{metadata: %{"tailscale_ip" => ip}}) when is_binary(ip), do: ip
+  defp tailscale_ip(_), do: nil
+
+  defp tunnel_badge("online"), do: "bg-success/10 text-success"
+  defp tunnel_badge("offline"), do: "bg-warning/10 text-warning"
+  defp tunnel_badge(_), do: "bg-base-200 text-base-content/50"
+
+  defp tunnel_dot("online"), do: "bg-success"
+  defp tunnel_dot("offline"), do: "bg-warning"
+  defp tunnel_dot(_), do: "bg-base-300"
+
+  defp tunnel_label("online"), do: gettext("tunnel online")
+  defp tunnel_label("offline"), do: gettext("tunnel offline")
+  defp tunnel_label(_), do: gettext("no tunnel")
 end

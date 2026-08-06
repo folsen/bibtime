@@ -136,7 +136,10 @@ defmodule BibtimeWeb.API.StationControllerTest do
           "reads_total" => 5,
           "buffer_size" => 0,
           "uptime_seconds" => 10,
-          "reader_connected" => true
+          "reader_connected" => true,
+          "local_ip" => "192.168.1.50",
+          "tailscale_ip" => "100.64.0.10",
+          "tailscale_status" => "online"
         })
 
       assert json_response(conn, 200)["status"] == "ok"
@@ -146,6 +149,9 @@ defmodule BibtimeWeb.API.StationControllerTest do
       assert reloaded.status == :online
       assert reloaded.last_seen_at
       assert reloaded.metadata["reads_total"] == 5
+      assert reloaded.metadata["local_ip"] == "192.168.1.50"
+      assert reloaded.metadata["tailscale_ip"] == "100.64.0.10"
+      assert reloaded.metadata["tailscale_status"] == "online"
     end
 
     test "401 on bad token", %{conn: conn} do

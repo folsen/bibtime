@@ -79,7 +79,10 @@ defmodule BibtimeWeb.API.StationController do
         "uptime_seconds",
         "reader_connected",
         "status",
-        "error_reason"
+        "error_reason",
+        "local_ip",
+        "tailscale_ip",
+        "tailscale_status"
       ])
 
     case Timing.update_station_heartbeat(station, metadata) do

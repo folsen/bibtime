@@ -21,6 +21,9 @@
 #   4. Installs the systemd unit file
 #   5. Copies the env template to /etc/default/bibtime_station
 #   6. Installs hex + rebar
+#   7. Installs Tailscale and joins the tailnet (prompts for an auth
+#      key — generate a reusable, pre-authorized key tagged
+#      tag:station in the Tailscale admin; press Enter to skip)
 #
 # After provisioning, edit /etc/default/bibtime_station on the Pi to
 # set BIBTIME_URL and STATION_TOKEN, then run deploy.sh to push code.
@@ -89,6 +92,43 @@ REMOTE
 
 echo "--- Installing hex and rebar..."
 ssh "$HOST" "mix local.hex --force && mix local.rebar --force"
+
+echo "--- Installing Tailscale..."
+ssh "$HOST" bash <<'REMOTE'
+set -euo pipefail
+
+if ! command -v tailscale >/dev/null 2>&1; then
+  curl -fsSL https://tailscale.com/install.sh | sh
+fi
+
+sudo systemctl enable --now tailscaled
+REMOTE
+
+# Tailnet hostname = provisioning hostname minus any .local suffix, so
+# MagicDNS names line up with how we already address the Pis.
+TS_HOSTNAME="${1%%.*}"
+
+if ssh "$HOST" "tailscale status >/dev/null 2>&1"; then
+  echo "--- Tailscale already up on $TS_HOSTNAME, skipping join"
+else
+  echo ""
+  echo "Paste the station auth key from the password manager entry"
+  echo "'tailscale-station-authkey' (or press Enter to skip Tailscale)."
+  read -rsp "Tailscale auth key (tskey-auth-...): " TS_AUTHKEY
+  echo
+
+  if [ -n "$TS_AUTHKEY" ]; then
+    ssh "$HOST" sudo tailscale up \
+      --authkey="$TS_AUTHKEY" \
+      --ssh \
+      --hostname="$TS_HOSTNAME" \
+      --advertise-tags=tag:station \
+      --accept-dns=false
+    echo "--- Tailscale up as $TS_HOSTNAME"
+  else
+    echo "--- Skipped Tailscale join (run 'sudo tailscale up ...' on the Pi later)"
+  fi
+fi
 
 echo ""
 echo "==> Provisioning complete!"

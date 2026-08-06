@@ -221,6 +221,37 @@ which won't work in the field.
   GPIO 14/15 and appear as `/dev/ttyAMA0`. Keep the R200 on USB
   (`/dev/ttyUSB0`) so they don't conflict.
 
+### Remote access (Tailscale)
+
+`provision.sh` installs Tailscale and joins the Pi to the tailnet
+(design: [hardware/REMOTE_ACCESS_PLAN.md](../hardware/REMOTE_ACCESS_PLAN.md)).
+It prompts for a **reusable, pre-authorized auth key tagged
+`tag:station`** — generate it in the Tailscale admin console and keep it
+in the password manager (`tailscale-station-authkey`). Press Enter at
+the prompt to skip.
+
+Once joined:
+
+- `ssh bibtime@bibtime-1` works from any `tag:ops` machine, anywhere —
+  including through CGNAT on a 4G modem. `.local` mDNS names are only
+  needed for the very first provisioning run on the LAN.
+- The station heartbeat reports `local_ip`, `tailscale_ip`, and
+  `tailscale_status` — the admin stations page shows a tunnel pill and
+  a copyable `ssh bibtime@<tailnet-ip>` command per station.
+- Tailscale being down never blocks chip reads; the tunnel is an ops
+  sidecar, not part of the read path.
+
+To join a Pi that was provisioned before Tailscale support (or where
+the prompt was skipped):
+
+```bash
+ssh bibtime@<pi> "curl -fsSL https://tailscale.com/install.sh | sh && \
+  sudo systemctl enable --now tailscaled"
+ssh bibtime@<pi> sudo tailscale up \
+  --authkey='tskey-auth-…' --ssh --hostname=<name> \
+  --advertise-tags=tag:station --accept-dns=false
+```
+
 ---
 
 ## Troubleshooting
