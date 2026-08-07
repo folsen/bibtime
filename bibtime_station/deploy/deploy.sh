@@ -48,8 +48,11 @@ cd /opt/bibtime_source
 # source timestamps which can leave stale .beam files or cached tarballs.
 rm -rf _build/prod/lib/bibtime_station _build/prod/rel _build/prod/bibtime_station-*
 
-MIX_ENV=prod mix deps.get
-MIX_ENV=prod mix release --overwrite
+# </dev/null is load-bearing: Hex's security-advisory check prompts on
+# stdin when advisories exist, and with a heredoc-fed script the prompt
+# consumes the remaining script lines — silently skipping the build.
+MIX_ENV=prod mix deps.get </dev/null
+MIX_ENV=prod mix release --overwrite </dev/null
 
 echo "--- Unpacking release..."
 tar -xzf _build/prod/bibtime_station-*.tar.gz -C /opt/bibtime_station

@@ -81,6 +81,26 @@ rm -f /tmp/bibtime_station.service /tmp/bibtime_station.env /tmp/fix-ch340-usb.s
 sudo systemctl daemon-reload
 sudo systemctl enable bibtime_station
 
+# 4G modem (eth0/usb0) is backup connectivity only: demote its default
+# route below wlan0 and never use its DNS — a modem whose data service
+# drops otherwise hijacks the default route and blackholes everything
+# while WiFi sits idle.
+sudo tee /etc/netplan/95-modem-backup.yaml > /dev/null <<'NETPLAN'
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: true
+      dhcp4-overrides:
+        route-metric: 700
+        use-dns: false
+      dhcp6: true
+      optional: true
+NETPLAN
+sudo chmod 600 /etc/netplan/95-modem-backup.yaml
+sudo netplan apply 2>/dev/null || true
+echo "Installed modem-backup netplan drop-in (eth0 route metric 700, DNS ignored)"
+
 # Enable GPIO3 power button (clean shutdown on press, wake on press when halted)
 if ! grep -q 'gpio-shutdown' /boot/firmware/config.txt 2>/dev/null; then
   echo 'dtoverlay=gpio-shutdown,gpio_pin=3' | sudo tee -a /boot/firmware/config.txt >/dev/null
@@ -111,11 +131,16 @@ TS_HOSTNAME="${1%%.*}"
 if ssh "$HOST" "tailscale status >/dev/null 2>&1"; then
   echo "--- Tailscale already up on $TS_HOSTNAME, skipping join"
 else
-  echo ""
-  echo "Paste the station auth key from the password manager entry"
-  echo "'tailscale-station-authkey' (or press Enter to skip Tailscale)."
-  read -rsp "Tailscale auth key (tskey-auth-...): " TS_AUTHKEY
-  echo
+  # The key can be supplied via the TS_AUTHKEY env var (e.g. from .env)
+  # for non-interactive runs; otherwise prompt when on a terminal.
+  if [ -z "${TS_AUTHKEY:-}" ] && [ -t 0 ]; then
+    echo ""
+    echo "Paste the station auth key from the password manager entry"
+    echo "'tailscale-station-authkey' (or press Enter to skip Tailscale)."
+    read -rsp "Tailscale auth key (tskey-auth-...): " TS_AUTHKEY
+    echo
+  fi
+  TS_AUTHKEY="${TS_AUTHKEY:-}"
 
   if [ -n "$TS_AUTHKEY" ]; then
     ssh "$HOST" sudo tailscale up \

@@ -44,33 +44,42 @@ All of this is inert until Tailscale is actually installed on a Pi
 
 ## 3. Flash + provision stations 2 and 3
 
-- [ ] **[You]** Raspberry Pi Imager on both SD cards: Pi OS Lite
+- [x] **[You]** Raspberry Pi Imager on both SD cards: Pi OS Lite
       (64-bit), hostname `bibtime-station-2` / `bibtime-station-3`, username `bibtime`,
       your WiFi + country `SE`, SSH enabled with your pubkey. Insert
       cards, power on, confirm they appear on the LAN.
-- [ ] **[Me]** Run `./deploy/provision.sh bibtime-station-2.local` (and `-3`)
-      — you paste the Tailscale auth key at the prompt.
-- [ ] **[Me]** Create station records in the admin UI, set
-      `BIBTIME_URL` + `STATION_TOKEN` in `/etc/default/bibtime_station`
-      on each Pi.
-- [ ] **[Me]** `./deploy/deploy.sh` both Pis; verify they flip online
-      on the stations dashboard and `tailscale_status=online`.
+      **SSID must be `Mick Schumacher`** (the 2.4 GHz network station 1
+      uses) — the first flash used `Valtteri Bottas`, which the
+      Pi Zero 2 W never joined, and cards had to be re-flashed.
+- [x] **[Me]** Run `./deploy/provision.sh` (station 3 done; station 2
+      in flight). Auth key comes from `TS_AUTHKEY` in `.env`.
+- [x] **[Me]** Station records created on staging; station 1 + 3
+      configured with `BIBTIME_URL=https://bibtime-staging.fly.dev` +
+      tokens; station 1 retrofitted (Tailscale + new station code).
+- [x] **[Me]** Deploys done for 1 + 3 — both online on staging with
+      `tailscale_status=online`, readers connected. (Fixed a deploy.sh
+      bug where Hex's advisory prompt silently ate the build, and a
+      routing bug where a data-less 4G modem hijacked the default
+      route — modem now demoted to backup with its DNS ignored.)
+- [x] **[Me]** Station 2: provisioned + deployed (finished by IP after
+      its mDNS dropped mid-run — that unit's WiFi looks weak, worth
+      watching; its 4G modem also never presented an eth0 interface).
 - [ ] **[You]** Sanity check: `ssh bibtime@bibtime-station-2` from your laptop
       over the tailnet (try once on phone hotspot to exercise the
       CGNAT path).
 
 ## 4. Test race setup in BibTime — [Me]
 
-- [ ] Decide target server: staging vs production (**[You]** call —
-      production is closest to reality).
-- [ ] Create the test race with the real split layout, e.g.:
-      station 1 = swim exit · station 2 = bike start **and** bike exit ·
-      station 3 = run start **and** run finish (exercises the new
-      multi-split assignment + lockout).
-- [ ] Assign stations to splits; review `pass_lockout_seconds` per
-      station (default 120 s — lower it if two passes at one mat can
-      legitimately be closer).
-- [ ] Register test participants.
+- [x] Target server: **staging** (`bibtime-staging.fly.dev`), running
+      current main (multi-split + read log).
+- [x] Test race created: **"Dry Run Test Race"** (`dry-run-test`,
+      race_id 3, in_progress). Splits: Swim Exit · Bike Start ·
+      Bike Exit · Run Start · Run Finish.
+- [x] Stations assigned: 1 → Swim Exit · 2 → Bike Start + Bike Exit ·
+      3 → Run Start + Run Finish. Lockout lowered to **30 s** on
+      stations 2 and 3 (walking-pace dry run — keep >30 s between
+      passes at the same station or the re-read guard eats the pass).
+- [x] Participants registered: bibs 1–4 ("Test Runner One…Four").
 
 ## 5. Chip check-in — [You]
 
