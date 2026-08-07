@@ -81,25 +81,25 @@ rm -f /tmp/bibtime_station.service /tmp/bibtime_station.env /tmp/fix-ch340-usb.s
 sudo systemctl daemon-reload
 sudo systemctl enable bibtime_station
 
-# 4G modem (eth0/usb0) is backup connectivity only: demote its default
-# route below wlan0 and never use its DNS — a modem whose data service
-# drops otherwise hijacks the default route and blackholes everything
-# while WiFi sits idle.
-sudo tee /etc/netplan/95-modem-backup.yaml > /dev/null <<'NETPLAN'
-network:
-  version: 2
-  ethernets:
-    eth0:
-      dhcp4: true
-      dhcp4-overrides:
-        route-metric: 700
-        use-dns: false
-      dhcp6: true
-      optional: true
-NETPLAN
-sudo chmod 600 /etc/netplan/95-modem-backup.yaml
-sudo netplan apply 2>/dev/null || true
-echo "Installed modem-backup netplan drop-in (eth0 route metric 700, DNS ignored)"
+# 4G modem (eth0) is backup connectivity only: demote its default route
+# below wlan0 and never use its DNS — a modem whose data service drops
+# otherwise hijacks the default route at metric 100 and blackholes
+# everything while WiFi sits idle. Pi OS renders NetworkManager into
+# /etc/netplan (files are named 90-NM-*), and NM rewrites that directory
+# — a hand-added /etc/netplan drop-in gets wiped. Set it on the NM
+# connection profile instead, which persists across reboots.
+ETH_CON=$(nmcli -t -f NAME,DEVICE con show 2>/dev/null | awk -F: '$2=="eth0"{print $1; exit}')
+[ -z "$ETH_CON" ] && ETH_CON=$(nmcli -t -f NAME con show 2>/dev/null | grep -m1 -x 'netplan-eth0' || true)
+if [ -n "$ETH_CON" ]; then
+  sudo nmcli connection modify "$ETH_CON" \
+    ipv4.route-metric 700 ipv4.ignore-auto-dns yes \
+    ipv6.route-metric 700 ipv6.ignore-auto-dns yes
+  sudo nmcli connection up "$ETH_CON" >/dev/null 2>&1 || true
+  echo "Demoted modem connection '$ETH_CON' to backup (route metric 700, DNS ignored)"
+else
+  echo "No eth0/modem connection present yet — if a 4G modem is added later,"
+  echo "run: sudo nmcli connection modify netplan-eth0 ipv4.route-metric 700 ipv4.ignore-auto-dns yes"
+fi
 
 # Enable GPIO3 power button (clean shutdown on press, wake on press when halted)
 if ! grep -q 'gpio-shutdown' /boot/firmware/config.txt 2>/dev/null; then
