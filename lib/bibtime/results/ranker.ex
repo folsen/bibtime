@@ -10,10 +10,12 @@ defmodule Bibtime.Results.Ranker do
   @doc """
   Ranks results overall.
 
-  Active participants (`:racing` or `:finished`) are ranked first — sorted by
-  `splits_completed` descending, then by `total_ms` (or the last recorded
-  split elapsed time) ascending. DNS/DNF/DSQ participants are appended at the
-  end without a meaningful rank.
+  Participants who recorded the final split are ranked first, on `total_ms`
+  alone: a finish read gives the true total even when intermediate checkpoints
+  were missed, so a missing mid-race read must not cost someone places.
+  Everyone else still on course follows, ordered by `splits_completed`
+  descending and then by how quickly they reached that point. DNS/DNF/DSQ
+  participants are appended at the end without a meaningful rank.
 
   Returns the list with the `:rank` field populated.
   """
@@ -22,10 +24,7 @@ defmodule Bibtime.Results.Ranker do
 
     sorted_active =
       active
-      |> Enum.sort_by(
-        fn r -> {-r.splits_completed, r.total_ms || max_elapsed(r), bib_number(r)} end,
-        :asc
-      )
+      |> Enum.sort_by(&sort_key/1, :asc)
       |> Enum.with_index(1)
       |> Enum.map(fn {%ParticipantResult{} = r, idx} -> %ParticipantResult{r | rank: idx} end)
 
@@ -40,13 +39,15 @@ defmodule Bibtime.Results.Ranker do
   # Private helpers
   # ---------------------------------------------------------------------------
 
-  # When total_ms is nil (participant hasn't finished), we fall back to the
-  # maximum elapsed time among their recorded leg times so that we can still
-  # sort partially-completed participants.
-  defp max_elapsed(%ParticipantResult{leg_times: legs}) when map_size(legs) == 0, do: 0
+  # Finishers sort ahead of everyone still on course (leading 0), on total time
+  # alone. Those without a final time fall back to progress — furthest along
+  # first, then fastest to get there.
+  defp sort_key(%ParticipantResult{total_ms: total_ms} = r) when is_integer(total_ms) do
+    {0, total_ms, 0, bib_number(r)}
+  end
 
-  defp max_elapsed(%ParticipantResult{leg_times: legs}) do
-    legs |> Map.values() |> Enum.sum()
+  defp sort_key(%ParticipantResult{} = r) do
+    {1, -r.splits_completed, r.last_elapsed_ms || 0, bib_number(r)}
   end
 
   defp bib_number(%ParticipantResult{participant: p}) do

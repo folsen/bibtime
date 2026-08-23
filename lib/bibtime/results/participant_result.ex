@@ -12,6 +12,7 @@ defmodule Bibtime.Results.ParticipantResult do
     :splits_completed,
     :leg_times,
     :total_ms,
+    :last_elapsed_ms,
     :rank,
     :status,
     auto_categories: []

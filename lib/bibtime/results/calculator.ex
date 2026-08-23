@@ -43,20 +43,33 @@ defmodule Bibtime.Results.Calculator do
         participant_times
         |> Enum.into(%{}, fn st -> {st.split_id, st.elapsed_ms} end)
 
-      # Calculate leg times in split order
-      {leg_times, _prev_elapsed} =
-        Enum.reduce(split_ids_ordered, {%{}, 0}, fn split_id, {acc, prev} ->
+      # Calculate leg times in split order. A missing split leaves a gap, and
+      # the next recorded leg would silently absorb the missing segment's
+      # duration (a skipped bike read turns the run leg into bike+run). Such a
+      # leg is omitted rather than published as if it timed its own segment
+      # only — consumers render `nil` as "--:--" and suppress pace.
+      {leg_times, _prev_elapsed, _gap?} =
+        Enum.reduce(split_ids_ordered, {%{}, 0, false}, fn split_id, {acc, prev, gap?} ->
           case Map.get(elapsed_by_split, split_id) do
             nil ->
-              {acc, prev}
+              {acc, prev, true}
 
             elapsed ->
-              leg = elapsed - prev
-              {Map.put(acc, split_id, leg), elapsed}
+              acc = if gap?, do: acc, else: Map.put(acc, split_id, elapsed - prev)
+              {acc, elapsed, false}
           end
         end)
 
-      splits_completed = map_size(leg_times)
+      # Counts splits actually recorded, which is not the same as the number
+      # of publishable leg times once a gap has swallowed one.
+      splits_completed = Enum.count(split_ids_ordered, &Map.has_key?(elapsed_by_split, &1))
+
+      # Furthest point on course, used to order participants still racing.
+      last_elapsed_ms =
+        split_ids_ordered
+        |> Enum.map(&Map.get(elapsed_by_split, &1))
+        |> Enum.reject(&is_nil/1)
+        |> List.last()
 
       # Total time is the elapsed_ms of the final split (by sort order) if
       # recorded. Middle splits may be missing (e.g. untimed transitions).
@@ -76,6 +89,7 @@ defmodule Bibtime.Results.Calculator do
         splits_completed: splits_completed,
         leg_times: leg_times,
         total_ms: total_ms,
+        last_elapsed_ms: last_elapsed_ms,
         status: participant.status,
         auto_categories: matched_auto_cats
       }

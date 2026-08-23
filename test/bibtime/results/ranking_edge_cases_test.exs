@@ -98,6 +98,162 @@ defmodule Bibtime.Results.RankingEdgeCasesTest do
     end
   end
 
+  describe "missing intermediate splits" do
+    test "leg following a missed split is omitted rather than absorbing its time" do
+      {race, [swim, bike, run]} = triathlon_fixture()
+
+      p = participant_fixture(race, %{bib_number: "1", first_name: "MissedBike"})
+
+      record_split_time!(p, swim, 1_100_000)
+      # No bike read — bike+run would otherwise collapse into the run leg.
+      record_split_time!(p, run, 7_000_000)
+
+      [result] = Results.get_race_results(race.id)
+
+      assert Map.get(result.leg_times, swim.id) == 1_100_000
+      assert Map.get(result.leg_times, bike.id) == nil
+      assert Map.get(result.leg_times, run.id) == nil
+
+      # Total still comes straight off the finish read.
+      assert result.total_ms == 7_000_000
+      assert result.splits_completed == 2
+    end
+
+    test "pace is suppressed for a leg spanning a missed split" do
+      race = race_fixture(%{status: :in_progress})
+
+      swim =
+        split_fixture(race, %{
+          name: "Swim",
+          short_name: "swim",
+          leg_type: :swim,
+          sort_order: 1,
+          distance_meters: 1_500,
+          pace_display: :min_per_100m
+        })
+
+      bike =
+        split_fixture(race, %{
+          name: "Bike",
+          short_name: "bike",
+          leg_type: :bike,
+          sort_order: 2,
+          distance_meters: 40_000,
+          pace_display: :km_per_h
+        })
+
+      run =
+        split_fixture(race, %{
+          name: "Run",
+          short_name: "run",
+          leg_type: :run,
+          sort_order: 3,
+          distance_meters: 10_000,
+          pace_display: :min_per_km
+        })
+
+      p = participant_fixture(race, %{bib_number: "1"})
+      record_split_time!(p, swim, 1_100_000)
+      record_split_time!(p, run, 7_000_000)
+
+      [result] = Results.get_race_results(race.id)
+
+      # The run leg would have reported a plausible-looking 9:50 /km for what
+      # was really bike+run.
+      for split <- [bike, run] do
+        leg = Map.get(result.leg_times, split.id)
+        assert Calculator.format_time(leg) == "--:--"
+        assert Calculator.format_pace(leg, split.distance_meters, split.pace_display) == nil
+      end
+
+      assert Calculator.format_pace(
+               Map.get(result.leg_times, swim.id),
+               swim.distance_meters,
+               swim.pace_display
+             ) == "1:13 /100m"
+    end
+
+    test "only a finish read still yields the correct total" do
+      {race, [swim, bike, run]} = triathlon_fixture()
+
+      p = participant_fixture(race, %{bib_number: "1", first_name: "FinishOnly"})
+      record_split_time!(p, run, 6_000_000)
+
+      [result] = Results.get_race_results(race.id)
+
+      assert result.total_ms == 6_000_000
+      assert result.splits_completed == 1
+
+      # Every leg column reads "--:--" — the run leg would otherwise have
+      # reported the entire race as a run time.
+      for split <- [swim, bike, run] do
+        assert Map.get(result.leg_times, split.id) == nil
+      end
+    end
+  end
+
+  describe "ranking finishers with missing splits" do
+    test "a faster finisher outranks a slower one with more splits recorded" do
+      {race, [swim, bike, run]} = triathlon_fixture()
+
+      complete = participant_fixture(race, %{bib_number: "1", first_name: "Complete"})
+      record_split_time!(complete, swim, 1_200_000)
+      record_split_time!(complete, bike, 5_400_000)
+      record_split_time!(complete, run, 8_000_000)
+
+      missed = participant_fixture(race, %{bib_number: "2", first_name: "MissedBike"})
+      record_split_time!(missed, swim, 1_100_000)
+      record_split_time!(missed, run, 7_000_000)
+
+      results = Results.get_race_results(race.id)
+
+      r_missed = Enum.find(results, &(&1.participant.id == missed.id))
+      r_complete = Enum.find(results, &(&1.participant.id == complete.id))
+
+      assert r_missed.rank == 1
+      assert r_complete.rank == 2
+    end
+
+    test "a finisher outranks someone still on course with more splits recorded" do
+      {race, [swim, bike, run]} = triathlon_fixture()
+
+      finisher = participant_fixture(race, %{bib_number: "1", first_name: "FinishOnly"})
+      record_split_time!(finisher, run, 8_000_000)
+
+      racing = participant_fixture(race, %{bib_number: "2", first_name: "StillRacing"})
+      record_split_time!(racing, swim, 1_000_000)
+      record_split_time!(racing, bike, 5_000_000)
+
+      results = Results.get_race_results(race.id)
+
+      r_finisher = Enum.find(results, &(&1.participant.id == finisher.id))
+      r_racing = Enum.find(results, &(&1.participant.id == racing.id))
+
+      assert r_finisher.splits_completed < r_racing.splits_completed
+      assert r_finisher.rank == 1
+      assert r_racing.rank == 2
+    end
+
+    test "participants still on course are ordered by progress, then elapsed" do
+      {race, [swim, bike, _run]} = triathlon_fixture()
+
+      ahead = participant_fixture(race, %{bib_number: "1", first_name: "Ahead"})
+      record_split_time!(ahead, swim, 2_000_000)
+      record_split_time!(ahead, bike, 5_000_000)
+
+      fast_swim = participant_fixture(race, %{bib_number: "2", first_name: "FastSwim"})
+      record_split_time!(fast_swim, swim, 500_000)
+
+      slow_swim = participant_fixture(race, %{bib_number: "3", first_name: "SlowSwim"})
+      record_split_time!(slow_swim, swim, 900_000)
+
+      results = Results.get_race_results(race.id)
+      order = results |> Enum.sort_by(& &1.rank) |> Enum.map(& &1.participant.first_name)
+
+      assert order == ["Ahead", "FastSwim", "SlowSwim"]
+    end
+  end
+
   describe "Calculator.format_time/1" do
     test "nil returns placeholder" do
       assert Calculator.format_time(nil) == "--:--"
