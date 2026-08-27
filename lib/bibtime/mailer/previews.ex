@@ -67,11 +67,10 @@ defmodule Bibtime.Mailer.Previews do
         title: "Race announcement (bulk)",
         description:
           "Sent from the admin race page to every participant. The subject and body " <>
-            "are the organizer's own words; only the frame around them is translated.",
+            "are the organizer's own words and the entire email — nothing is added.",
         build: fn locale ->
           RaceNotifier.email_announcement(
             sample_participant(locale),
-            sample_race(),
             "Start PM and race-day info",
             """
             The Start PM is now published — please read it before race morning:

@@ -203,7 +203,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
       <div class="rounded-xl border border-base-300 bg-base-100 p-5 shadow-sm">
         <p class="text-sm text-base-content/60 mb-4">
           {gettext(
-            "Sends one personalised email per participant — each gets their own bib number and registration link, in their own language. Your subject and message go out exactly as written."
+            "Sends your message to each participant as a separate email, so nobody sees anyone else's address. The subject and message below are the whole email — nothing is added around them."
           )}
         </p>
 
@@ -709,17 +709,10 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
 
   @impl true
   def handle_event("send_test_announcement", _params, socket) do
-    %{race: race, announcement_form: form} = socket.assigns
     user = socket.assigns.current_scope.user
-    params = form.params
+    params = socket.assigns.announcement_form.params
 
-    case RaceNotifier.deliver_test(
-           race,
-           params["subject"],
-           params["body"],
-           user.email,
-           user.preferred_locale
-         ) do
+    case RaceNotifier.deliver_test(params["subject"], params["body"], user.email) do
       {:ok, email} ->
         {:noreply,
          put_flash(socket, :info, gettext("Test email sent to %{email}.", email: email))}

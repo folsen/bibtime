@@ -4,23 +4,18 @@ defmodule Bibtime.Races.RaceNotifier do
   race — a pre-race reminder linking to the Start PM, a "results are up"
   notice, and so on.
 
-  Unlike the transactional notifiers this fans out to a whole start list, so
-  delivery goes through the mailer's batch API (`deliver_many/1`) in chunks of
-  100 rather than one request per recipient, which would trip the provider's
-  rate limit on a field of any size.
+  The organizer's subject and body are the whole email. Nothing is wrapped
+  around them: no greeting, no footer, no links. What is typed into the admin
+  panel is exactly what lands in the inbox.
 
-  The organizer writes the subject and body once, in one language. Those go out
-  verbatim; only the frame around them (greeting, bib number, links) is
-  rendered in each recipient's own locale.
+  Each participant still gets their own copy addressed only to them rather than
+  one BCC blast, which keeps addresses private and keeps the mail out of spam
+  folders. Delivery goes through the mailer's batch API (`deliver_many/1`) in
+  chunks of 100 rather than one request per recipient, which would trip the
+  provider's rate limit on a field of any size.
   """
 
   import Swoosh.Email
-  use Gettext, backend: BibtimeWeb.Gettext
-
-  use Phoenix.VerifiedRoutes,
-    endpoint: BibtimeWeb.Endpoint,
-    router: BibtimeWeb.Router,
-    statics: BibtimeWeb.static_paths()
 
   alias Bibtime.Accounts.User
   alias Bibtime.AuditLog
@@ -28,7 +23,6 @@ defmodule Bibtime.Races.RaceNotifier do
   alias Bibtime.Participants
   alias Bibtime.Participants.Participant
   alias Bibtime.SiteSettings
-  alias BibtimeWeb.LocaleHelpers
 
   # Resend's batch endpoint caps a request at 100 emails.
   @batch_size 100
@@ -64,19 +58,14 @@ defmodule Bibtime.Races.RaceNotifier do
   @doc """
   Builds the announcement email for one participant (also used by previews).
 
-  `subject` and `body` are the organizer's own words and are inserted as
-  written.
+  The body is the organizer's own words and nothing else — see the module doc.
   """
-  def email_announcement(participant, race, subject, body) do
-    locale = SiteSettings.locale_for(Map.get(participant, :user))
-
-    Gettext.with_locale(BibtimeWeb.Gettext, locale, fn ->
-      new()
-      |> to(recipient_email(participant))
-      |> from({SiteSettings.get().site_name, from_address()})
-      |> subject(subject)
-      |> text_body(framed_body(participant, race, body))
-    end)
+  def email_announcement(participant, subject, body) do
+    new()
+    |> to(recipient_email(participant))
+    |> from({SiteSettings.get().site_name, from_address()})
+    |> subject(subject)
+    |> text_body(body)
   end
 
   @doc """
@@ -105,7 +94,7 @@ defmodule Bibtime.Races.RaceNotifier do
         emails =
           Enum.map(chunk, fn participant ->
             participant
-            |> email_announcement(race, subject, body)
+            |> email_announcement(subject, body)
             |> put_provider_option(:idempotency_key, "#{send_ref}-#{idx}")
           end)
 
@@ -133,17 +122,13 @@ defmodule Bibtime.Races.RaceNotifier do
   the real thing before mailing the field.
 
   Addressed to a stand-in participant, since the admin is not necessarily
-  registered for the race they are announcing.
+  registered for the race they are announcing. The recipient is the only thing
+  that differs from what the field receives.
   """
-  def deliver_test(race, subject, body, email, locale \\ nil) do
-    user = %User{email: email, preferred_locale: locale}
+  def deliver_test(subject, body, email) do
+    stand_in = %Participant{user: %User{email: email}}
 
-    stand_in =
-      Gettext.with_locale(BibtimeWeb.Gettext, SiteSettings.locale_for(user), fn ->
-        %Participant{first_name: gettext("there"), user: user}
-      end)
-
-    case stand_in |> email_announcement(race, subject, body) |> Mailer.deliver() do
+    case stand_in |> email_announcement(subject, body) |> Mailer.deliver() do
       {:ok, _metadata} -> {:ok, email}
       {:error, reason} -> {:error, reason}
     end
@@ -157,37 +142,6 @@ defmodule Bibtime.Races.RaceNotifier do
     if Keyword.get(opts, :include_pending_payment, false),
       do: @default_statuses ++ @opt_in_statuses,
       else: @default_statuses
-  end
-
-  defp framed_body(participant, race, body) do
-    """
-    #{gettext("Hi %{name},", name: participant.first_name)}
-
-    #{String.trim(body)}
-
-    --
-    #{race_footer(participant, race)}
-    """
-  end
-
-  defp race_footer(participant, race) do
-    [
-      race.name,
-      race.date && LocaleHelpers.format_date(race.date),
-      race.location,
-      participant.bib_number && gettext("Your bib number: %{bib}", bib: participant.bib_number),
-      registration_link(participant, race)
-    ]
-    |> Enum.reject(&is_nil/1)
-    |> Enum.join("\n")
-  end
-
-  defp registration_link(%{confirmation_token: token}, race) when is_binary(token) do
-    gettext("Your registration:") <> "\n" <> url(~p"/races/#{race.slug}/my-registration/#{token}")
-  end
-
-  defp registration_link(_participant, race) do
-    gettext("Race page:") <> "\n" <> url(~p"/races/#{race.slug}")
   end
 
   defp recipient_email(participant) do

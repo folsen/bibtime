@@ -139,7 +139,30 @@ defmodule BibtimeWeb.Admin.RaceAnnouncementTest do
 
     assert [email] = sent_emails()
     assert email.to == [{"", admin.email}]
-    refute "runner@example.com" in Enum.map(email.to, fn {_n, addr} -> addr end)
+    assert email.text_body == @body
+  end
+
+  test "the delivered body is exactly what was typed", %{conn: conn, race: race} do
+    with_email(participant_fixture(race, %{bib_number: "1", first_name: "Anna"}), "a@example.com")
+
+    typed = "Line one.\n\nhttps://example.com/start-pm.pdf\n\nSee you Saturday."
+
+    {:ok, view, _html} = live(conn, ~p"/admin/races/#{race.id}")
+
+    fill(view, %{"subject" => "Start PM", "body" => typed})
+
+    view
+    |> form("form[phx-submit='send_announcement']",
+      announcement: %{"subject" => "Start PM", "body" => typed}
+    )
+    |> render_submit()
+
+    render_until(view, "Announcement sent to 1 participant.")
+
+    assert [email] = sent_emails()
+    assert email.text_body == typed
+    refute email.text_body =~ "Anna"
+    refute email.text_body =~ race.name
   end
 
   test "is not reachable by a non-admin", %{race: race} do

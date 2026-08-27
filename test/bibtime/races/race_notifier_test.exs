@@ -98,55 +98,38 @@ defmodule Bibtime.Races.RaceNotifierTest do
     end
   end
 
-  describe "email_announcement/4" do
-    test "sends the organizer's subject and body verbatim" do
+  describe "email_announcement/3" do
+    test "the body is the organizer's text and nothing else" do
       race = race!()
       p = with_email(participant_fixture(race, %{bib_number: "42"}), "runner@example.com")
 
-      email = RaceNotifier.email_announcement(p, race, @subject, @body)
+      email = RaceNotifier.email_announcement(p, @subject, @body)
 
       assert email.subject == @subject
-      assert email.text_body =~ @body
+      assert email.text_body == @body
       assert email.to == [{"", "runner@example.com"}]
     end
 
-    test "frames the message with the participant's own bib and race details" do
-      race = race!()
-      p = with_email(participant_fixture(race, %{bib_number: "42"}), "runner@example.com")
-
-      email = RaceNotifier.email_announcement(p, race, @subject, @body)
-
-      assert email.text_body =~ "Hi #{p.first_name},"
-      assert email.text_body =~ "Your bib number: 42"
-      assert email.text_body =~ "Klagshamn Triathlon"
-      assert email.text_body =~ "Klagshamn"
-    end
-
-    test "links to the participant's own registration when they have a token" do
+    test "adds no greeting, footer, bib line or links" do
       race = race!()
 
       p =
         race
-        |> participant_fixture(%{bib_number: "42"})
+        |> participant_fixture(%{bib_number: "42", first_name: "Anna"})
         |> with_token("SECRET_TOKEN")
         |> with_email("runner@example.com")
 
-      email = RaceNotifier.email_announcement(p, race, @subject, @body)
+      email = RaceNotifier.email_announcement(p, @subject, @body)
 
-      assert email.text_body =~ "/races/#{race.slug}/my-registration/SECRET_TOKEN"
+      refute email.text_body =~ "Anna"
+      refute email.text_body =~ "42"
+      refute email.text_body =~ "SECRET_TOKEN"
+      refute email.text_body =~ "my-registration"
+      refute email.text_body =~ race.name
+      refute email.text_body =~ "Klagshamn"
     end
 
-    test "falls back to the race page when the participant has no token" do
-      race = race!()
-      p = with_email(participant_fixture(race, %{bib_number: "7"}), "runner@example.com")
-
-      email = RaceNotifier.email_announcement(p, race, @subject, @body)
-
-      refute email.text_body =~ "/my-registration/"
-      assert email.text_body =~ "/races/#{race.slug}"
-    end
-
-    test "renders the frame in each recipient's own locale" do
+    test "is byte-identical whatever the recipient's locale" do
       race = race!()
 
       sv =
@@ -155,27 +138,43 @@ defmodule Bibtime.Races.RaceNotifierTest do
       en =
         with_email(participant_fixture(race, %{bib_number: "2"}), "en@example.com", locale: "en")
 
-      sv_email = RaceNotifier.email_announcement(sv, race, @subject, @body)
-      en_email = RaceNotifier.email_announcement(en, race, @subject, @body)
+      sv_email = RaceNotifier.email_announcement(sv, @subject, @body)
+      en_email = RaceNotifier.email_announcement(en, @subject, @body)
 
-      assert sv_email.text_body =~ "Ditt startnummer: 1"
-      assert en_email.text_body =~ "Your bib number: 2"
+      assert sv_email.text_body == en_email.text_body
+      assert sv_email.text_body == @body
+    end
 
-      # The organizer's own words are untouched in both.
-      assert sv_email.text_body =~ @body
-      assert en_email.text_body =~ @body
+    test "preserves the organizer's own blank lines and spacing" do
+      race = race!()
+      p = with_email(participant_fixture(race, %{bib_number: "1"}), "runner@example.com")
+
+      body = "First line.\n\n  indented\n\nLast line.\n"
+
+      assert RaceNotifier.email_announcement(p, @subject, body).text_body == body
     end
 
     test "sends from the configured address under the site name" do
       race = race!()
       p = with_email(participant_fixture(race, %{bib_number: "1"}), "runner@example.com")
 
-      email = RaceNotifier.email_announcement(p, race, @subject, @body)
+      email = RaceNotifier.email_announcement(p, @subject, @body)
 
       # The whole field is mailed from the app's own verified sender, never
       # from an organizer address on some unverified domain.
       expected = Application.get_env(:bibtime, :mailer_from_address, "contact@example.com")
       assert email.from == {Bibtime.SiteSettings.get().site_name, expected}
+    end
+
+    test "each recipient is addressed alone, never by cc or bcc" do
+      race = race!()
+      p = with_email(participant_fixture(race, %{bib_number: "1"}), "runner@example.com")
+
+      email = RaceNotifier.email_announcement(p, @subject, @body)
+
+      assert email.to == [{"", "runner@example.com"}]
+      assert email.cc == []
+      assert email.bcc == []
     end
   end
 
@@ -250,36 +249,28 @@ defmodule Bibtime.Races.RaceNotifierTest do
     end
   end
 
-  describe "deliver_test/5" do
+  describe "deliver_test/3" do
     test "sends a single copy to the given address" do
-      race = race!()
-      with_email(participant_fixture(race, %{bib_number: "1"}), "runner@example.com")
-
       assert {:ok, "admin@example.com"} =
-               RaceNotifier.deliver_test(race, @subject, @body, "admin@example.com")
+               RaceNotifier.deliver_test(@subject, @body, "admin@example.com")
 
       assert [email] = sent_emails()
       assert email.to == [{"", "admin@example.com"}]
-      assert email.text_body =~ @body
+      assert email.subject == @subject
     end
 
-    test "omits the bib line for the stand-in recipient" do
+    test "is exactly what the field would receive" do
       race = race!()
+      p = with_email(participant_fixture(race, %{bib_number: "1"}), "runner@example.com")
 
-      {:ok, _} = RaceNotifier.deliver_test(race, @subject, @body, "admin@example.com")
+      {:ok, _} = RaceNotifier.deliver_test(@subject, @body, "admin@example.com")
 
-      assert [email] = sent_emails()
-      refute email.text_body =~ "Your bib number"
-      assert email.text_body =~ "/races/#{race.slug}"
-    end
+      assert [test_copy] = sent_emails()
+      real = RaceNotifier.email_announcement(p, @subject, @body)
 
-    test "honours the requested locale" do
-      race = race!()
-
-      {:ok, _} = RaceNotifier.deliver_test(race, @subject, @body, "admin@example.com", "sv")
-
-      assert [email] = sent_emails()
-      assert email.text_body =~ "Hej"
+      assert test_copy.text_body == real.text_body
+      assert test_copy.subject == real.subject
+      assert test_copy.from == real.from
     end
   end
 end
