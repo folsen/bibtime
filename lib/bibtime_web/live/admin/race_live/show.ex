@@ -4,6 +4,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
   alias Bibtime.Races
   alias Bibtime.Races.RaceAutoCategory
   alias Bibtime.Races.RaceCategory
+  alias Bibtime.Races.RaceNotifier
   alias Bibtime.Races.Split
 
   @impl true
@@ -18,7 +19,13 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
      |> assign_auto_category_form(Races.change_auto_category(%RaceAutoCategory{}))
      |> assign_split_form(Races.change_split(%Split{}))
      |> assign(:editing_split_id, nil)
-     |> assign(:edit_split_form, nil)}
+     |> assign(:edit_split_form, nil)
+     |> assign(:announcement_sending, false)
+     |> assign_announcement(%{
+       "subject" => gettext("Reminder: %{race}", race: race.name),
+       "body" => "",
+       "include_pending_payment" => "false"
+     })}
   end
 
   @impl true
@@ -184,6 +191,113 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
           class="size-5 ml-auto text-base-content/30 group-hover:text-success/60 transition-colors"
         />
       </.link>
+    </div>
+
+    <%!-- Email Participants Section --%>
+    <div class="mt-10">
+      <div class="flex items-center gap-2 mb-4">
+        <.icon name="hero-envelope" class="size-5 text-base-content/40" />
+        <h2 class="text-lg font-semibold text-base-content">{gettext("Email Participants")}</h2>
+      </div>
+
+      <div class="rounded-xl border border-base-300 bg-base-100 p-5 shadow-sm">
+        <p class="text-sm text-base-content/60 mb-4">
+          {gettext(
+            "Sends one personalised email per participant — each gets their own bib number and registration link, in their own language. Your subject and message go out exactly as written."
+          )}
+        </p>
+
+        <.form
+          for={@announcement_form}
+          phx-change="validate_announcement"
+          phx-submit="send_announcement"
+        >
+          <.input
+            field={@announcement_form[:subject]}
+            type="text"
+            label={gettext("Subject")}
+            placeholder={gettext("e.g. Start PM and race-day info")}
+          />
+
+          <div class="mt-4">
+            <.input
+              field={@announcement_form[:body]}
+              type="textarea"
+              label={gettext("Message")}
+              rows="10"
+              placeholder={
+                gettext(
+                  "Write your message here — paste the Start PM link on its own line so it is easy to spot."
+                )
+              }
+            />
+          </div>
+
+          <div class="mt-4">
+            <.input
+              field={@announcement_form[:include_pending_payment]}
+              type="checkbox"
+              label={gettext("Also email unpaid registrations (payment never completed)")}
+            />
+          </div>
+
+          <div class="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-base-200 pt-4">
+            <div class="text-sm">
+              <span class="font-medium text-base-content">
+                {ngettext(
+                  "%{count} participant will receive this",
+                  "%{count} participants will receive this",
+                  @announcement_recipients.deliverable,
+                  count: @announcement_recipients.deliverable
+                )}
+              </span>
+              <span :if={@announcement_recipients.missing_email > 0} class="text-warning">
+                {ngettext(
+                  "· %{count} has no email address and will be skipped",
+                  "· %{count} have no email address and will be skipped",
+                  @announcement_recipients.missing_email,
+                  count: @announcement_recipients.missing_email
+                )}
+              </span>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                phx-click="send_test_announcement"
+                disabled={@announcement_sending or not announcement_ready?(@announcement_form)}
+                class="btn btn-sm btn-ghost text-base-content/70 hover:text-base-content"
+              >
+                <.icon name="hero-beaker" class="size-4 mr-1" />
+                {gettext("Send test to me")}
+              </button>
+              <.button
+                type="submit"
+                variant="primary"
+                disabled={
+                  @announcement_sending or not announcement_ready?(@announcement_form) or
+                    @announcement_recipients.deliverable == 0
+                }
+                data-confirm={
+                  ngettext(
+                    "Send this email to %{count} participant? This cannot be undone.",
+                    "Send this email to %{count} participants? This cannot be undone.",
+                    @announcement_recipients.deliverable,
+                    count: @announcement_recipients.deliverable
+                  )
+                }
+              >
+                <.icon
+                  :if={@announcement_sending}
+                  name="hero-arrow-path"
+                  class="size-4 mr-1 animate-spin"
+                />
+                {if @announcement_sending, do: gettext("Sending…"), else: gettext("Send to all")}
+              </.button>
+            </div>
+          </div>
+        </.form>
+      </div>
     </div>
 
     <%!-- Categories Section --%>
@@ -589,6 +703,68 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
   end
 
   @impl true
+  def handle_event("validate_announcement", %{"announcement" => params}, socket) do
+    {:noreply, assign_announcement(socket, params)}
+  end
+
+  @impl true
+  def handle_event("send_test_announcement", _params, socket) do
+    %{race: race, announcement_form: form} = socket.assigns
+    user = socket.assigns.current_scope.user
+    params = form.params
+
+    case RaceNotifier.deliver_test(
+           race,
+           params["subject"],
+           params["body"],
+           user.email,
+           user.preferred_locale
+         ) do
+      {:ok, email} ->
+        {:noreply,
+         put_flash(socket, :info, gettext("Test email sent to %{email}.", email: email))}
+
+      {:error, _reason} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext("Could not send the test email. Check the mail setup.")
+         )}
+    end
+  end
+
+  @impl true
+  def handle_event("send_announcement", %{"announcement" => params}, socket) do
+    %{race: race, current_scope: scope} = socket.assigns
+    subject = params["subject"]
+    body = params["body"]
+    include_pending? = checked?(params["include_pending_payment"])
+
+    cond do
+      not announcement_ready?(subject, body) ->
+        {:noreply,
+         put_flash(socket, :error, gettext("Add a subject and a message before sending."))}
+
+      socket.assigns.announcement_sending ->
+        {:noreply, socket}
+
+      true ->
+        # Runs under the app's task supervisor rather than the LiveView, so a
+        # slow provider does not freeze the admin page and a disconnect part
+        # way through does not abandon the send.
+        Task.Supervisor.async_nolink(Bibtime.TaskSupervisor, fn ->
+          RaceNotifier.deliver_announcement(race, subject, body,
+            include_pending_payment: include_pending?,
+            actor: scope.user
+          )
+        end)
+
+        {:noreply, assign(socket, :announcement_sending, true)}
+    end
+  end
+
+  @impl true
   def handle_event("add_category", %{"race_category" => category_params}, socket) do
     category_params = Map.put(category_params, "race_id", socket.assigns.race.id)
 
@@ -762,6 +938,87 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
      socket
      |> assign(:race, race)
      |> put_flash(:info, gettext("Split deleted."))}
+  end
+
+  @impl true
+  def handle_info({ref, {:ok, result}}, socket) do
+    Process.demonitor(ref, [:flush])
+
+    {:noreply,
+     socket
+     |> assign(:announcement_sending, false)
+     |> put_flash(announcement_flash_kind(result), announcement_flash_message(result))}
+  end
+
+  @impl true
+  def handle_info({:DOWN, _ref, :process, _pid, reason}, socket) when reason != :normal do
+    {:noreply,
+     socket
+     |> assign(:announcement_sending, false)
+     |> put_flash(:error, gettext("Sending failed. No further emails were sent."))}
+  end
+
+  @impl true
+  def handle_info(_message, socket), do: {:noreply, socket}
+
+  defp announcement_flash_kind(%{failed: failed}) when failed > 0, do: :error
+  defp announcement_flash_kind(_result), do: :info
+
+  defp announcement_flash_message(%{sent: sent, failed: failed, skipped: skipped}) do
+    base =
+      ngettext(
+        "Announcement sent to %{count} participant.",
+        "Announcement sent to %{count} participants.",
+        sent,
+        count: sent
+      )
+
+    [
+      base,
+      failed > 0 &&
+        ngettext(
+          "%{count} delivery failed.",
+          "%{count} deliveries failed.",
+          failed,
+          count: failed
+        ),
+      skipped > 0 &&
+        ngettext(
+          "%{count} participant was skipped for having no email address.",
+          "%{count} participants were skipped for having no email address.",
+          skipped,
+          count: skipped
+        )
+    ]
+    |> Enum.filter(&is_binary/1)
+    |> Enum.join(" ")
+  end
+
+  defp assign_announcement(socket, params) do
+    recipients =
+      RaceNotifier.recipients(socket.assigns.race.id,
+        include_pending_payment: checked?(params["include_pending_payment"])
+      )
+
+    socket
+    |> assign(:announcement_form, to_form(params, as: "announcement"))
+    |> assign(:announcement_recipients, %{
+      deliverable: length(recipients.deliverable),
+      missing_email: length(recipients.missing_email)
+    })
+  end
+
+  defp checked?("true"), do: true
+  defp checked?(true), do: true
+  defp checked?(_), do: false
+
+  defp announcement_ready?(%Phoenix.HTML.Form{params: params}) do
+    announcement_ready?(params["subject"], params["body"])
+  end
+
+  defp announcement_ready?(subject, body) do
+    is_binary(subject) and String.trim(subject) != "" and
+      is_binary(body) and String.trim(body) != ""
   end
 
   defp assign_category_form(socket, %Ecto.Changeset{} = changeset) do

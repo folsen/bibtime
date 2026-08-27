@@ -22,6 +22,18 @@ defmodule Bibtime.Participants do
   end
 
   @doc """
+  Returns the participants for a race whose status is in `statuses`, ordered by
+  bib_number. Preloads the same associations as `list_participants/1`.
+  """
+  def list_participants_by_status(race_id, statuses) when is_list(statuses) do
+    Participant
+    |> where([p], p.race_id == ^race_id and p.status in ^statuses)
+    |> order_by([p], asc: fragment("LENGTH(?)", p.bib_number), asc: p.bib_number)
+    |> preload([:race_category, :user])
+    |> Repo.all()
+  end
+
+  @doc """
   Gets a single participant.
 
   Raises `Ecto.NoResultsError` if the Participant does not exist.

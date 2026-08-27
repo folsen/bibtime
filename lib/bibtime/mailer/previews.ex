@@ -10,6 +10,7 @@ defmodule Bibtime.Mailer.Previews do
 
   alias Bibtime.Accounts.UserNotifier
   alias Bibtime.Payments.PaymentNotifier
+  alias Bibtime.Races.RaceNotifier
   alias Bibtime.Registration.RegistrationNotifier
 
   def all do
@@ -58,6 +59,27 @@ defmodule Bibtime.Mailer.Previews do
             sample_payment(),
             sample_participant(locale),
             sample_race()
+          )
+        end
+      },
+      %{
+        key: "race_announcement",
+        title: "Race announcement (bulk)",
+        description:
+          "Sent from the admin race page to every participant. The subject and body " <>
+            "are the organizer's own words; only the frame around them is translated.",
+        build: fn locale ->
+          RaceNotifier.email_announcement(
+            sample_participant(locale),
+            sample_race(),
+            "Start PM and race-day info",
+            """
+            The Start PM is now published — please read it before race morning:
+
+            https://example.com/start-pm-2026.pdf
+
+            Number pickup opens at 07:00 and closes 15 minutes before your start.
+            """
           )
         end
       },
