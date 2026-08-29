@@ -126,7 +126,16 @@ Edit `/etc/default/bibtime_station` and set:
 - `STATION_TOKEN` to a real token generated in the BibTime admin UI
   (`/admin/races/:id/stations` → create station → copy token)
 - `READER_DEVICE` if not `/dev/ttyUSB0` (check `dmesg | tail` after
-  plugging the R200 in)
+  plugging the R200 in). If a 4G modem shares the USB bus, prefer the
+  stable by-id path — `ttyUSB` numbering depends on probe order and the
+  modem's AT ports can claim `/dev/ttyUSB0` on a cold boot:
+  `/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0`
+- `READ_POWER_CDBM` (optional) to set the R200/M100 TX power in
+  centi-dBm. Defaults to `2000` (20.00 dBm); the board's maximum is
+  `2600` (26.00 dBm). Each 6 dB roughly doubles read range but raises
+  current draw — if the powered hub browns out (reader and modem
+  dropping off the USB bus together), step back toward `2300`. Values
+  outside `0..2600` make the release refuse to boot.
 
 Then:
 

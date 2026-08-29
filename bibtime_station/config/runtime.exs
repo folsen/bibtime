@@ -31,9 +31,33 @@ if config_env() == :prod do
   buffer_path =
     System.get_env("BUFFER_PATH", "/var/lib/bibtime_station/read_buffer.dets")
 
+  # R200/M100 TX power in centi-dBm. The board tops out at 2600
+  # (26.00 dBm); the stock default of 2000 (20.00 dBm) is deliberately
+  # conservative. Raising it roughly doubles read range per 6 dB but
+  # also raises current draw — back off if the USB hub browns out.
+  read_power_cdbm =
+    case System.get_env("READ_POWER_CDBM") do
+      nil ->
+        2000
+
+      raw ->
+        case Integer.parse(raw) do
+          {cdbm, ""} when cdbm >= 0 and cdbm <= 2600 ->
+            cdbm
+
+          _ ->
+            raise """
+            READ_POWER_CDBM must be an integer between 0 and 2600
+            (centi-dBm), e.g. READ_POWER_CDBM=2600 for the M100's
+            maximum of 26.00 dBm. Got: #{inspect(raw)}
+            """
+        end
+    end
+
   config :bibtime_station,
     bibtime_url: bibtime_url,
     station_token: station_token,
     reader_device: reader_device,
-    buffer_path: buffer_path
+    buffer_path: buffer_path,
+    read_power_cdbm: read_power_cdbm
 end

@@ -64,9 +64,21 @@ All of this is inert until Tailscale is actually installed on a Pi
 - [x] **[Me]** Station 2: provisioned + deployed (finished by IP after
       its mDNS dropped mid-run — that unit's WiFi looks weak, worth
       watching; its 4G modem also never presented an eth0 interface).
+- [x] **[Me]** All three stations online on staging — tunnels up,
+      readers connected, assignments correct, modem-backup routing
+      confirmed on station 1 with an active modem (wlan0 600 / eth0 700).
 - [ ] **[You]** Sanity check: `ssh bibtime@bibtime-station-2` from your laptop
       over the tailnet (try once on phone hotspot to exercise the
       CGNAT path).
+
+**Field note — station 1 hub brownout:** during setup station 1's
+powered hub latched into a wedged state (both the R200 and the 4G modem
+dropped off the USB bus at once; `dmesg` showed `usb1-port1: disabled by
+hub (EMI?)`). Pi power was clean (`throttled=0x0`), so it was the hub,
+not the Pi. Driver rebind, USB re-enumeration, and reboots did NOT
+recover it — only a **full power-off including the power bank** did.
+Race-day: carry a spare powered hub, and treat "reader won't come back"
+as a full-power-cycle recovery, not a reboot.
 
 ## 4. Test race setup in BibTime — [Me]
 
