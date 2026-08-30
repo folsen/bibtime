@@ -69,7 +69,6 @@ defmodule BibtimeWeb.Router do
     end
 
     get "/races/:slug/results/export/csv", ExportController, :results_csv
-    get "/races/:slug/results/export/pdf", ExportController, :results_pdf
 
     get "/races/:slug/checkout/:token", CheckoutController, :start
 

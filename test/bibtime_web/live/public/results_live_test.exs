@@ -212,6 +212,93 @@ defmodule BibtimeWeb.Public.ResultsLiveTest do
     end
   end
 
+  describe "accolades" do
+    test "appear at the bottom of the results page", %{conn: conn} do
+      %{race: race} = create_race_with_results()
+
+      {:ok, view, _html} = live(conn, ~p"/races/#{race.slug}/results")
+      html = render_async(view)
+
+      assert html =~ "Accolades"
+      assert html =~ "Fastest Swim"
+      assert html =~ "Fastest Bike"
+      assert html =~ "Fastest Run"
+    end
+
+    test "rescope to the selected category", %{conn: conn} do
+      %{race: race, categories: [elite, _age]} = create_race_with_results()
+
+      {:ok, view, _html} = live(conn, ~p"/races/#{race.slug}/results")
+      overall = render_async(view)
+
+      {:ok, view, _html} =
+        live(conn, ~p"/races/#{race.slug}/results?category=manual:#{elite.id}")
+
+      filtered = render_async(view)
+
+      assert overall =~ "Accolades"
+      assert filtered =~ "Accolades"
+      # The filtered view says so, so a printed category sheet is not mistaken
+      # for the whole race.
+      assert filtered =~ "within the selected category"
+      refute overall =~ "within the selected category"
+    end
+
+    test "are absent when nobody has finished", %{conn: conn} do
+      race =
+        race_fixture(%{
+          status: :in_progress,
+          slug: "no-acc-#{System.unique_integer([:positive])}"
+        })
+
+      participant_fixture(race, %{bib_number: "1"})
+
+      {:ok, view, _html} = live(conn, ~p"/races/#{race.slug}/results")
+      html = render_async(view)
+
+      refute html =~ "Accolades"
+    end
+  end
+
+  describe "the action buttons" do
+    test "sit above the results table, not below it", %{conn: conn} do
+      %{race: race} = create_race_with_results()
+
+      {:ok, view, _html} = live(conn, ~p"/races/#{race.slug}/results")
+      html = render_async(view)
+
+      assert html =~ "Print as PDF"
+      refute html =~ "Export PDF"
+
+      # The buttons must come before the table in document order, or they are
+      # buried again on a race with hundreds of finishers.
+      assert :binary.match(html, "Print as PDF") < :binary.match(html, "results-table")
+    end
+
+    test "no longer offer the removed PDF export route", %{conn: conn} do
+      %{race: race} = create_race_with_results()
+
+      {:ok, view, _html} = live(conn, ~p"/races/#{race.slug}/results")
+      html = render_async(view)
+
+      refute html =~ "results/export/pdf"
+      assert html =~ "results/export/csv"
+    end
+  end
+
+  describe "fastest-leg highlighting" do
+    test "marks the quickest finisher on each leg", %{conn: conn} do
+      %{race: race} = create_race_with_results()
+
+      {:ok, view, _html} = live(conn, ~p"/races/#{race.slug}/results")
+      html = render_async(view)
+
+      # One highlighted cell per leg, plus one for the winning total.
+      highlighted = html |> String.split("bg-primary/10") |> length() |> Kernel.-(1)
+      assert highlighted >= length(Bibtime.Races.list_splits(race.id))
+    end
+  end
+
   describe "the photos link" do
     test "is offered even when the race has no photos yet", %{conn: conn} do
       %{race: race} = create_race_with_results()

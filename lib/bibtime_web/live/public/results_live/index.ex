@@ -3,6 +3,7 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
 
   alias Bibtime.Photos
   alias Bibtime.Races
+  alias Bibtime.Results.Accolades
   alias Bibtime.Results
   alias Bibtime.Results.Calculator
   alias Bibtime.Results.Ranker
@@ -33,6 +34,9 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
         selected_category: nil,
         selected_auto_category: nil,
         filtered_results: [],
+        accolades: [],
+        fastest_legs: %{},
+        fastest_total: nil,
         recently_finished: MapSet.new(),
         sort_by: "rank",
         sort_dir: :asc,
@@ -111,35 +115,78 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
   def render(assigns) do
     ~H"""
     <div class="max-w-7xl mx-auto px-4 py-8">
-      <%!-- Header --%>
-      <div class="mb-8 flex items-start gap-4">
-        <div class="w-1 self-stretch rounded-full bg-gradient-to-b from-primary via-secondary to-accent shrink-0">
-        </div>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-3 mb-1">
-            <.link
-              navigate={~p"/races/#{@race.slug}"}
-              class="flex items-center justify-center w-8 h-8 rounded-full bg-base-200 text-base-content/50 hover:text-base-content hover:bg-base-300 transition-colors"
-            >
-              <.icon name="hero-arrow-left" class="size-4" />
-            </.link>
-            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-base-content truncate">
-              {@race.name}
-            </h1>
-            <.status_pill
-              status={@race.status}
-              class="inline-flex items-center shrink-0 font-semibold tracking-wide uppercase"
-            />
+      <%!-- Header. Actions live up here rather than under the table: on a race
+           with a few hundred finishers they were a long scroll away. --%>
+      <div class="mb-8 flex flex-col lg:flex-row lg:items-start gap-4">
+        <div class="flex items-start gap-4 flex-1 min-w-0">
+          <div class="w-1 self-stretch rounded-full bg-gradient-to-b from-primary via-secondary to-accent shrink-0 print:hidden">
           </div>
-          <p class="text-sm text-base-content/50 ml-11">
-            {if @race.date, do: format_date(@race.date), else: ""}
-            {if @race.location, do: " \u2014 #{@race.location}", else: ""}
-          </p>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-3 mb-1">
+              <.link
+                navigate={~p"/races/#{@race.slug}"}
+                class="flex items-center justify-center w-8 h-8 rounded-full bg-base-200 text-base-content/50 hover:text-base-content hover:bg-base-300 transition-colors print:hidden"
+              >
+                <.icon name="hero-arrow-left" class="size-4" />
+              </.link>
+              <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-base-content truncate">
+                {@race.name}
+              </h1>
+              <.status_pill
+                status={@race.status}
+                class="inline-flex items-center shrink-0 font-semibold tracking-wide uppercase print:hidden"
+              />
+            </div>
+            <p class="text-sm text-base-content/50 ml-11 print:ml-0">
+              {if @race.date, do: format_date(@race.date), else: ""}
+              {if @race.location, do: " \u2014 #{@race.location}", else: ""}
+            </p>
+            <p
+              :if={active_category_name(assigns)}
+              class="hidden print:block text-sm font-medium text-base-content/70 ml-11 print:ml-0"
+            >
+              {gettext("Category")}: {active_category_name(assigns)}
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 lg:shrink-0 print:hidden">
+          <.link
+            navigate={~p"/races/#{@race.slug}/photos"}
+            class="inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2 text-sm font-medium text-base-content/70 hover:bg-base-300/50 hover:text-base-content transition-colors"
+          >
+            <.icon name="hero-photo" class="size-4" />
+            {if @photo_count > 0,
+              do: ngettext("%{count} Photo", "%{count} Photos", @photo_count),
+              else: gettext("Photos")}
+          </.link>
+          <a
+            href={~p"/races/#{@race.slug}/kiosk"}
+            target="_blank"
+            class="inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2 text-sm font-medium text-base-content/70 hover:bg-base-300/50 hover:text-base-content transition-colors"
+          >
+            <.icon name="hero-tv" class="size-4" /> {gettext("Kiosk")}
+          </a>
+          <button
+            type="button"
+            id="print-results"
+            phx-hook=".PrintResults"
+            class="inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2 text-sm font-medium text-base-content/70 hover:bg-base-300/50 hover:text-base-content transition-colors cursor-pointer"
+          >
+            <.icon name="hero-printer" class="size-4" /> {gettext("Print as PDF")}
+          </button>
+          <a
+            href={~p"/races/#{@race.slug}/results/export/csv"}
+            class="inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2 text-sm font-medium text-base-content/70 hover:bg-base-300/50 hover:text-base-content transition-colors"
+          >
+            <.icon name="hero-arrow-down-tray" class="size-4" /> {gettext("Export CSV")}
+          </a>
         </div>
       </div>
 
-      <%!-- Category filter tabs --%>
-      <div class="flex flex-wrap items-center gap-2 mb-6" role="tablist">
+      <%!-- Category filter tabs. Interactive, so they are dropped from the
+           printed sheet — the active filter is printed under the title instead. --%>
+      <div class="flex flex-wrap items-center gap-2 mb-6 print:hidden" role="tablist">
         <.link
           patch={~p"/races/#{@race.slug}/results"}
           class={[
@@ -228,8 +275,11 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
       </div>
 
       <%!-- Results table --%>
-      <div :if={!@loading} class="overflow-x-auto rounded-xl border border-base-300/50 bg-base-100">
-        <table class="w-full border-separate border-spacing-0">
+      <div
+        :if={!@loading}
+        class="results-scroll overflow-x-auto rounded-xl border border-base-300/50 bg-base-100"
+      >
+        <table class="results-table w-full border-separate border-spacing-0">
           <thead>
             <tr class="text-xs uppercase tracking-wider text-base-content/50">
               <th
@@ -390,9 +440,22 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
                 <% true -> %>
                   <td
                     :for={split <- @splits}
-                    class="text-right font-mono text-sm px-3 py-2.5 border-b border-base-300/20 text-base-content/70"
+                    class={[
+                      "text-right font-mono text-sm px-3 py-2.5 border-b border-base-300/20",
+                      if(fastest_leg?(assigns, result, split),
+                        do: "bg-primary/10 text-primary font-bold",
+                        else: "text-base-content/70"
+                      )
+                    ]}
                   >
-                    <div>{Calculator.format_time(Map.get(result.leg_times, split.id))}</div>
+                    <div class="flex items-center justify-end gap-1">
+                      <.icon
+                        :if={fastest_leg?(assigns, result, split)}
+                        name="hero-bolt-solid"
+                        class="size-3.5 shrink-0"
+                      />
+                      <span>{Calculator.format_time(Map.get(result.leg_times, split.id))}</span>
+                    </div>
                     <div
                       :if={
                         pace_text =
@@ -402,12 +465,24 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
                             split.pace_display
                           )
                       }
-                      class="text-xs text-base-content/40"
+                      class={[
+                        "text-xs",
+                        if(fastest_leg?(assigns, result, split),
+                          do: "text-primary/70",
+                          else: "text-base-content/40"
+                        )
+                      ]}
                     >
                       {pace_text}
                     </div>
                   </td>
-                  <td class="text-right font-mono text-base font-bold px-3 py-2.5 border-b border-base-300/20 text-base-content">
+                  <td class={[
+                    "text-right font-mono text-base font-bold px-3 py-2.5 border-b border-base-300/20",
+                    if(fastest_total?(assigns, result),
+                      do: "bg-primary/10 text-primary",
+                      else: "text-base-content"
+                    )
+                  ]}>
                     {Calculator.format_time(result.total_ms)}
                   </td>
               <% end %>
@@ -492,42 +567,71 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
             )}
           </span>
         </div>
-        <div class="ml-auto flex items-center gap-2">
-          <%!-- Always linked, even at zero: an empty gallery is where the first
-               participant goes to add one. --%>
-          <.link
-            navigate={~p"/races/#{@race.slug}/photos"}
-            class="inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2 text-sm font-medium text-base-content/70 hover:bg-base-300/50 hover:text-base-content transition-colors"
+      </div>
+
+      <%!-- Accolades --%>
+      <div :if={!@loading and @accolades != []} class="mt-10">
+        <div class="flex items-center gap-3 mb-4">
+          <h2 class="text-lg font-semibold tracking-tight text-base-content">
+            {gettext("Accolades")}
+          </h2>
+          <div class="h-px flex-1 bg-base-300/60"></div>
+          <span :if={!no_category_selected?(assigns)} class="text-xs text-base-content/40">
+            {gettext("within the selected category")}
+          </span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div
+            :for={accolade <- @accolades}
+            class="accolade-card rounded-xl border border-base-300/50 bg-base-100 p-4 text-center"
           >
-            <.icon name="hero-photo" class="size-4" />
-            {if @photo_count > 0,
-              do: ngettext("%{count} Photo", "%{count} Photos", @photo_count),
-              else: gettext("Photos")}
-          </.link>
-          <a
-            href={~p"/races/#{@race.slug}/kiosk"}
-            target="_blank"
-            class="inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2 text-sm font-medium text-base-content/70 hover:bg-base-300/50 hover:text-base-content transition-colors"
-          >
-            <.icon name="hero-tv" class="size-4" /> {gettext("Kiosk")}
-          </a>
-          <a
-            href={~p"/races/#{@race.slug}/results/export/pdf"}
-            class="inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2 text-sm font-medium text-base-content/70 hover:bg-base-300/50 hover:text-base-content transition-colors"
-          >
-            <.icon name="hero-document-text" class="size-4" /> {gettext("Export PDF")}
-          </a>
-          <a
-            href={~p"/races/#{@race.slug}/results/export/csv"}
-            class="inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2 text-sm font-medium text-base-content/70 hover:bg-base-300/50 hover:text-base-content transition-colors"
-          >
-            <.icon name="hero-arrow-down-tray" class="size-4" /> {gettext("Export CSV")}
-          </a>
+            <div class="text-2xl leading-none mb-2" aria-hidden="true">{accolade.emoji}</div>
+            <div class="text-xs font-semibold uppercase tracking-wider text-base-content/40 mb-1">
+              {accolade_label(accolade.label)}
+            </div>
+            <div class="font-semibold text-base-content truncate">
+              {accolade.participant.first_name} {accolade.participant.last_name}
+            </div>
+            <div class="text-xs text-base-content/40 mb-1">
+              #{accolade.participant.bib_number}
+            </div>
+            <div class="font-mono text-lg font-bold text-primary">{accolade.detail}</div>
+          </div>
         </div>
       </div>
     </div>
+
+    <%!-- "Print as PDF" is the PDF export: the print stylesheet lays this page
+         out for paper and the browser writes the file. --%>
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".PrintResults">
+      export default {
+        mounted() {
+          this.el.addEventListener("click", () => window.print())
+        }
+      }
+    </script>
     """
   end
+
+  # Highlighting mirrors Accolades: finished participants only, so a card and a
+  # highlighted cell can never name different people as fastest.
+  defp fastest_leg?(assigns, result, split) do
+    leg_ms = Map.get(result.leg_times, split.id)
+
+    result.status == :finished and leg_ms != nil and
+      leg_ms == Map.get(assigns.fastest_legs, split.id)
+  end
+
+  defp fastest_total?(assigns, result) do
+    result.status == :finished and result.total_ms != nil and
+      result.total_ms == assigns.fastest_total
+  end
+
+  defp accolade_label(:fastest_swim), do: gettext("Fastest Swim")
+  defp accolade_label(:fastest_bike), do: gettext("Fastest Bike")
+  defp accolade_label(:fastest_run), do: gettext("Fastest Run")
+  defp accolade_label(:fastest_woman), do: gettext("Fastest Woman Overall")
+  defp accolade_label(:fastest_man), do: gettext("Fastest Man Overall")
 
   @impl true
   def handle_event("sort", %{"col" => col}, socket) do
@@ -624,7 +728,24 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
     filtered_results =
       sort_results(filtered_results, socket.assigns.sort_by, socket.assigns.sort_dir)
 
-    assign(socket, filtered_results: filtered_results)
+    splits = socket.assigns.splits
+
+    # Accolades and highlights follow the category filter: when you are looking
+    # at one category, "fastest run" means fastest in that category.
+    assign(socket,
+      filtered_results: filtered_results,
+      accolades: Accolades.compute(filtered_results, splits),
+      fastest_legs: Accolades.fastest_leg_times(filtered_results, splits),
+      fastest_total: Accolades.fastest_total_ms(filtered_results)
+    )
+  end
+
+  defp active_category_name(assigns) do
+    cond do
+      assigns.selected_category -> assigns.selected_category.name
+      assigns.selected_auto_category -> assigns.selected_auto_category.name
+      true -> nil
+    end
   end
 
   defp no_category_selected?(assigns) do

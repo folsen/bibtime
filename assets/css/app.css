@@ -192,3 +192,61 @@ select.select {
 #kiosk-scroll-area {
   scroll-behavior: auto;
 }
+
+/* ---------------------------------------------------------------------------
+   Print — the results page doubles as the printable results sheet, so
+   "Print as PDF" in the browser is the PDF export. App chrome drops away and
+   the table is laid out for paper.
+   --------------------------------------------------------------------------- */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 12mm;
+  }
+
+  /* Site header and footer belong on screen, not on the sheet. */
+  .bibtime-header,
+  body > div > footer {
+    display: none !important;
+  }
+
+  /* Highlights carry meaning here — a fastest leg that prints as plain text
+     loses the point of the page. */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  /* Sticky column headers become a smear halfway down a printed page. */
+  .results-table thead th {
+    position: static !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Repeat the header on every sheet and never split a row or a card. */
+  .results-table thead {
+    display: table-header-group;
+  }
+
+  .results-table tr,
+  .accolade-card {
+    break-inside: avoid;
+  }
+
+  /* The table scrolls horizontally on screen; on paper it must simply fit. */
+  .results-scroll {
+    overflow: visible !important;
+    border: 0 !important;
+  }
+
+  .print-title {
+    display: block !important;
+  }
+}

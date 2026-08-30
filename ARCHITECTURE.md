@@ -21,10 +21,12 @@ Bibtime.Application
   └── BibtimeWeb.Endpoint (Bandit HTTP server)
 ```
 
-ChromicPDF is **not** part of the supervision tree — it's lazy-started on
-the first PDF export by `Bibtime.Results.Export.ensure_chromic_pdf_started/0`,
-which keeps test/dev startup fast and avoids spawning headless Chrome on
-servers that never render PDFs.
+There is no headless browser and no server-side PDF renderer. Results are
+"exported" as PDF by printing the results page: `assets/css/app.css` carries a
+`@media print` block that drops the app chrome and lays the table out for A4
+landscape, and the "Print as PDF" button calls `window.print()`. ChromicPDF was
+removed after Chrome proved unable to render inside the Fly container at all —
+see git history for the measurements.
 
 ## Data Model
 
@@ -97,7 +99,7 @@ RacePhoto
 | `Races` | Race CRUD, categories, splits | `Templates` module provides race type presets; `AutoCategorizer` assigns auto-categories to participants based on gender/age |
 | `Participants` | Participant CRUD, bib assignment, check-in, chip lookup | `next_bib_number/1` for auto-assignment, `get_participant_by_chip/2` for station reads, `CsvImport` for bulk registration |
 | `Timing` | Split times, race starts, timing stations, chip-read ingestion | See dedicated section below |
-| `Results` | Result computation + ranking | Delegates to `Calculator` (builds `ParticipantResult` structs with leg_times, total_ms, splits_completed) then `Ranker` (sorts by splits_completed desc, total_ms asc); `Export` for CSV; `PdfTemplate` + ChromicPDF for PDF |
+| `Results` | Result computation + ranking | `Accolades` derives the fastest-leg and fastest-overall highlights shown on the results page; delegates to `Calculator` (builds `ParticipantResult` structs with leg_times, total_ms, splits_completed) then `Ranker` (sorts by splits_completed desc, total_ms asc); `Export` for CSV |
 | `Registration` | Public registration flow | Auto-creates user accounts, assigns bibs, sends confirmation emails via `RegistrationNotifier` |
 | `Payments` | Stripe Checkout integration | `create_checkout_session/4`, webhook handling, early-bird pricing logic |
 | `Photos` | Race photo management + moderation | S3/local upload, bib-number tagging, magic-byte type sniffing; participants submit photos that stay `:pending` until an admin approves them. Every read defaults to approved-only. `PhotoNotifier` emails organizers about the queue and uploaders about the verdict |
@@ -332,7 +334,6 @@ Timing.record_split_time  ◄──── Timing.ingest_chip_read  ◄───�
 | `swoosh` | Email delivery |
 | `stripity_stripe` | Stripe API |
 | `ex_aws` + `ex_aws_s3` | S3 photo storage |
-| `chromic_pdf` | PDF generation (headless Chrome, lazy-started) |
 | `gettext` | i18n |
 | `heroicons` | Icon set |
 
@@ -347,7 +348,7 @@ lib/
     races/                    # Race, RaceCategory, RaceAutoCategory, Split, Templates, AutoCategorizer
     participants/             # Participant, CsvImport
     timing/                   # SplitTime, RaceStart, TimingStation, CsvImport
-    results/                  # Calculator, Ranker, ParticipantResult, Export, PdfTemplate
+    results/                  # Calculator, Ranker, ParticipantResult, Export, Accolades
     registration/             # RegistrationNotifier
     payments/                 # Payment, PaymentNotifier
     photos/                   # RacePhoto, Storage
