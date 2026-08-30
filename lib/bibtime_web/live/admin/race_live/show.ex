@@ -1,6 +1,7 @@
 defmodule BibtimeWeb.Admin.RaceLive.Show do
   use BibtimeWeb, :live_view
 
+  alias Bibtime.Photos
   alias Bibtime.Races
   alias Bibtime.Races.RaceAutoCategory
   alias Bibtime.Races.RaceCategory
@@ -15,6 +16,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
      socket
      |> assign(:page_title, race.name)
      |> assign(:race, race)
+     |> assign(:pending_photo_count, Photos.count_pending_photos(race.id))
      |> assign_category_form(Races.change_category(%RaceCategory{}))
      |> assign_auto_category_form(Races.change_auto_category(%RaceAutoCategory{}))
      |> assign_split_form(Races.change_split(%Split{}))
@@ -166,9 +168,22 @@ defmodule BibtimeWeb.Admin.RaceLive.Show do
           </div>
           <div class="text-sm text-base-content/50">{gettext("Upload & tag race photos")}</div>
         </div>
+        <span
+          :if={@pending_photo_count > 0}
+          class="ml-auto inline-flex items-center gap-1 rounded-full bg-warning/15 text-warning px-2.5 py-1 text-xs font-semibold"
+        >
+          {ngettext(
+            "%{count} to review",
+            "%{count} to review",
+            @pending_photo_count
+          )}
+        </span>
         <.icon
           name="hero-chevron-right"
-          class="size-5 ml-auto text-base-content/30 group-hover:text-info/60 transition-colors"
+          class={[
+            "size-5 text-base-content/30 group-hover:text-info/60 transition-colors",
+            @pending_photo_count == 0 && "ml-auto"
+          ]}
         />
       </.link>
 

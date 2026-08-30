@@ -99,6 +99,13 @@ if System.get_env("PHOTO_STORAGE") == "s3" do
     true ->
       :ok
   end
+else
+  # Local backend: photos live outside priv/static and are streamed by the
+  # authorized controller, so this directory must survive restarts. Point it
+  # at a mounted volume when running the local backend in production.
+  if root = System.get_env("PHOTO_LOCAL_ROOT") do
+    config :bibtime, Bibtime.Photos.Storage, backend: :local, local_root: root
+  end
 end
 
 # Stripe configuration (all environments)

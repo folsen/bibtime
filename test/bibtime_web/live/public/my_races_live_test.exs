@@ -29,6 +29,40 @@ defmodule BibtimeWeb.Public.MyRacesLive.EditTest do
     end
   end
 
+  describe "the photos link on the race list" do
+    setup %{conn: conn} do
+      user = user_fixture()
+      %{conn: log_in_user(conn, user), user: user}
+    end
+
+    test "is offered for a finished race with no photos yet", %{conn: conn, user: user} do
+      race = race_fixture(%{status: :finished})
+      owned_participant(user, race, %{bib_number: "1"})
+
+      {:ok, _view, html} = live(conn, ~p"/my-races")
+
+      assert html =~ ~p"/races/#{race.slug}/photos"
+    end
+
+    test "is offered while the race is under way", %{conn: conn, user: user} do
+      race = race_fixture(%{status: :in_progress})
+      owned_participant(user, race, %{bib_number: "1"})
+
+      {:ok, _view, html} = live(conn, ~p"/my-races")
+
+      assert html =~ ~p"/races/#{race.slug}/photos"
+    end
+
+    test "is withheld before the race starts", %{conn: conn, user: user} do
+      race = race_fixture(%{status: :registration_open})
+      owned_participant(user, race, %{bib_number: "1"})
+
+      {:ok, _view, html} = live(conn, ~p"/my-races")
+
+      refute html =~ ~p"/races/#{race.slug}/photos"
+    end
+  end
+
   describe "editing as the owner" do
     setup %{conn: conn} do
       user = user_fixture()

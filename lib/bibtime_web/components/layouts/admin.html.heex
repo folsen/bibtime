@@ -148,6 +148,12 @@
             class="px-4 py-2.5 font-medium text-base-content/60 hover:text-base-content border-b-2 border-transparent hover:border-primary/40 transition-colors"
           >
             {gettext("Photos")}
+            <span
+              :if={(assigns[:pending_photo_count] || 0) > 0}
+              class="ml-1 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-warning text-warning-content text-xs font-semibold align-[1px]"
+            >
+              {@pending_photo_count}
+            </span>
           </a>
           <a
             href={"/admin/races/#{@race.id}/stations"}

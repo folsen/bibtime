@@ -493,13 +493,16 @@ defmodule BibtimeWeb.Public.ResultsLive.Index do
           </span>
         </div>
         <div class="ml-auto flex items-center gap-2">
+          <%!-- Always linked, even at zero: an empty gallery is where the first
+               participant goes to add one. --%>
           <.link
-            :if={@photo_count > 0}
             navigate={~p"/races/#{@race.slug}/photos"}
             class="inline-flex items-center gap-2 rounded-lg bg-base-200/50 border border-base-300/40 px-4 py-2 text-sm font-medium text-base-content/70 hover:bg-base-300/50 hover:text-base-content transition-colors"
           >
             <.icon name="hero-photo" class="size-4" />
-            {ngettext("%{count} Photo", "%{count} Photos", @photo_count)}
+            {if @photo_count > 0,
+              do: ngettext("%{count} Photo", "%{count} Photos", @photo_count),
+              else: gettext("Photos")}
           </.link>
           <a
             href={~p"/races/#{@race.slug}/kiosk"}

@@ -10,6 +10,7 @@ defmodule Bibtime.Mailer.Previews do
 
   alias Bibtime.Accounts.UserNotifier
   alias Bibtime.Payments.PaymentNotifier
+  alias Bibtime.Photos.PhotoNotifier
   alias Bibtime.Races.RaceNotifier
   alias Bibtime.Registration.RegistrationNotifier
 
@@ -63,6 +64,34 @@ defmodule Bibtime.Mailer.Previews do
         end
       },
       %{
+        key: "photos_pending_review",
+        title: "Photos awaiting review",
+        description: "Sent to organizers when participants submit photos.",
+        build: fn locale ->
+          PhotoNotifier.email_pending_review(sample_user(locale), sample_race(), 3)
+        end
+      },
+      %{
+        key: "photos_approved",
+        title: "Submitted photos published",
+        description: "Sent to a participant when an organizer approves their photos.",
+        build: fn locale ->
+          PhotoNotifier.email_photos_approved(sample_user(locale), sample_race(), 2)
+        end
+      },
+      %{
+        key: "photo_rejected",
+        title: "Submitted photo not published",
+        description: "Sent to a participant when an organizer rejects a photo.",
+        build: fn locale ->
+          PhotoNotifier.email_photo_rejected(
+            sample_user(locale),
+            sample_race(),
+            "The bib numbers in this shot belong to another race."
+          )
+        end
+      },
+      %{
         key: "race_announcement",
         title: "Race announcement (bulk)",
         description:
@@ -108,6 +137,7 @@ defmodule Bibtime.Mailer.Previews do
 
   defp sample_race do
     %Bibtime.Races.Race{
+      id: 1,
       name: "Sample Triathlon 2026",
       slug: "sample-triathlon-2026",
       date: ~D[2026-06-15],

@@ -38,6 +38,8 @@ Race
   ├── slug (URL identifier), status (draft → registration_open → registration_closed → in_progress → finished → archived)
   ├── race_type: triathlon | running | cycling | swimming | custom
   ├── participant_limit (optional cap on registrations)
+  ├── photo fields: photos_public (who may view), photo_uploads_enabled
+  │   (whether participants may submit)
   ├── payment fields: payment_required, entry_fee_cents, currency, early_bird_fee_cents, early_bird_deadline
   ├── has_many → RaceCategory (manual categories: name, distance_label, gender filter, age range)
   ├── has_many → RaceAutoCategory (auto-assigned: type=gender|age_group, filter criteria)
@@ -78,7 +80,11 @@ Payment
   └── belongs_to → Participant
 
 RacePhoto
-  ├── S3/local storage via Photos.Storage
+  ├── S3/local storage via Photos.Storage (object key; never a servable path —
+  │   reads go through the authorized /photos/:id controller)
+  ├── status: approved | pending | rejected
+  ├── uploaded_by_user_id (participant submissions), reviewed_by_user_id,
+  │   reviewed_at, rejection_reason
   ├── bib_numbers (list — tags photos to participants)
   └── belongs_to → Race
 ```
@@ -94,7 +100,7 @@ RacePhoto
 | `Results` | Result computation + ranking | Delegates to `Calculator` (builds `ParticipantResult` structs with leg_times, total_ms, splits_completed) then `Ranker` (sorts by splits_completed desc, total_ms asc); `Export` for CSV; `PdfTemplate` + ChromicPDF for PDF |
 | `Registration` | Public registration flow | Auto-creates user accounts, assigns bibs, sends confirmation emails via `RegistrationNotifier` |
 | `Payments` | Stripe Checkout integration | `create_checkout_session/4`, webhook handling, early-bird pricing logic |
-| `Photos` | Race photo management | S3 upload via `ExAws.S3`, bib-number tagging |
+| `Photos` | Race photo management + moderation | S3/local upload, bib-number tagging, magic-byte type sniffing; participants submit photos that stay `:pending` until an admin approves them. Every read defaults to approved-only. `PhotoNotifier` emails organizers about the queue and uploaders about the verdict |
 | `SiteSettings` | Whitelabel singleton (site name, hero copy, CTA, default locale, organizer contact) | Single-row table cached in `:persistent_term`, refreshed on update; assigned to every browser request by `BibtimeWeb.Plugs.AssignSiteSettings` |
 | `AuditLog` | Action logging | Tracks admin actions with actor, action, metadata |
 

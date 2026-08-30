@@ -111,6 +111,17 @@ defmodule BibtimeWeb.Admin.RaceLive.Edit do
                   "When unchecked, only logged-in race participants can view photos for this race."
                 )}
               </p>
+
+              <.input
+                field={@form[:photo_uploads_enabled]}
+                type="checkbox"
+                label={gettext("Let participants submit their own photos")}
+              />
+              <p class="text-xs text-base-content/40">
+                {gettext(
+                  "Participants can upload photos once the race is under way or finished. Submissions stay hidden until an organizer approves them."
+                )}
+              </p>
             </div>
           </div>
 

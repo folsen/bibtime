@@ -394,6 +394,7 @@ must be set in `:prod` and `:staging`; the app refuses to boot otherwise.
 | `STRIPE_SECRET_KEY`              | no              | —                    | Enables paid registrations.                                                 |
 | `STRIPE_WEBHOOK_SECRET`          | required if Stripe enabled | —         | Signing secret for `/webhooks/stripe`.                                      |
 | `PHOTO_STORAGE`                  | no              | local disk           | Set to `s3` to store participant photos in an S3-compatible bucket.         |
+| `PHOTO_LOCAL_ROOT`               | no              | `priv/photo_uploads` | Directory for the local photo backend. Photos are stored outside `priv/static` and streamed by an authorized controller, so this path must be on a persistent volume when `PHOTO_STORAGE` is unset. Ignored when `PHOTO_STORAGE=s3`. |
 | `S3_BUCKET` / `BUCKET_NAME`      | required if `PHOTO_STORAGE=s3` | —     | Bucket name. `BUCKET_NAME` is what `fly storage create` injects.            |
 | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` / `AWS_REGION` | required if `PHOTO_STORAGE=s3` | — | S3 credentials. `AWS_REGION` defaults to `us-east-1`.        |
 | `AWS_ENDPOINT_URL_S3` / `S3_ENDPOINT_URL` | no     | —                    | Custom S3 endpoint (Tigris, R2, Backblaze, MinIO).                          |

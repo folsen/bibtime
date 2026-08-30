@@ -1,6 +1,7 @@
 defmodule BibtimeWeb.Admin.RaceLive.Index do
   use BibtimeWeb, :live_view
 
+  alias Bibtime.Photos
   alias Bibtime.Races
 
   @impl true
@@ -10,6 +11,7 @@ defmodule BibtimeWeb.Admin.RaceLive.Index do
     {:ok,
      socket
      |> assign(:race_count, length(races))
+     |> assign(:pending_photos, Photos.count_pending_photos_by_race())
      |> stream(:races, races)}
   end
 
@@ -55,6 +57,18 @@ defmodule BibtimeWeb.Admin.RaceLive.Index do
                 class="font-medium text-primary hover:text-primary/80 transition-colors"
               >
                 {race.name}
+              </.link>
+              <.link
+                :if={Map.get(@pending_photos, race.id, 0) > 0}
+                navigate={~p"/admin/races/#{race.id}/photos?#{[status: "pending"]}"}
+                class="ml-2 inline-flex items-center gap-1 rounded-full bg-warning/15 text-warning px-2 py-0.5 text-xs font-semibold hover:bg-warning/25 transition-colors"
+              >
+                <.icon name="hero-photo" class="size-3" />
+                {ngettext(
+                  "%{count} to review",
+                  "%{count} to review",
+                  Map.get(@pending_photos, race.id, 0)
+                )}
               </.link>
             </td>
             <td class="py-3 text-sm text-base-content/70">

@@ -20,6 +20,16 @@ defmodule Bibtime.Accounts do
   end
 
   @doc """
+  Returns every admin user, ordered by email.
+  """
+  def list_admins do
+    User
+    |> where([u], u.role == "admin")
+    |> order_by(asc: :email)
+    |> Repo.all()
+  end
+
+  @doc """
   Returns the number of admin users.
   """
   def count_admins do

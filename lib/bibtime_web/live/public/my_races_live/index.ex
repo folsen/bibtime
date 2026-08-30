@@ -4,6 +4,7 @@ defmodule BibtimeWeb.Public.MyRacesLive.Index do
   alias Bibtime.Participants
 
   @concluded_race_statuses [:finished, :archived]
+  @started_race_statuses [:in_progress | @concluded_race_statuses]
 
   @impl true
   def mount(_params, _session, socket) do
@@ -28,6 +29,8 @@ defmodule BibtimeWeb.Public.MyRacesLive.Index do
   defp sort_dates_desc(a, b), do: Date.compare(a, b) != :lt
 
   defp race_concluded?(race), do: race.status in @concluded_race_statuses
+
+  defp race_started?(race), do: race.status in @started_race_statuses
 
   @impl true
   def render(assigns) do
@@ -128,6 +131,16 @@ defmodule BibtimeWeb.Public.MyRacesLive.Index do
               >
                 <.icon name="hero-list-bullet" class="size-4" />
                 {gettext("Start List")}
+              </.link>
+              <%!-- Linked whether or not the race has photos yet — participants
+                   upload their own from this page. --%>
+              <.link
+                :if={race_started?(participant.race)}
+                navigate={~p"/races/#{participant.race.slug}/photos"}
+                class="btn btn-outline btn-sm gap-1.5 flex-1 sm:flex-none"
+              >
+                <.icon name="hero-photo" class="size-4" />
+                {gettext("Photos")}
               </.link>
             </div>
           </div>

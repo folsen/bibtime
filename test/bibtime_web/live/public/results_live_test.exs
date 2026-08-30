@@ -212,6 +212,28 @@ defmodule BibtimeWeb.Public.ResultsLiveTest do
     end
   end
 
+  describe "the photos link" do
+    test "is offered even when the race has no photos yet", %{conn: conn} do
+      %{race: race} = create_race_with_results()
+
+      {:ok, view, _html} = live(conn, ~p"/races/#{race.slug}/results")
+      html = render_async(view)
+
+      assert html =~ ~p"/races/#{race.slug}/photos"
+      assert html =~ "Photos"
+    end
+
+    test "shows the count once there are photos", %{conn: conn} do
+      %{race: race} = create_race_with_results()
+      Bibtime.PhotosFixtures.photo_fixture(race)
+
+      {:ok, view, _html} = live(conn, ~p"/races/#{race.slug}/results")
+      html = render_async(view)
+
+      assert html =~ "1 Photo"
+    end
+  end
+
   describe "empty state" do
     test "shows no results message when race has no participants", %{conn: conn} do
       race =

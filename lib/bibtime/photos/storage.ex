@@ -2,30 +2,38 @@ defmodule Bibtime.Photos.Storage do
   @moduledoc """
   File storage abstraction for race photos.
 
+  Both backends store the same thing in `RacePhoto.file_path`: an object key
+  of the form `races/<race_id>/photos/<filename>`.
+
   ## Backends
 
-    * `:local` (default) — files live under `priv/static/uploads/...` and
-      `file_path` is the absolute URL path, e.g. `/uploads/races/1/photos/x.jpg`.
-    * `:s3` — files live in an S3-compatible bucket (AWS S3 or Tigris) and
-      `file_path` stores only the object key, e.g. `races/1/photos/x.jpg`.
-      URLs are minted on demand via `presigned_url/1` by a controller that
-      enforces per-race access control.
+    * `:local` (default) — files live under `local_root/0`, which is
+      deliberately **outside** `priv/static` so `Plug.Static` cannot serve
+      them. Reads go through `BibtimeWeb.PhotoController`, which enforces
+      per-photo access control.
+    * `:s3` — files live in an S3-compatible bucket (AWS S3 or Tigris). URLs
+      are minted on demand via `presigned_url/1` by the same controller.
+
+  Photos awaiting moderation must never be reachable without an authorization
+  check, which is why neither backend hands out a directly-servable path.
   """
 
+  @default_local_root "priv/photo_uploads"
+
   @doc """
-  Stores an uploaded file and returns the stored reference:
-  an absolute URL path for local, or the object key for S3.
+  Stores an uploaded file and returns `{:ok, key}`.
   """
   def store(race_id, filename, source_path) do
+    key = "races/#{race_id}/photos/#{filename}"
+
     case backend() do
-      :local -> store_local(race_id, filename, source_path)
-      :s3 -> store_s3(race_id, filename, source_path)
+      :local -> store_local(key, source_path)
+      :s3 -> store_s3(key, source_path)
     end
   end
 
   @doc """
-  Deletes a stored file, accepting either a local `/uploads/...` path or an
-  S3 object key.
+  Deletes a stored file. Accepts a key or a legacy `/uploads/...` path.
   """
   def delete(file_path) do
     case backend() do
@@ -49,21 +57,42 @@ defmodule Bibtime.Photos.Storage do
     |> ExAws.S3.presigned_url(:get, s3_config()[:bucket], key, expires_in: expires_in)
   end
 
+  @doc """
+  Absolute path on disk for a local storage key.
+
+  Keys beginning with `/` are legacy `/uploads/...` values written before
+  photos moved out of the static tree; they still resolve under `priv/static`
+  so pre-migration rows keep rendering.
+  """
+  def local_path("/" <> _ = legacy_path) do
+    Path.join("priv/static", String.trim_leading(legacy_path, "/"))
+  end
+
+  def local_path(key), do: Path.join(local_root(), key)
+
+  @doc """
+  Root directory for the `:local` backend.
+
+  Configure with an absolute path on a persistent volume when running the
+  local backend in production.
+  """
+  def local_root do
+    Application.get_env(:bibtime, __MODULE__, [])
+    |> Keyword.get(:local_root, @default_local_root)
+  end
+
   # --- Local storage ---
 
-  defp store_local(race_id, filename, source_path) do
-    dest_dir = Path.join(["priv/static/uploads/races", to_string(race_id), "photos"])
-    File.mkdir_p!(dest_dir)
-    dest_path = Path.join(dest_dir, filename)
+  defp store_local(key, source_path) do
+    dest_path = local_path(key)
+    File.mkdir_p!(Path.dirname(dest_path))
     File.cp!(source_path, dest_path)
 
-    {:ok, "/uploads/races/#{race_id}/photos/#{filename}"}
+    {:ok, key}
   end
 
   defp delete_local(file_path) do
-    full_path = Path.join("priv/static", String.trim_leading(file_path, "/"))
-
-    case File.rm(full_path) do
+    case File.rm(local_path(file_path)) do
       :ok -> :ok
       {:error, :enoent} -> :ok
       error -> error
@@ -72,11 +101,10 @@ defmodule Bibtime.Photos.Storage do
 
   # --- S3 storage ---
 
-  defp store_s3(race_id, filename, source_path) do
+  defp store_s3(key, source_path) do
     bucket = s3_config()[:bucket]
-    key = "races/#{race_id}/photos/#{filename}"
     body = File.read!(source_path)
-    content_type = MIME.from_path(filename)
+    content_type = MIME.from_path(key)
 
     case ExAws.request(ExAws.S3.put_object(bucket, key, body, content_type: content_type)) do
       {:ok, _} -> {:ok, key}
@@ -97,10 +125,8 @@ defmodule Bibtime.Photos.Storage do
   # --- Config ---
 
   defp backend do
-    case Application.get_env(:bibtime, __MODULE__) do
-      nil -> :local
-      config -> Keyword.get(config, :backend, :local)
-    end
+    Application.get_env(:bibtime, __MODULE__, [])
+    |> Keyword.get(:backend, :local)
   end
 
   defp s3_config do

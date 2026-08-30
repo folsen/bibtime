@@ -1,7 +1,6 @@
 defmodule BibtimeWeb.Public.RaceLive.Show do
   use BibtimeWeb, :live_view
 
-  alias Bibtime.Photos
   alias Bibtime.Races
   alias Bibtime.Participants
   alias Bibtime.Registration
@@ -22,7 +21,6 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
       |> Enum.reject(&is_nil(&1.bib_number))
 
     slots_taken = Participants.count_slots_taken(race.id)
-    photo_count = Photos.count_photos(race.id)
     registration_full = Registration.registration_full?(race)
     user_registrations = user_registrations(socket.assigns.current_scope, race.id)
 
@@ -32,7 +30,6 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
        participants: participants,
        slots_taken: slots_taken,
        start_list_count: length(participants),
-       photo_count: photo_count,
        registration_full: registration_full,
        user_registrations: user_registrations,
        page_title: race.name
@@ -288,12 +285,14 @@ defmodule BibtimeWeb.Public.RaceLive.Show do
           <.icon name="hero-trophy" class="size-5" /> {gettext("View Results")}
           <.icon name="hero-arrow-right" class="size-5" />
         </.link>
+        <%!-- Shown from the moment the race is under way, photos or not: the
+             gallery is also where participants upload their own. --%>
         <.link
-          :if={@photo_count > 0}
+          :if={@race.status in [:in_progress, :finished, :archived]}
           navigate={~p"/races/#{@race.slug}/photos"}
           class="btn btn-lg btn-outline gap-2 shadow-md hover:shadow-lg transition-shadow"
         >
-          <.icon name="hero-photo" class="size-5" /> {gettext("View Photos")}
+          <.icon name="hero-photo" class="size-5" /> {gettext("Photos")}
         </.link>
       </div>
 

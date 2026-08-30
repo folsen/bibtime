@@ -22,6 +22,11 @@ config :bibtime, BibtimeWeb.Endpoint,
   secret_key_base: "N/Ae+l6upk1qy0mcBqSJXgkrtwoTOV2PvSDaKl65FM9YCa5pzZK5o/KjS7sC3PSx",
   server: false
 
+# Photo uploads go to a throwaway directory, never the repo tree.
+config :bibtime, Bibtime.Photos.Storage,
+  backend: :local,
+  local_root: Path.expand("../tmp/test_photo_uploads", __DIR__)
+
 # In test we don't send emails
 config :bibtime, Bibtime.Mailer, adapter: Swoosh.Adapters.Test
 
