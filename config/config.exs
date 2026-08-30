@@ -73,15 +73,6 @@ config :logger, :default_formatter,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
-# ChromicPDF renders the results PDF by driving a real browser.
-#
-# dev and test use `on_demand`: the supervision tree holds only a config Agent
-# and an idle pool, so nothing starts a browser at boot and the runs that never
-# export a PDF — nearly all of them — never pay for Chrome at all.
-#
-# Production deliberately does NOT use this mode. See config/prod.exs.
-config :bibtime, ChromicPDF, on_demand: true
-
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

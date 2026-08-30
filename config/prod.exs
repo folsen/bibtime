@@ -19,26 +19,6 @@ config :bibtime, BibtimeWeb.Endpoint,
     ]
   ]
 
-# Production runs a warm single-session pool instead of the `on_demand` mode
-# used in dev and test.
-#
-# `on_demand` leaks Chrome: its teardown is a bare `Process.exit(browser,
-# :normal)` that the browser survives, so every render adds ~3 OS processes
-# that are never reclaimed — measured locally at roughly 400MB per export,
-# which exhausts a small machine within a couple of exports. A pooled session
-# keeps the process count flat and renders about three times faster. The cost
-# is one Chrome resident from boot; `size: 1` keeps that to a single instance
-# rather than the schedulers-online default.
-#
-# no_sandbox and --disable-dev-shm-usage are both needed for Chrome to run as
-# an unprivileged user in a container: its own sandbox cannot initialise there,
-# and the container's /dev/shm is far smaller than Chrome expects.
-config :bibtime, ChromicPDF,
-  on_demand: false,
-  session_pool: [size: 1],
-  no_sandbox: true,
-  chrome_args: "--disable-dev-shm-usage"
-
 # Configure Swoosh API Client
 config :swoosh, api_client: Swoosh.ApiClient.Req
 

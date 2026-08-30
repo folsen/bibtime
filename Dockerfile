@@ -54,12 +54,8 @@ RUN mix release
 # ── Stage 4: runtime ──────────────────────────────────────────────
 FROM ${RUNNER_IMAGE}
 
-# chromium backs the results PDF export (ChromicPDF drives a real browser);
-# fonts-liberation gives it something to render text with, or every glyph
-# comes out as a box.
 RUN apt-get update -y && \
     apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates sqlite3 curl \
-    chromium fonts-liberation \
     && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # Install Litestream for continuous SQLite backups to object storage.

@@ -8,14 +8,10 @@ defmodule Bibtime.Results.Export do
   alias Bibtime.Results.PdfTemplate
 
   @doc """
-  Generates a base64-encoded PDF of race results.
-
-  ChromicPDF is supervised by the application in `on_demand` mode, so the
-  browser is launched for this call and shut down after it. Returns
-  `{:error, reason}` rather than raising when the render fails — a missing or
-  unhappy Chrome must surface as something the caller can report.
+  Generates a PDF binary of race results.
   """
   def to_pdf(race, results, splits, opts \\ []) do
+    ensure_chromic_pdf_started()
     html = PdfTemplate.render(race, results, splits, opts)
 
     ChromicPDF.print_to_pdf({:html, html},
@@ -25,6 +21,13 @@ defmodule Bibtime.Results.Export do
         preferCSSPageSize: true
       }
     )
+  end
+
+  defp ensure_chromic_pdf_started do
+    case Process.whereis(ChromicPDF.Supervisor) do
+      nil -> ChromicPDF.start_link([])
+      _pid -> :ok
+    end
   end
 
   @doc """

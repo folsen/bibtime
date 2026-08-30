@@ -151,7 +151,7 @@ msgstr ""
 msgid "Admin Panel"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:57
+#: lib/bibtime/results/export.ex:60
 #: lib/bibtime/results/pdf_template.ex:91
 #: lib/bibtime_web/live/admin/race_live/show.ex:503
 #: lib/bibtime_web/live/admin/race_live/show.ex:1045
@@ -250,7 +250,7 @@ msgstr ""
 msgid "Back to races"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:47
+#: lib/bibtime/results/export.ex:50
 #: lib/bibtime/results/pdf_template.ex:105
 #: lib/bibtime_web/live/admin/check_in_live/index.ex:165
 #: lib/bibtime_web/live/admin/participant_live/index.ex:437
@@ -315,7 +315,7 @@ msgstr ""
 
 #: lib/bibtime/registration/registration_notifier.ex:67
 #: lib/bibtime/registration/registration_notifier.ex:134
-#: lib/bibtime/results/export.ex:53
+#: lib/bibtime/results/export.ex:56
 #: lib/bibtime/results/pdf_template.ex:85
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:104
 #: lib/bibtime_web/live/admin/participant_live/index.ex:459
@@ -371,7 +371,7 @@ msgstr ""
 msgid "Clone from Race"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:50
+#: lib/bibtime/results/export.ex:53
 #: lib/bibtime/results/pdf_template.ex:107
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:98
 #: lib/bibtime_web/live/admin/participant_live/index.ex:470
@@ -647,7 +647,7 @@ msgstr ""
 msgid "Finished"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:48
+#: lib/bibtime/results/export.ex:51
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:75
 #: lib/bibtime_web/live/admin/participant_live/new.ex:73
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:131
@@ -759,7 +759,7 @@ msgstr ""
 msgid "Kiosk Display"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:49
+#: lib/bibtime/results/export.ex:52
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:76
 #: lib/bibtime_web/live/admin/participant_live/new.ex:74
 #: lib/bibtime_web/live/public/my_races_live/edit.ex:138
@@ -1376,7 +1376,7 @@ msgstr ""
 msgid "Start Race"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:69
+#: lib/bibtime/results/export.ex:72
 #: lib/bibtime/results/pdf_template.ex:112
 #: lib/bibtime_web/live/admin/check_in_live/index.ex:168
 #: lib/bibtime_web/live/admin/participant_live/edit.ex:111
@@ -1445,7 +1445,7 @@ msgstr ""
 msgid "To see sent emails, visit"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:69
+#: lib/bibtime/results/export.ex:72
 #: lib/bibtime/results/pdf_template.ex:111
 #: lib/bibtime_web/live/public/kiosk_live/index.ex:240
 #: lib/bibtime_web/live/public/profile_live/show.ex:129
@@ -1659,12 +1659,12 @@ msgstr ""
 msgid "the mailbox page"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:57
+#: lib/bibtime/results/export.ex:60
 #, elixir-autogen, elixir-format
 msgid "Gender Category"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:46
+#: lib/bibtime/results/export.ex:49
 #, elixir-autogen, elixir-format
 msgid "Rank"
 msgstr ""
@@ -2257,7 +2257,7 @@ msgstr ""
 msgid "None"
 msgstr ""
 
-#: lib/bibtime/results/export.ex:63
+#: lib/bibtime/results/export.ex:66
 #, elixir-autogen, elixir-format
 msgid "Pace"
 msgstr ""
@@ -3893,9 +3893,4 @@ msgstr ""
 #: lib/bibtime_web/live/public/photo_live/index.ex:300
 #, elixir-autogen, elixir-format
 msgid "to add them to the gallery."
-msgstr ""
-
-#: lib/bibtime_web/controllers/export_controller.ex:44
-#, elixir-autogen, elixir-format
-msgid "Could not generate the PDF. Please try again."
 msgstr ""
