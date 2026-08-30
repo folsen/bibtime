@@ -21,10 +21,14 @@ Bibtime.Application
   └── BibtimeWeb.Endpoint (Bandit HTTP server)
 ```
 
-ChromicPDF is **not** part of the supervision tree — it's lazy-started on
-the first PDF export by `Bibtime.Results.Export.ensure_chromic_pdf_started/0`,
-which keeps test/dev startup fast and avoids spawning headless Chrome on
-servers that never render PDFs.
+ChromicPDF **is** supervised, with different modes per environment. dev and
+test use `on_demand` (`config/config.exs`): the tree holds only a config Agent
+and an idle pool, and Chrome starts per render — so a machine that never
+exports a PDF never runs a browser. Production uses a warm single-session pool
+(`config/prod.exs`), because `on_demand` leaks its Chrome processes; that file
+carries the measurements. Production also sets `no_sandbox` and
+`--disable-dev-shm-usage`, both needed for Chrome to run unprivileged in a
+container; the image installs `chromium` and `fonts-liberation`.
 
 ## Data Model
 

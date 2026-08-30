@@ -16,6 +16,11 @@ defmodule Bibtime.Application do
       {Phoenix.PubSub, name: Bibtime.PubSub},
       {Task.Supervisor, name: Bibtime.TaskSupervisor},
       Bibtime.RateLimiter,
+      # In dev and test this starts no browser at all (`on_demand`); in
+      # production it warms a single Chrome session. Either way the renderer
+      # gets a supervisor that outlives the request that triggered it. See
+      # config/prod.exs for why the two environments differ.
+      {ChromicPDF, Application.get_env(:bibtime, ChromicPDF, [])},
       # Start to serve requests, typically the last entry
       BibtimeWeb.Endpoint
     ]
